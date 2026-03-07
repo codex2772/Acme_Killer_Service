@@ -1,0 +1,22 @@
+# Ignore files that shouldn't be in Docker build context
+.git
+# Ignore files that shouldn't be in Docker build context
+.git
+.gitignore
+.gitattributes
+.idea
+*.iml
+.vscode
+.DS_Store
+target
+*.md
+!README.md
+LICENSE
+*.log
+logs
+.env*
+*.pem
+*.key
+k8s/
+docker-compose*.yml
+.editorconfig
