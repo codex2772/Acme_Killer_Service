@@ -14,3 +14,10 @@ container_port   = 8080
 container_cpu    = 512    # 0.5 vCPU
 container_memory = 1024   # 1 GB
 desired_count    = 1
+
+# RDS MySQL
+db_instance_class = "db.t3.micro"
+db_name           = "jewelerpdb"
+db_username       = "jeweladmin"
+db_password       = "CHANGE_ME_STRONG_PASSWORD"
+
