@@ -76,11 +76,7 @@ jobs:
           container_port   = 8080
           container_cpu    = 512
           container_memory = 1024
-          desired_count    = 2
-
-          # Auto Scaling
-          min_capacity = 1
-          max_capacity = 4
+          desired_count    = 1
           EOF
 
       - name: Terraform Validate

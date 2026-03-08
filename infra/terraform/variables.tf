@@ -58,17 +58,6 @@ variable "container_memory" {
 variable "desired_count" {
   description = "Desired number of tasks"
   type        = number
-  default     = 2
-}
-
-variable "min_capacity" {
-  description = "Minimum number of tasks"
-  type        = number
   default     = 1
 }
 
-variable "max_capacity" {
-  description = "Maximum number of tasks"
-  type        = number
-  default     = 4
-}

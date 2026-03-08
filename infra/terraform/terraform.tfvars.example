@@ -13,8 +13,4 @@ availability_zones = ["ap-south-1a", "ap-south-1b"]
 container_port   = 8080
 container_cpu    = 512    # 0.5 vCPU
 container_memory = 1024   # 1 GB
-desired_count    = 2
-
-# Auto Scaling
-min_capacity = 1
-max_capacity = 4
+desired_count    = 1
