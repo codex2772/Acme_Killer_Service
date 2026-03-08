@@ -1,0 +1,20 @@
+# Override default variables for your environment
+# Copy this file to terraform.tfvars and update values
+
+aws_region  = "ap-south-1"
+environment = "prod"
+app_name    = "jewel-erp"
+
+# Networking
+vpc_cidr           = "10.0.0.0/16"
+availability_zones = ["ap-south-1a", "ap-south-1b"]
+
+# ECS Configuration
+container_port   = 8080
+container_cpu    = 512    # 0.5 vCPU
+container_memory = 1024   # 1 GB
+desired_count    = 2
+
+# Auto Scaling
+min_capacity = 1
+max_capacity = 4

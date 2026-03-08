@@ -76,8 +76,21 @@ secrets/
 credentials/
 
 # ========================
-# Kubernetes Secrets
+# AWS / ECS / Terraform
 # ========================
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+*-secrets.json
+task-definition-live.json
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
 deploy/*-secret.yaml
 *.kubeconfig
 

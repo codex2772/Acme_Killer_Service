@@ -3,7 +3,7 @@
 [![Build Status](https://github.com/aurajewels/jewel-erp/workflows/CI/CD/badge.svg)](https://github.com/aurajewels/jewel-erp/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.org/projects/jdk/21/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.3-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.3-brightgreen.svg)](https://spring.io/projects/spring-boot)
 
 A comprehensive cloud-native ERP backend for jewelry retailers featuring inventory tracking, GST-compliant billing, and stock management.
 
@@ -12,7 +12,7 @@ A comprehensive cloud-native ERP backend for jewelry retailers featuring invento
 ### Prerequisites
 - Java 21+
 - Docker & Docker Compose
-- PostgreSQL 16+ (or use Docker)
+- AWS CLI (for deployment)
 
 ### Local Development
 
@@ -21,47 +21,41 @@ A comprehensive cloud-native ERP backend for jewelry retailers featuring invento
 git clone https://github.com/aurajewels/jewel-erp.git
 cd jewel-erp
 
-# Start dependencies (PostgreSQL)
-docker-compose up -d postgres
-
 # Run the application
-./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+./mvnw spring-boot:run
 
 # Or build and run
 ./mvnw clean package -DskipTests
-java -jar target/jewel-erp-0.0.1-SNAPSHOT.jar
+java -jar target/jewel-erp-0.0.1.jar
 ```
 
 ### Using Docker
 
 ```bash
-# Build and run everything
-docker-compose up --build
-
-# Or just build the image
+# Build and run
 docker build -t jewel-erp:latest .
+docker run -p 8080:8080 jewel-erp:latest
+
+# Or use docker-compose
+docker-compose up --build
 ```
 
-## 📚 API Documentation
+## 📚 API Endpoints
 
-Once running, access the API documentation at:
-- **Swagger UI**: http://localhost:8080/swagger-ui.html
-- **OpenAPI JSON**: http://localhost:8080/api-docs
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api` | GET | Welcome message |
+| `/api/hello` | GET | Hello World |
+| `/actuator/health` | GET | Health status |
 
 ## 🏗️ Project Structure
 
 ```
 src/main/java/com/aurajewels/jewel/
-├── common/              # Shared infrastructure
-│   ├── config/          # App configurations
-│   ├── entity/          # Base entities
-│   └── exception/       # Exception handling
-├── inventory/           # Inventory management module
-├── billing/             # Invoicing & billing module
-├── stock/               # Stock management module
-├── customer/            # Customer management
-├── supplier/            # Supplier management
-└── security/            # Authentication & authorization
+├── controller/          # REST controllers
+├── service/             # Business logic (coming soon)
+├── repository/          # Data access (coming soon)
+└── entity/              # Domain entities (coming soon)
 ```
 
 ## 🔧 Configuration
@@ -70,31 +64,49 @@ Key environment variables:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL connection URL | `jdbc:postgresql://localhost:5432/jewelerpdb` |
-| `DATABASE_USERNAME` | Database username | `jeweluser` |
-| `DATABASE_PASSWORD` | Database password | `jewelpass` |
-| `JWT_SECRET` | JWT signing key (256-bit) | - |
-| `SPRING_PROFILES_ACTIVE` | Active profile | `dev` |
+| `PORT` | Server port | `8080` |
+| `SPRING_PROFILES_ACTIVE` | Active profile | `default` |
+| `DATABASE_URL` | PostgreSQL URL | - |
+| `DATABASE_USERNAME` | DB username | - |
+| `DATABASE_PASSWORD` | DB password | - |
 
-## 🐳 Deployment
+## 🐳 Deployment (AWS ECS)
 
-### Kubernetes (EKS)
+### Prerequisites
+1. AWS CLI configured
+2. ECR repository created
+3. ECS Cluster (Fargate) set up
+4. ALB with target group
+
+### Deploy Steps
 
 ```bash
-# Apply configurations
-kubectl apply -f deploy/namespace.yaml
-kubectl apply -f deploy/configmap.yaml
-kubectl apply -f deploy/secret.yaml
-kubectl apply -f deploy/deployment.yaml
-kubectl apply -f deploy/service.yaml
-kubectl apply -f deploy/ingress.yaml
+# 1. Login to ECR
+aws ecr get-login-password --region $AWS_REGION | \
+  docker login --username AWS --password-stdin $ECR_REGISTRY
+
+# 2. Build and push image
+docker build -t jewel-erp:latest .
+docker tag jewel-erp:latest $ECR_REGISTRY/jewel-erp:latest
+docker push $ECR_REGISTRY/jewel-erp:latest
+
+# 3. Register task definition
+aws ecs register-task-definition \
+  --cli-input-json file://deploy/ecs/task-definition.json
+
+# 4. Update service
+aws ecs update-service \
+  --cluster jewel-erp-cluster \
+  --service jewel-erp-service \
+  --force-new-deployment
 ```
+
+See [deploy/ecs/README.md](deploy/ecs/README.md) for detailed instructions.
 
 ### Health Checks
 
 - **Liveness**: `/actuator/health/liveness`
 - **Readiness**: `/actuator/health/readiness`
-- **Metrics**: `/actuator/prometheus`
 
 ## 🧪 Testing
 
@@ -102,10 +114,8 @@ kubectl apply -f deploy/ingress.yaml
 # Run all tests
 ./mvnw test
 
-# Run with coverage
-./mvnw verify
-
-# Coverage report at: target/site/jacoco/index.html
+# Format code
+./mvnw spotless:apply
 ```
 
 ## 📄 License
