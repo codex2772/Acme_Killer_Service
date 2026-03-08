@@ -8,14 +8,13 @@ terraform {
     }
   }
 
-  # Uncomment to use S3 backend for state management
-  # backend "s3" {
-  #   bucket         = "jewel-erp-terraform-state"
-  #   key            = "ecs/terraform.tfstate"
-  #   region         = "ap-south-1"
-  #   encrypt        = true
-  #   dynamodb_table = "terraform-locks"
-  # }
+  backend "s3" {
+    bucket         = "jewel-erp-terraform-state"
+    key            = "ecs/terraform.tfstate"
+    region         = "ap-south-1"
+    encrypt        = true
+    dynamodb_table = "terraform-locks"
+  }
 }
 
 provider "aws" {

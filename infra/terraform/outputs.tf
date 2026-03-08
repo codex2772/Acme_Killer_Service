@@ -55,10 +55,3 @@ output "alb_zone_id" {
   value       = aws_lb.main.zone_id
 }
 
-# ================================
-# Secrets Manager
-# ================================
-output "secrets_arn" {
-  description = "Secrets Manager ARN"
-  value       = aws_secretsmanager_secret.app_secrets.arn
-}
