@@ -20,14 +20,6 @@ on:
           - prod
           - staging
         default: 'prod'
-  push:
-    branches:
-      - main
-      - develop
-      - 'feature/**'
-      - 'feature-*'
-    paths:
-      - 'infra/terraform/**'
 
 env:
   TF_VERSION: '1.7.0'
@@ -134,7 +126,7 @@ jobs:
           echo "http://$(terraform output -raw alb_dns_name)/api/hello" >> $GITHUB_STEP_SUMMARY
 
       - name: Post Plan Summary
-        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'plan')
+        if: github.event.inputs.action == 'plan'
         run: |
           echo "## 📋 Terraform Plan Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY

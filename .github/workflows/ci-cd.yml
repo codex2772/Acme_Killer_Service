@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI - Build & Test
 
 on:
   push:
@@ -11,26 +11,11 @@ on:
       - 'hotfix/**'
   pull_request:
     branches: [main, develop]
-  workflow_dispatch:
-    inputs:
-      deploy:
-        description: 'Deploy to ECS after build?'
-        required: true
-        type: boolean
-        default: false
 
 env:
   JAVA_VERSION: '21'
-  AWS_REGION: ${{ vars.AWS_REGION || 'ap-south-1' }}
-  ECR_REPOSITORY: jewel-erp
-  ECS_CLUSTER: jewel-erp-cluster
-  ECS_SERVICE: jewel-erp-service
-  CONTAINER_NAME: jewel-erp
 
 jobs:
-  # ================================
-  # Build and Test
-  # ================================
   build:
     name: Build & Test
     runs-on: ubuntu-latest
@@ -45,6 +30,10 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
+      - name: Check code formatting
+        run: ./mvnw spotless:check -B
+        continue-on-error: true
+
       - name: Build and test
         run: ./mvnw clean verify -B
 
@@ -53,85 +42,4 @@ jobs:
         with:
           name: app-jar
           path: target/*.jar
-          retention-days: 1
-
-  # ================================
-  # Build and Push to ECR
-  # ================================
-  docker:
-    name: Build & Push to ECR
-    needs: build
-    runs-on: ubuntu-latest
-    outputs:
-      image: ${{ steps.build-image.outputs.image }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Build, tag, and push image to ECR
-        id: build-image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
-
-  # ================================
-  # Deploy to ECS
-  # ================================
-  deploy:
-    name: Deploy to ECS
-    needs: docker
-    runs-on: ubuntu-latest
-    # Deploy on: push to main OR manual trigger with deploy=true
-    if: |
-      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true')
-    environment: production
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Download task definition
-        run: |
-          aws ecs describe-task-definition \
-            --task-definition ${{ env.ECS_SERVICE }} \
-            --query taskDefinition > task-definition.json
-
-      - name: Update task definition with new image
-        id: task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: task-definition.json
-          container-name: ${{ env.CONTAINER_NAME }}
-          image: ${{ needs.docker.outputs.image }}
-
-      - name: Deploy to ECS
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: ${{ env.ECS_SERVICE }}
-          cluster: ${{ env.ECS_CLUSTER }}
-          wait-for-service-stability: true
+          retention-days: 3
