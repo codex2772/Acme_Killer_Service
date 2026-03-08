@@ -1,0 +1,65 @@
+{
+  "family": "jewel-erp",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "${EXECUTION_ROLE_ARN}",
+  "taskRoleArn": "${TASK_ROLE_ARN}",
+  "containerDefinitions": [
+    {
+      "name": "jewel-erp",
+      "image": "${ECR_IMAGE}",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "SPRING_PROFILES_ACTIVE",
+          "value": "prod"
+        },
+        {
+          "name": "PORT",
+          "value": "8080"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "DATABASE_URL",
+          "valueFrom": "${SECRETS_ARN}:DATABASE_URL::"
+        },
+        {
+          "name": "DATABASE_USERNAME",
+          "valueFrom": "${SECRETS_ARN}:DATABASE_USERNAME::"
+        },
+        {
+          "name": "DATABASE_PASSWORD",
+          "valueFrom": "${SECRETS_ARN}:DATABASE_PASSWORD::"
+        },
+        {
+          "name": "JWT_SECRET",
+          "valueFrom": "${SECRETS_ARN}:JWT_SECRET::"
+        }
+      ],
+      "healthCheck": {
+        "command": ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health/liveness || exit 1"],
+        "interval": 30,
+        "timeout": 10,
+        "retries": 3,
+        "startPeriod": 60
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/jewel-erp",
+          "awslogs-region": "${AWS_REGION}",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "autoScalingGroupProvider": {
+    "autoScalingGroupArn": "${ASG_ARN}",
+    "managedScaling": {
+      "status": "ENABLED",
+      "targetCapacity": 70,
+      "minimumScalingStepSize": 1,
+      "maximumScalingStepSize": 2
+    }
+  }
+}

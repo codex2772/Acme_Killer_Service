@@ -1,0 +1,77 @@
+version: '3.9'
+
+services:
+  # ================================
+  # Application
+  # ================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jewel-erp
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - DATABASE_URL=jdbc:postgresql://postgres:5432/jewelerpdb
+      - DATABASE_USERNAME=jeweluser
+      - DATABASE_PASSWORD=jewelpass
+      - JWT_SECRET=dev-secret-key-change-in-production-minimum-256-bits-required
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - jewel-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health/liveness"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ================================
+  # PostgreSQL Database
+  # ================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: jewel-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=jewelerpdb
+      - POSTGRES_USER=jeweluser
+      - POSTGRES_PASSWORD=jewelpass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - jewel-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jeweluser -d jewelerpdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ================================
+  # pgAdmin (optional - for development)
+  # ================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: jewel-pgadmin
+    ports:
+      - "5050:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@aurajewels.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    depends_on:
+      - postgres
+    networks:
+      - jewel-network
+    profiles:
+      - dev
+
+networks:
+  jewel-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

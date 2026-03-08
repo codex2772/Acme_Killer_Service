@@ -1,0 +1,102 @@
+# ========================
+# Build outputs
+# ========================
+HELP.md
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# ========================
+# IDE - STS / Eclipse
+# ========================
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# ========================
+# IDE - IntelliJ IDEA
+# ========================
+.idea
+*.iws
+*.iml
+*.ipr
+
+# ========================
+# IDE - NetBeans
+# ========================
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# ========================
+# IDE - VS Code
+# ========================
+.vscode/
+
+# ========================
+# macOS
+# ========================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# ========================
+# Windows
+# ========================
+Thumbs.db
+Desktop.ini
+
+# ========================
+# Logs
+# ========================
+*.log
+logs/
+
+# ========================
+# Environment & Secrets
+# ========================
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.crt
+secrets/
+credentials/
+
+# ========================
+# AWS / ECS / Terraform
+# ========================
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+*-secrets.json
+task-definition-live.json
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+deploy/*-secret.yaml
+*.kubeconfig
+
+# ========================
+# Test & Coverage
+# ========================
+/coverage/
+jacoco.exec
+

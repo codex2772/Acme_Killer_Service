@@ -1,0 +1,137 @@
+name: Infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Terraform action to perform'
+        required: true
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+        default: 'plan'
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        type: choice
+        options:
+          - prod
+          - staging
+        default: 'prod'
+
+env:
+  TF_VERSION: '1.7.0'
+  AWS_REGION: ${{ vars.AWS_REGION || 'ap-south-1' }}
+  TF_WORKING_DIR: infra/terraform
+
+jobs:
+  terraform:
+    name: 'Terraform ${{ github.event.inputs.action || ''plan'' }}'
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'prod' }}
+
+    defaults:
+      run:
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Format Check
+        id: fmt
+        run: terraform fmt -check -recursive
+        continue-on-error: true
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+
+      - name: Create tfvars file
+        run: |
+          cat > terraform.tfvars << EOF
+          aws_region  = "${{ env.AWS_REGION }}"
+          environment = "${{ github.event.inputs.environment || 'prod' }}"
+          app_name    = "jewel-erp"
+
+          # Networking
+          vpc_cidr           = "10.0.0.0/16"
+          availability_zones = ["${{ env.AWS_REGION }}a", "${{ env.AWS_REGION }}b"]
+
+          # ECS Configuration
+          container_port   = 8080
+          container_cpu    = 512
+          container_memory = 1024
+          desired_count    = 2
+
+          # Auto Scaling
+          min_capacity = 1
+          max_capacity = 4
+          EOF
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        id: plan
+        run: |
+          terraform plan -out=tfplan -input=false
+
+      - name: Upload Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-${{ github.event.inputs.environment || 'prod' }}
+          path: ${{ env.TF_WORKING_DIR }}/tfplan
+          retention-days: 5
+
+      # Apply only when manually triggered with 'apply'
+      - name: Terraform Apply
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'
+        run: terraform apply -auto-approve tfplan
+
+      # Destroy only when manually triggered with 'destroy'
+      - name: Terraform Destroy
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
+        run: terraform destroy -auto-approve
+
+      - name: Terraform Output
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'
+        id: output
+        run: |
+          echo "## 🚀 Infrastructure Outputs" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Resource | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| ECR Repository | \`$(terraform output -raw ecr_repository_url)\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| ECS Cluster | \`$(terraform output -raw ecs_cluster_name)\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| ECS Service | \`$(terraform output -raw ecs_service_name)\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| ALB DNS | \`$(terraform output -raw alb_dns_name)\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🌐 Application URL" >> $GITHUB_STEP_SUMMARY
+          echo "http://$(terraform output -raw alb_dns_name)/api/hello" >> $GITHUB_STEP_SUMMARY
+
+      - name: Post Plan Summary
+        if: github.event.inputs.action == 'plan'
+        run: |
+          echo "## 📋 Terraform Plan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ github.event.inputs.environment || 'prod' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Region:** ${{ env.AWS_REGION }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Plan completed successfully. Run manually with \`apply\` to create resources." >> $GITHUB_STEP_SUMMARY
