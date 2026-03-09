@@ -27,22 +27,14 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "categories")
+@Table(name = "organizations")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Category extends BaseEntity {
+public class Organization extends BaseEntity {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "store_id", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonIgnore
-    private Store store;
-
-    @Column(name = "name", nullable = false, length = 100)
+    @Column(name = "name", nullable = false, length = 200)
     private String name;
-
-    @Column(name = "description")
-    private String description;
 }

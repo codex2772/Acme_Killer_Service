@@ -24,25 +24,52 @@
 package com.aurajewels.jewel.entity;
 
 import jakarta.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.*;
 
 @Entity
-@Table(name = "categories")
+@Table(name = "users")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Category extends BaseEntity {
+public class User extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "store_id", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonIgnore
-    private Store store;
+    @JoinColumn(name = "org_id", nullable = false)
+    private Organization organization;
 
-    @Column(name = "name", nullable = false, length = 100)
+    @Column(name = "name", nullable = false, length = 150)
     private String name;
 
-    @Column(name = "description")
-    private String description;
+    @Column(name = "mobile", nullable = false, unique = true, length = 15)
+    private String mobile;
+
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    private Role role;
+
+    @Column(name = "force_password_change")
+    private Boolean forcePasswordChange = true;
+
+    @OneToMany(
+            mappedBy = "user",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    @Builder.Default
+    private Set<UserStoreAccess> storeAccess = new HashSet<>();
+
+    @OneToMany(
+            mappedBy = "user",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    @Builder.Default
+    private Set<UserPermission> permissions = new HashSet<>();
 }

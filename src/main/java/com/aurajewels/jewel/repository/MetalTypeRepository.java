@@ -34,7 +34,13 @@ public interface MetalTypeRepository extends JpaRepository<MetalType, Long> {
 
     List<MetalType> findByActiveTrue();
 
+    List<MetalType> findByStoreIdAndActiveTrue(Long storeId);
+
+    Optional<MetalType> findByIdAndStoreId(Long id, Long storeId);
+
     List<MetalType> findByNameAndActiveTrue(String name);
+
+    List<MetalType> findByNameAndStoreIdAndActiveTrue(String name, Long storeId);
 
     Optional<MetalType> findByNameAndPurity(String name, String purity);
 }

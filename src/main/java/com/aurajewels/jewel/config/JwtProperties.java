@@ -21,28 +21,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.entity;
+package com.aurajewels.jewel.config;
 
-import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
-@Entity
-@Table(name = "categories")
+@Component
+@ConfigurationProperties(prefix = "jwt")
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class Category extends BaseEntity {
+public class JwtProperties {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "store_id", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonIgnore
-    private Store store;
-
-    @Column(name = "name", nullable = false, length = 100)
-    private String name;
-
-    @Column(name = "description")
-    private String description;
+    private String secret;
+    private long expirationMs;
+    private long refreshExpirationMs;
 }

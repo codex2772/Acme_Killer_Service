@@ -34,9 +34,20 @@ public interface JewelryItemRepository extends JpaRepository<JewelryItem, Long> 
 
     List<JewelryItem> findByActiveTrue();
 
+    List<JewelryItem> findByStoreIdAndActiveTrue(Long storeId);
+
+    Optional<JewelryItem> findByIdAndStoreId(Long id, Long storeId);
+
     Optional<JewelryItem> findBySku(String sku);
+
+    Optional<JewelryItem> findBySkuAndStoreId(String sku, Long storeId);
 
     List<JewelryItem> findByCategoryIdAndActiveTrue(Long categoryId);
 
+    List<JewelryItem> findByCategoryIdAndStoreIdAndActiveTrue(Long categoryId, Long storeId);
+
     List<JewelryItem> findByStatusAndActiveTrue(JewelryItem.ItemStatus status);
+
+    List<JewelryItem> findByStatusAndStoreIdAndActiveTrue(
+            JewelryItem.ItemStatus status, Long storeId);
 }

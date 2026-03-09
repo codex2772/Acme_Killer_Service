@@ -36,7 +36,12 @@ import lombok.*;
 @Builder
 public class JewelryItem extends BaseEntity {
 
-    @Column(name = "sku", nullable = false, unique = true, length = 50)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private Store store;
+
+    @Column(name = "sku", nullable = false, length = 50)
     private String sku;
 
     @Column(name = "name", nullable = false, length = 200)

@@ -21,28 +21,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.entity;
+package com.aurajewels.jewel.repository;
 
-import jakarta.persistence.*;
-import lombok.*;
+import com.aurajewels.jewel.entity.UserPermission;
+import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
-@Entity
-@Table(name = "categories")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class Category extends BaseEntity {
+@Repository
+public interface UserPermissionRepository extends JpaRepository<UserPermission, Long> {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "store_id", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonIgnore
-    private Store store;
+    @Query(
+            "SELECT up.permission.name FROM UserPermission up WHERE up.user.id = :userId AND up.store.id = :storeId")
+    List<String> findPermissionNamesByUserIdAndStoreId(Long userId, Long storeId);
 
-    @Column(name = "name", nullable = false, length = 100)
-    private String name;
+    void deleteByUserId(Long userId);
 
-    @Column(name = "description")
-    private String description;
+    List<UserPermission> findByUserId(Long userId);
 }

@@ -23,9 +23,11 @@
  */
 package com.aurajewels.jewel.controller;
 
-import com.aurajewels.jewel.entity.MetalType;
+import com.aurajewels.jewel.dto.staff.CreateStaffRequest;
+import com.aurajewels.jewel.dto.staff.StaffResponse;
 import com.aurajewels.jewel.security.RequiresPermission;
-import com.aurajewels.jewel.service.MetalTypeService;
+import com.aurajewels.jewel.service.StaffService;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -33,47 +35,35 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/metal-types")
+@RequestMapping("/api/staff")
 @RequiredArgsConstructor
-public class MetalTypeController {
+public class StaffController {
 
-    private final MetalTypeService metalTypeService;
+    private final StaffService staffService;
 
     @GetMapping
-    @RequiresPermission("VIEW_INVENTORY")
-    public ResponseEntity<List<MetalType>> getAll() {
-        return ResponseEntity.ok(metalTypeService.findAll());
+    @RequiresPermission("MANAGE_STAFF")
+    public ResponseEntity<List<StaffResponse>> listStaff() {
+        return ResponseEntity.ok(staffService.listStaff());
     }
 
     @GetMapping("/{id}")
-    @RequiresPermission("VIEW_INVENTORY")
-    public ResponseEntity<MetalType> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(metalTypeService.findById(id));
-    }
-
-    @GetMapping("/search")
-    @RequiresPermission("VIEW_INVENTORY")
-    public ResponseEntity<List<MetalType>> getByName(@RequestParam String name) {
-        return ResponseEntity.ok(metalTypeService.findByName(name));
+    @RequiresPermission("MANAGE_STAFF")
+    public ResponseEntity<StaffResponse> getStaff(@PathVariable Long id) {
+        return ResponseEntity.ok(staffService.getStaff(id));
     }
 
     @PostMapping
-    @RequiresPermission("MANAGE_INVENTORY")
-    public ResponseEntity<MetalType> create(@RequestBody MetalType metalType) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(metalTypeService.create(metalType));
-    }
-
-    @PutMapping("/{id}")
-    @RequiresPermission("MANAGE_INVENTORY")
-    public ResponseEntity<MetalType> update(
-            @PathVariable Long id, @RequestBody MetalType metalType) {
-        return ResponseEntity.ok(metalTypeService.update(id, metalType));
+    @RequiresPermission("MANAGE_STAFF")
+    public ResponseEntity<StaffResponse> createStaff(
+            @Valid @RequestBody CreateStaffRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(staffService.createStaff(request));
     }
 
     @DeleteMapping("/{id}")
-    @RequiresPermission("MANAGE_INVENTORY")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        metalTypeService.delete(id);
+    @RequiresPermission("MANAGE_STAFF")
+    public ResponseEntity<Void> deactivateStaff(@PathVariable Long id) {
+        staffService.deactivateStaff(id);
         return ResponseEntity.noContent().build();
     }
 }

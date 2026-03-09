@@ -24,7 +24,10 @@
 package com.aurajewels.jewel.service;
 
 import com.aurajewels.jewel.entity.Customer;
+import com.aurajewels.jewel.entity.Store;
 import com.aurajewels.jewel.repository.CustomerRepository;
+import com.aurajewels.jewel.repository.StoreRepository;
+import com.aurajewels.jewel.security.StoreContext;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,29 +39,41 @@ import org.springframework.transaction.annotation.Transactional;
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
+    private final StoreRepository storeRepository;
 
     public List<Customer> findAll() {
-        return customerRepository.findByActiveTrue();
+        Long storeId = StoreContext.getCurrentStoreId();
+        return customerRepository.findByStoreIdAndActiveTrue(storeId);
     }
 
     public Customer findById(Long id) {
+        Long storeId = StoreContext.getCurrentStoreId();
         return customerRepository
-                .findById(id)
+                .findByIdAndStoreId(id, storeId)
                 .orElseThrow(() -> new RuntimeException("Customer not found with id: " + id));
     }
 
     public Customer findByPhone(String phone) {
+        Long storeId = StoreContext.getCurrentStoreId();
         return customerRepository
-                .findByPhone(phone)
+                .findByPhoneAndStoreId(phone, storeId)
                 .orElseThrow(() -> new RuntimeException("Customer not found with phone: " + phone));
     }
 
     public List<Customer> searchByName(String name) {
-        return customerRepository.findByFirstNameContainingIgnoreCaseAndActiveTrue(name);
+        Long storeId = StoreContext.getCurrentStoreId();
+        return customerRepository.findByFirstNameContainingIgnoreCaseAndStoreIdAndActiveTrue(
+                name, storeId);
     }
 
     @Transactional
     public Customer create(Customer customer) {
+        Long storeId = StoreContext.getCurrentStoreId();
+        Store store =
+                storeRepository
+                        .findById(storeId)
+                        .orElseThrow(() -> new RuntimeException("Store not found"));
+        customer.setStore(store);
         return customerRepository.save(customer);
     }
 

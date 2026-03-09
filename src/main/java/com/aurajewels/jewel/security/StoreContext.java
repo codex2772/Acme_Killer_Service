@@ -21,28 +21,51 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.entity;
+package com.aurajewels.jewel.security;
 
-import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 
-@Entity
-@Table(name = "categories")
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class Category extends BaseEntity {
+public class StoreContext {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "store_id", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonIgnore
-    private Store store;
+    private static final ThreadLocal<StoreContext> CONTEXT = new ThreadLocal<>();
 
-    @Column(name = "name", nullable = false, length = 100)
-    private String name;
+    private Long userId;
+    private Long orgId;
+    private Long storeId;
+    private String role;
 
-    @Column(name = "description")
-    private String description;
+    public static void set(StoreContext context) {
+        CONTEXT.set(context);
+    }
+
+    public static StoreContext get() {
+        return CONTEXT.get();
+    }
+
+    public static Long getCurrentStoreId() {
+        StoreContext ctx = CONTEXT.get();
+        return ctx != null ? ctx.storeId : null;
+    }
+
+    public static Long getCurrentUserId() {
+        StoreContext ctx = CONTEXT.get();
+        return ctx != null ? ctx.userId : null;
+    }
+
+    public static Long getCurrentOrgId() {
+        StoreContext ctx = CONTEXT.get();
+        return ctx != null ? ctx.orgId : null;
+    }
+
+    public static String getCurrentRole() {
+        StoreContext ctx = CONTEXT.get();
+        return ctx != null ? ctx.role : null;
+    }
+
+    public static void clear() {
+        CONTEXT.remove();
+    }
 }

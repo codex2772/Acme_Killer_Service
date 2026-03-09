@@ -23,26 +23,8 @@
  */
 package com.aurajewels.jewel.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
-
-@Entity
-@Table(name = "categories")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class Category extends BaseEntity {
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "store_id", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonIgnore
-    private Store store;
-
-    @Column(name = "name", nullable = false, length = 100)
-    private String name;
-
-    @Column(name = "description")
-    private String description;
+public enum Role {
+    OWNER,
+    ADMIN,
+    STAFF
 }

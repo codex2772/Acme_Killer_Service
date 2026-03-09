@@ -24,7 +24,10 @@
 package com.aurajewels.jewel.service;
 
 import com.aurajewels.jewel.entity.Category;
+import com.aurajewels.jewel.entity.Store;
 import com.aurajewels.jewel.repository.CategoryRepository;
+import com.aurajewels.jewel.repository.StoreRepository;
+import com.aurajewels.jewel.security.StoreContext;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,19 +39,28 @@ import org.springframework.transaction.annotation.Transactional;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final StoreRepository storeRepository;
 
     public List<Category> findAll() {
-        return categoryRepository.findByActiveTrue();
+        Long storeId = StoreContext.getCurrentStoreId();
+        return categoryRepository.findByStoreIdAndActiveTrue(storeId);
     }
 
     public Category findById(Long id) {
+        Long storeId = StoreContext.getCurrentStoreId();
         return categoryRepository
-                .findById(id)
+                .findByIdAndStoreId(id, storeId)
                 .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
     }
 
     @Transactional
     public Category create(Category category) {
+        Long storeId = StoreContext.getCurrentStoreId();
+        Store store =
+                storeRepository
+                        .findById(storeId)
+                        .orElseThrow(() -> new RuntimeException("Store not found"));
+        category.setStore(store);
         return categoryRepository.save(category);
     }
 

@@ -36,6 +36,11 @@ import lombok.*;
 @Builder
 public class MetalType extends BaseEntity {
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private Store store;
+
     @Column(name = "name", nullable = false, length = 50)
     private String name;
 

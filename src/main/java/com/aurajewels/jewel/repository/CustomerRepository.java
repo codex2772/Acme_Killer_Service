@@ -34,7 +34,16 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
     List<Customer> findByActiveTrue();
 
+    List<Customer> findByStoreIdAndActiveTrue(Long storeId);
+
+    Optional<Customer> findByIdAndStoreId(Long id, Long storeId);
+
     Optional<Customer> findByPhone(String phone);
 
+    Optional<Customer> findByPhoneAndStoreId(String phone, Long storeId);
+
     List<Customer> findByFirstNameContainingIgnoreCaseAndActiveTrue(String name);
+
+    List<Customer> findByFirstNameContainingIgnoreCaseAndStoreIdAndActiveTrue(
+            String name, Long storeId);
 }

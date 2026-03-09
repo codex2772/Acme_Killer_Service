@@ -21,28 +21,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.entity;
+package com.aurajewels.jewel.dto.staff;
 
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import java.util.List;
+import lombok.Data;
 
-@Entity
-@Table(name = "categories")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class Category extends BaseEntity {
+@Data
+public class CreateStaffRequest {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "store_id", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonIgnore
-    private Store store;
-
-    @Column(name = "name", nullable = false, length = 100)
+    @NotBlank(message = "Name is required")
     private String name;
 
-    @Column(name = "description")
-    private String description;
+    @NotBlank(message = "Mobile is required")
+    private String mobile;
+
+    @NotBlank(message = "Password is required")
+    private String password;
+
+    @NotNull(message = "Role is required")
+    private String role; // ADMIN or STAFF
+
+    private List<Long> storeIds;
+
+    private List<String> permissions;
 }

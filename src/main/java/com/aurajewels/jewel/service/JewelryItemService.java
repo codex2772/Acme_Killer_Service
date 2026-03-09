@@ -24,7 +24,10 @@
 package com.aurajewels.jewel.service;
 
 import com.aurajewels.jewel.entity.JewelryItem;
+import com.aurajewels.jewel.entity.Store;
 import com.aurajewels.jewel.repository.JewelryItemRepository;
+import com.aurajewels.jewel.repository.StoreRepository;
+import com.aurajewels.jewel.security.StoreContext;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,33 +39,45 @@ import org.springframework.transaction.annotation.Transactional;
 public class JewelryItemService {
 
     private final JewelryItemRepository jewelryItemRepository;
+    private final StoreRepository storeRepository;
 
     public List<JewelryItem> findAll() {
-        return jewelryItemRepository.findByActiveTrue();
+        Long storeId = StoreContext.getCurrentStoreId();
+        return jewelryItemRepository.findByStoreIdAndActiveTrue(storeId);
     }
 
     public JewelryItem findById(Long id) {
+        Long storeId = StoreContext.getCurrentStoreId();
         return jewelryItemRepository
-                .findById(id)
+                .findByIdAndStoreId(id, storeId)
                 .orElseThrow(() -> new RuntimeException("JewelryItem not found with id: " + id));
     }
 
     public JewelryItem findBySku(String sku) {
+        Long storeId = StoreContext.getCurrentStoreId();
         return jewelryItemRepository
-                .findBySku(sku)
+                .findBySkuAndStoreId(sku, storeId)
                 .orElseThrow(() -> new RuntimeException("JewelryItem not found with SKU: " + sku));
     }
 
     public List<JewelryItem> findByCategory(Long categoryId) {
-        return jewelryItemRepository.findByCategoryIdAndActiveTrue(categoryId);
+        Long storeId = StoreContext.getCurrentStoreId();
+        return jewelryItemRepository.findByCategoryIdAndStoreIdAndActiveTrue(categoryId, storeId);
     }
 
     public List<JewelryItem> findByStatus(JewelryItem.ItemStatus status) {
-        return jewelryItemRepository.findByStatusAndActiveTrue(status);
+        Long storeId = StoreContext.getCurrentStoreId();
+        return jewelryItemRepository.findByStatusAndStoreIdAndActiveTrue(status, storeId);
     }
 
     @Transactional
     public JewelryItem create(JewelryItem item) {
+        Long storeId = StoreContext.getCurrentStoreId();
+        Store store =
+                storeRepository
+                        .findById(storeId)
+                        .orElseThrow(() -> new RuntimeException("Store not found"));
+        item.setStore(store);
         return jewelryItemRepository.save(item);
     }
 

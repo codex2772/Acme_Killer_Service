@@ -58,3 +58,10 @@ info:
     name: JewelERP
     description: Cloud-native Jewelry Management System
     version: '@project.version@'
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:jewel-erp-default-dev-secret-key-change-in-production-min-256-bits}
+  expiration-ms: 86400000       # 24 hours
+  refresh-expiration-ms: 604800000  # 7 days
+

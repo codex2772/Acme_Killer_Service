@@ -21,28 +21,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.entity;
+package com.aurajewels.jewel.repository;
 
-import jakarta.persistence.*;
-import lombok.*;
+import com.aurajewels.jewel.entity.User;
+import java.util.List;
+import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-@Entity
-@Table(name = "categories")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class Category extends BaseEntity {
+@Repository
+public interface UserRepository extends JpaRepository<User, Long> {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "store_id", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonIgnore
-    private Store store;
+    Optional<User> findByMobileAndActiveTrue(String mobile);
 
-    @Column(name = "name", nullable = false, length = 100)
-    private String name;
+    List<User> findByOrganizationIdAndActiveTrue(Long orgId);
 
-    @Column(name = "description")
-    private String description;
+    Optional<User> findByIdAndOrganizationId(Long id, Long orgId);
 }

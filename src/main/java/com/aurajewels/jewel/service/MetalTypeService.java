@@ -24,7 +24,10 @@
 package com.aurajewels.jewel.service;
 
 import com.aurajewels.jewel.entity.MetalType;
+import com.aurajewels.jewel.entity.Store;
 import com.aurajewels.jewel.repository.MetalTypeRepository;
+import com.aurajewels.jewel.repository.StoreRepository;
+import com.aurajewels.jewel.security.StoreContext;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,23 +39,33 @@ import org.springframework.transaction.annotation.Transactional;
 public class MetalTypeService {
 
     private final MetalTypeRepository metalTypeRepository;
+    private final StoreRepository storeRepository;
 
     public List<MetalType> findAll() {
-        return metalTypeRepository.findByActiveTrue();
+        Long storeId = StoreContext.getCurrentStoreId();
+        return metalTypeRepository.findByStoreIdAndActiveTrue(storeId);
     }
 
     public MetalType findById(Long id) {
+        Long storeId = StoreContext.getCurrentStoreId();
         return metalTypeRepository
-                .findById(id)
+                .findByIdAndStoreId(id, storeId)
                 .orElseThrow(() -> new RuntimeException("MetalType not found with id: " + id));
     }
 
     public List<MetalType> findByName(String name) {
-        return metalTypeRepository.findByNameAndActiveTrue(name);
+        Long storeId = StoreContext.getCurrentStoreId();
+        return metalTypeRepository.findByNameAndStoreIdAndActiveTrue(name, storeId);
     }
 
     @Transactional
     public MetalType create(MetalType metalType) {
+        Long storeId = StoreContext.getCurrentStoreId();
+        Store store =
+                storeRepository
+                        .findById(storeId)
+                        .orElseThrow(() -> new RuntimeException("Store not found"));
+        metalType.setStore(store);
         return metalTypeRepository.save(metalType);
     }
 

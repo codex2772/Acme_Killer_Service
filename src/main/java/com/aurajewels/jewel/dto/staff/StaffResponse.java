@@ -21,28 +21,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.entity;
+package com.aurajewels.jewel.dto.staff;
 
-import jakarta.persistence.*;
-import lombok.*;
+import java.time.Instant;
+import java.util.List;
+import lombok.Builder;
+import lombok.Data;
 
-@Entity
-@Table(name = "categories")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Data
 @Builder
-public class Category extends BaseEntity {
+public class StaffResponse {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "store_id", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonIgnore
-    private Store store;
-
-    @Column(name = "name", nullable = false, length = 100)
+    private Long id;
     private String name;
-
-    @Column(name = "description")
-    private String description;
+    private String mobile;
+    private String role;
+    private boolean active;
+    private List<String> stores;
+    private List<String> permissions;
+    private Instant createdAt;
 }

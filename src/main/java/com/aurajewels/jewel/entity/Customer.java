@@ -35,6 +35,11 @@ import lombok.*;
 @Builder
 public class Customer extends BaseEntity {
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private Store store;
+
     @Column(name = "first_name", nullable = false, length = 100)
     private String firstName;
 

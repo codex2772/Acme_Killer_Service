@@ -24,25 +24,32 @@
 package com.aurajewels.jewel.entity;
 
 import jakarta.persistence.*;
+import java.time.Instant;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
-@Table(name = "categories")
+@Table(name = "user_store_access")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Category extends BaseEntity {
+public class UserStoreAccess {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonIgnore
     private Store store;
 
-    @Column(name = "name", nullable = false, length = 100)
-    private String name;
-
-    @Column(name = "description")
-    private String description;
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private Instant createdAt;
 }

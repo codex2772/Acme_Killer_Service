@@ -24,6 +24,7 @@
 package com.aurajewels.jewel.controller;
 
 import com.aurajewels.jewel.entity.JewelryItem;
+import com.aurajewels.jewel.security.RequiresPermission;
 import com.aurajewels.jewel.service.JewelryItemService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -39,43 +40,51 @@ public class JewelryItemController {
     private final JewelryItemService jewelryItemService;
 
     @GetMapping
+    @RequiresPermission("VIEW_INVENTORY")
     public ResponseEntity<List<JewelryItem>> getAll() {
         return ResponseEntity.ok(jewelryItemService.findAll());
     }
 
     @GetMapping("/{id}")
+    @RequiresPermission("VIEW_INVENTORY")
     public ResponseEntity<JewelryItem> getById(@PathVariable Long id) {
         return ResponseEntity.ok(jewelryItemService.findById(id));
     }
 
     @GetMapping("/sku/{sku}")
+    @RequiresPermission("VIEW_INVENTORY")
     public ResponseEntity<JewelryItem> getBySku(@PathVariable String sku) {
         return ResponseEntity.ok(jewelryItemService.findBySku(sku));
     }
 
     @GetMapping("/category/{categoryId}")
+    @RequiresPermission("VIEW_INVENTORY")
     public ResponseEntity<List<JewelryItem>> getByCategory(@PathVariable Long categoryId) {
         return ResponseEntity.ok(jewelryItemService.findByCategory(categoryId));
     }
 
     @GetMapping("/status/{status}")
+    @RequiresPermission("VIEW_INVENTORY")
     public ResponseEntity<List<JewelryItem>> getByStatus(
             @PathVariable JewelryItem.ItemStatus status) {
         return ResponseEntity.ok(jewelryItemService.findByStatus(status));
     }
 
     @PostMapping
+    @RequiresPermission("MANAGE_INVENTORY")
     public ResponseEntity<JewelryItem> create(@RequestBody JewelryItem item) {
         return ResponseEntity.status(HttpStatus.CREATED).body(jewelryItemService.create(item));
     }
 
     @PutMapping("/{id}")
+    @RequiresPermission("MANAGE_INVENTORY")
     public ResponseEntity<JewelryItem> update(
             @PathVariable Long id, @RequestBody JewelryItem item) {
         return ResponseEntity.ok(jewelryItemService.update(id, item));
     }
 
     @DeleteMapping("/{id}")
+    @RequiresPermission("MANAGE_INVENTORY")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         jewelryItemService.delete(id);
         return ResponseEntity.noContent().build();
