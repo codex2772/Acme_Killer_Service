@@ -183,6 +183,10 @@ resource "aws_ecs_task_definition" "main" {
         {
           name      = "DB_URL"
           valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:url::"
+        },
+        {
+          name      = "JWT_SECRET"
+          valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:jwt_secret::"
         }
       ]
 

@@ -105,6 +105,9 @@ jobs:
           db_name           = "jewelerpdb"
           db_username       = "jeweladmin"
           db_password       = "${{ secrets.DB_PASSWORD }}"
+
+          # JWT
+          jwt_secret = "${{ secrets.JWT_SECRET }}"
           EOF
 
       - name: Terraform Validate

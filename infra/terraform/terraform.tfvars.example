@@ -21,3 +21,6 @@ db_name           = "jewelerpdb"
 db_username       = "jeweladmin"
 db_password       = "CHANGE_ME_STRONG_PASSWORD"
 
+# JWT
+jwt_secret = "CHANGE_ME_MIN_32_CHARS_STRONG_SECRET"
+

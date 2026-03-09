@@ -54,12 +54,13 @@ resource "aws_secretsmanager_secret" "db_credentials" {
 resource "aws_secretsmanager_secret_version" "db_credentials" {
   secret_id = aws_secretsmanager_secret.db_credentials.id
   secret_string = jsonencode({
-    username = var.db_username
-    password = var.db_password
-    host     = aws_db_instance.main.address
-    port     = 3306
-    dbname   = var.db_name
-    url      = "jdbc:mysql://${aws_db_instance.main.address}:3306/${var.db_name}?useSSL=true&requireSSL=true"
+    username   = var.db_username
+    password   = var.db_password
+    host       = aws_db_instance.main.address
+    port       = 3306
+    dbname     = var.db_name
+    url        = "jdbc:mysql://${aws_db_instance.main.address}:3306/${var.db_name}?useSSL=true&requireSSL=true"
+    jwt_secret = var.jwt_secret
   })
 
   lifecycle {
