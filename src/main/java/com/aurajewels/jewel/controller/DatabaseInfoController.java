@@ -23,7 +23,9 @@
  */
 package com.aurajewels.jewel.controller;
 
+import com.aurajewels.jewel.security.RequiresPermission;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +44,7 @@ public class DatabaseInfoController {
     private final DataSource dataSource;
 
     @GetMapping("/status")
+    @RequiresPermission("VIEW_REPORTS")
     public ResponseEntity<Map<String, Object>> status() {
         Map<String, Object> info = new HashMap<>();
         try {
@@ -57,6 +60,12 @@ public class DatabaseInfoController {
                     jdbcTemplate.queryForObject("SELECT COUNT(*) FROM jewelry_items", Long.class);
             Long invoiceCount =
                     jdbcTemplate.queryForObject("SELECT COUNT(*) FROM invoices", Long.class);
+            Long orgCount =
+                    jdbcTemplate.queryForObject("SELECT COUNT(*) FROM organizations", Long.class);
+            Long storeCount =
+                    jdbcTemplate.queryForObject("SELECT COUNT(*) FROM stores", Long.class);
+            Long userCount =
+                    jdbcTemplate.queryForObject("SELECT COUNT(*) FROM users", Long.class);
 
             info.put("connected", true);
             info.put("database", dbName);
@@ -64,6 +73,9 @@ public class DatabaseInfoController {
             info.put(
                     "tables",
                     Map.of(
+                            "organizations", orgCount,
+                            "stores", storeCount,
+                            "users", userCount,
                             "categories", categoryCount,
                             "metal_types", metalTypeCount,
                             "customers", customerCount,
@@ -74,5 +86,54 @@ public class DatabaseInfoController {
             info.put("error", e.getMessage());
         }
         return ResponseEntity.ok(info);
+    }
+
+    @GetMapping("/users")
+    @RequiresPermission("MANAGE_STAFF")
+    public ResponseEntity<List<Map<String, Object>>> listUsers() {
+        List<Map<String, Object>> users =
+                jdbcTemplate.queryForList(
+                        "SELECT u.id, u.name, u.mobile, u.role, u.active, o.name AS org_name "
+                                + "FROM users u JOIN organizations o ON u.org_id = o.id "
+                                + "ORDER BY u.id");
+        return ResponseEntity.ok(users);
+    }
+
+    @GetMapping("/users/access")
+    @RequiresPermission("MANAGE_STAFF")
+    public ResponseEntity<List<Map<String, Object>>> listUserAccess() {
+        List<Map<String, Object>> access =
+                jdbcTemplate.queryForList(
+                        "SELECT u.name AS user_name, u.role, s.name AS store_name "
+                                + "FROM user_store_access usa "
+                                + "JOIN users u ON usa.user_id = u.id "
+                                + "JOIN stores s ON usa.store_id = s.id "
+                                + "ORDER BY u.id, s.id");
+        return ResponseEntity.ok(access);
+    }
+
+    @GetMapping("/users/permissions")
+    @RequiresPermission("MANAGE_STAFF")
+    public ResponseEntity<List<Map<String, Object>>> listUserPermissions() {
+        List<Map<String, Object>> perms =
+                jdbcTemplate.queryForList(
+                        "SELECT u.name AS user_name, u.role, s.name AS store_name, p.name AS permission "
+                                + "FROM user_permissions up "
+                                + "JOIN users u ON up.user_id = u.id "
+                                + "JOIN stores s ON up.store_id = s.id "
+                                + "JOIN permissions p ON up.permission_id = p.id "
+                                + "ORDER BY u.id, s.id, p.id");
+        return ResponseEntity.ok(perms);
+    }
+
+    @GetMapping("/stores")
+    @RequiresPermission("VIEW_REPORTS")
+    public ResponseEntity<List<Map<String, Object>>> listStores() {
+        List<Map<String, Object>> stores =
+                jdbcTemplate.queryForList(
+                        "SELECT s.id, s.name, s.city, s.phone, o.name AS org_name "
+                                + "FROM stores s JOIN organizations o ON s.org_id = o.id "
+                                + "ORDER BY s.id");
+        return ResponseEntity.ok(stores);
     }
 }
