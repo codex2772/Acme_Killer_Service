@@ -21,28 +21,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.dto.staff;
+package com.aurajewels.jewel.controller;
 
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.List;
-import lombok.Builder;
-import lombok.Data;
+import com.aurajewels.jewel.dto.dashboard.DashboardSummary;
+import com.aurajewels.jewel.security.RequiresPermission;
+import com.aurajewels.jewel.service.DashboardService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Data
-@Builder
-public class StaffResponse {
+@RestController
+@RequestMapping("/api/dashboard")
+@RequiredArgsConstructor
+public class DashboardController {
 
-    private Long id;
-    private String name;
-    private String mobile;
-    private String email;
-    private String role;
-    private BigDecimal salary;
-    private BigDecimal commission;
-    private BigDecimal salesTarget;
-    private boolean active;
-    private List<String> stores;
-    private List<String> permissions;
-    private Instant createdAt;
+    private final DashboardService dashboardService;
+
+    @GetMapping("/summary")
+    @RequiresPermission("VIEW_REPORTS")
+    public ResponseEntity<DashboardSummary> getSummary() {
+        return ResponseEntity.ok(dashboardService.getSummary());
+    }
 }

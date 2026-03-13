@@ -21,28 +21,54 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.dto.staff;
+package com.aurajewels.jewel.entity;
 
-import java.math.BigDecimal;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import java.time.Instant;
-import java.util.List;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
-@Data
+@Entity
+@Table(name = "activity_logs")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class StaffResponse {
+public class ActivityLog {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
-    private String mobile;
-    private String email;
-    private String role;
-    private BigDecimal salary;
-    private BigDecimal commission;
-    private BigDecimal salesTarget;
-    private boolean active;
-    private List<String> stores;
-    private List<String> permissions;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_id", nullable = false)
+    @JsonIgnore
+    private Store store;
+
+    @Column(name = "user_id")
+    private Long userId;
+
+    @Column(name = "user_name", length = 150)
+    private String userName;
+
+    @Column(name = "action", nullable = false, length = 200)
+    private String action;
+
+    @Column(name = "detail", columnDefinition = "TEXT")
+    private String detail;
+
+    @Column(name = "module", length = 50)
+    private String module;
+
+    @Column(name = "entity_type", length = 50)
+    private String entityType;
+
+    @Column(name = "entity_id")
+    private Long entityId;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
     private Instant createdAt;
 }

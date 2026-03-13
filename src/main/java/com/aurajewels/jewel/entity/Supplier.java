@@ -23,66 +23,74 @@
  */
 package com.aurajewels.jewel.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.Set;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
-@Table(name = "users")
+@Table(name = "suppliers")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User extends BaseEntity {
+public class Supplier {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "org_id", nullable = false)
-    private Organization organization;
+    @JoinColumn(name = "store_id", nullable = false)
+    @JsonIgnore
+    private Store store;
 
-    @Column(name = "name", nullable = false, length = 150)
+    @Column(name = "name", nullable = false, length = 200)
     private String name;
 
-    @Column(name = "mobile", nullable = false, unique = true, length = 15)
-    private String mobile;
+    @Column(name = "phone", length = 15)
+    private String phone;
 
     @Column(name = "email", length = 150)
     private String email;
 
-    @Column(name = "salary", precision = 14, scale = 2)
-    private BigDecimal salary;
+    @Column(name = "city", length = 100)
+    private String city;
 
-    @Column(name = "commission", precision = 5, scale = 2)
-    private BigDecimal commission;
+    @Column(name = "address", length = 500)
+    private String address;
 
-    @Column(name = "sales_target", precision = 14, scale = 2)
-    private BigDecimal salesTarget;
-
-    @Column(name = "password_hash", nullable = false)
-    private String passwordHash;
+    @Column(name = "gst", length = 20)
+    private String gst;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
-    private Role role;
+    @Column(name = "status")
+    private SupplierStatus status = SupplierStatus.ACTIVE;
 
-    @Column(name = "force_password_change")
-    private Boolean forcePasswordChange = true;
+    @Column(name = "active")
+    private Boolean active = true;
 
-    @OneToMany(
-            mappedBy = "user",
-            fetch = FetchType.LAZY,
-            cascade = CascadeType.ALL,
-            orphanRemoval = true)
+    @ElementCollection
+    @CollectionTable(name = "supplier_metals", joinColumns = @JoinColumn(name = "supplier_id"))
+    @Column(name = "metal")
     @Builder.Default
-    private Set<UserStoreAccess> storeAccess = new HashSet<>();
+    private List<String> metals = new ArrayList<>();
 
-    @OneToMany(
-            mappedBy = "user",
-            fetch = FetchType.LAZY,
-            cascade = CascadeType.ALL,
-            orphanRemoval = true)
-    @Builder.Default
-    private Set<UserPermission> permissions = new HashSet<>();
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private Instant createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private Instant updatedAt;
+
+    public enum SupplierStatus {
+        ACTIVE,
+        INACTIVE
+    }
 }

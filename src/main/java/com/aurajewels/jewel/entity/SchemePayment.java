@@ -21,28 +21,54 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.dto.staff;
+package com.aurajewels.jewel.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.List;
-import lombok.Builder;
-import lombok.Data;
+import java.time.LocalDate;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
-@Data
+@Entity
+@Table(name = "scheme_payments")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class StaffResponse {
+public class SchemePayment {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
-    private String mobile;
-    private String email;
-    private String role;
-    private BigDecimal salary;
-    private BigDecimal commission;
-    private BigDecimal salesTarget;
-    private boolean active;
-    private List<String> stores;
-    private List<String> permissions;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "scheme_member_id", nullable = false)
+    @JsonIgnore
+    private SchemeMember schemeMember;
+
+    @Column(name = "month_number", nullable = false)
+    private Integer monthNumber;
+
+    @Column(name = "amount", precision = 14, scale = 2, nullable = false)
+    private BigDecimal amount;
+
+    @Column(name = "payment_date", nullable = false)
+    private LocalDate paymentDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private PaymentStatus status = PaymentStatus.PAID;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
     private Instant createdAt;
+
+    public enum PaymentStatus {
+        PAID,
+        PENDING,
+        LATE
+    }
 }

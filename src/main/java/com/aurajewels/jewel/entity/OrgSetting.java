@@ -21,28 +21,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.dto.staff;
+package com.aurajewels.jewel.entity;
 
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.List;
-import lombok.Builder;
-import lombok.Data;
+import jakarta.persistence.*;
+import lombok.*;
 
-@Data
+@Entity
+@Table(name = "org_settings")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class StaffResponse {
+public class OrgSetting {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
-    private String mobile;
-    private String email;
-    private String role;
-    private BigDecimal salary;
-    private BigDecimal commission;
-    private BigDecimal salesTarget;
-    private boolean active;
-    private List<String> stores;
-    private List<String> permissions;
-    private Instant createdAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "org_id", nullable = false)
+    private Organization organization;
+
+    @Column(name = "setting_key", nullable = false, length = 100)
+    private String settingKey;
+
+    @Column(name = "setting_value", columnDefinition = "TEXT")
+    private String settingValue;
 }

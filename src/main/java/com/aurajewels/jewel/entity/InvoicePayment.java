@@ -21,28 +21,52 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.dto.staff;
+package com.aurajewels.jewel.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.List;
-import lombok.Builder;
-import lombok.Data;
+import java.time.LocalDate;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
-@Data
+@Entity
+@Table(name = "invoice_payments")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class StaffResponse {
+public class InvoicePayment {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
-    private String mobile;
-    private String email;
-    private String role;
-    private BigDecimal salary;
-    private BigDecimal commission;
-    private BigDecimal salesTarget;
-    private boolean active;
-    private List<String> stores;
-    private List<String> permissions;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "invoice_id", nullable = false)
+    @JsonIgnore
+    private Invoice invoice;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_id", nullable = false)
+    @JsonIgnore
+    private Store store;
+
+    @Column(name = "mode", nullable = false, length = 30)
+    private String mode;
+
+    @Column(name = "amount", precision = 14, scale = 2, nullable = false)
+    private BigDecimal amount;
+
+    @Column(name = "reference", length = 100)
+    private String reference;
+
+    @Column(name = "payment_date", nullable = false)
+    private LocalDate paymentDate;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
     private Instant createdAt;
 }

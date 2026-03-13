@@ -24,16 +24,12 @@
 package com.aurajewels.jewel.dto.staff;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.List;
-import lombok.Builder;
 import lombok.Data;
 
 @Data
-@Builder
-public class StaffResponse {
+public class UpdateStaffRequest {
 
-    private Long id;
     private String name;
     private String mobile;
     private String email;
@@ -41,8 +37,7 @@ public class StaffResponse {
     private BigDecimal salary;
     private BigDecimal commission;
     private BigDecimal salesTarget;
-    private boolean active;
-    private List<String> stores;
+    private String status; // ACTIVE or INACTIVE
+    private List<Long> storeIds;
     private List<String> permissions;
-    private Instant createdAt;
 }

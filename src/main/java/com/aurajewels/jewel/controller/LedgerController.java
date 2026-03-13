@@ -23,55 +23,45 @@
  */
 package com.aurajewels.jewel.controller;
 
-import com.aurajewels.jewel.dto.staff.CreateStaffRequest;
-import com.aurajewels.jewel.dto.staff.StaffResponse;
-import com.aurajewels.jewel.dto.staff.UpdateStaffRequest;
+import com.aurajewels.jewel.dto.accounts.LedgerEntryRequest;
+import com.aurajewels.jewel.entity.LedgerEntry;
 import com.aurajewels.jewel.security.RequiresPermission;
-import com.aurajewels.jewel.service.StaffService;
-import jakarta.validation.Valid;
+import com.aurajewels.jewel.service.LedgerService;
+import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/staff")
+@RequestMapping("/api/ledger")
 @RequiredArgsConstructor
-public class StaffController {
+public class LedgerController {
 
-    private final StaffService staffService;
+    private final LedgerService ledgerService;
 
     @GetMapping
-    @RequiresPermission("MANAGE_STAFF")
-    public ResponseEntity<List<StaffResponse>> listStaff() {
-        return ResponseEntity.ok(staffService.listStaff());
+    @RequiresPermission("VIEW_ACCOUNTS")
+    public ResponseEntity<List<LedgerEntry>> list(
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                    LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                    LocalDate to) {
+        return ResponseEntity.ok(ledgerService.listEntries(type, from, to));
     }
 
     @GetMapping("/{id}")
-    @RequiresPermission("MANAGE_STAFF")
-    public ResponseEntity<StaffResponse> getStaff(@PathVariable Long id) {
-        return ResponseEntity.ok(staffService.getStaff(id));
+    @RequiresPermission("VIEW_ACCOUNTS")
+    public ResponseEntity<LedgerEntry> get(@PathVariable Long id) {
+        return ResponseEntity.ok(ledgerService.getEntry(id));
     }
 
     @PostMapping
-    @RequiresPermission("MANAGE_STAFF")
-    public ResponseEntity<StaffResponse> createStaff(
-            @Valid @RequestBody CreateStaffRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(staffService.createStaff(request));
-    }
-
-    @PutMapping("/{id}")
-    @RequiresPermission("MANAGE_STAFF")
-    public ResponseEntity<StaffResponse> updateStaff(
-            @PathVariable Long id, @RequestBody UpdateStaffRequest request) {
-        return ResponseEntity.ok(staffService.updateStaff(id, request));
-    }
-
-    @DeleteMapping("/{id}")
-    @RequiresPermission("MANAGE_STAFF")
-    public ResponseEntity<Void> deactivateStaff(@PathVariable Long id) {
-        staffService.deactivateStaff(id);
-        return ResponseEntity.noContent().build();
+    @RequiresPermission("MANAGE_ACCOUNTS")
+    public ResponseEntity<LedgerEntry> create(@RequestBody LedgerEntryRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(ledgerService.createEntry(request));
     }
 }

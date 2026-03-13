@@ -23,12 +23,10 @@
  */
 package com.aurajewels.jewel.controller;
 
-import com.aurajewels.jewel.dto.staff.CreateStaffRequest;
-import com.aurajewels.jewel.dto.staff.StaffResponse;
-import com.aurajewels.jewel.dto.staff.UpdateStaffRequest;
+import com.aurajewels.jewel.dto.billing.CreditNoteRequest;
+import com.aurajewels.jewel.entity.CreditNote;
 import com.aurajewels.jewel.security.RequiresPermission;
-import com.aurajewels.jewel.service.StaffService;
-import jakarta.validation.Valid;
+import com.aurajewels.jewel.service.CreditNoteService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -36,42 +34,28 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/staff")
+@RequestMapping("/api/credit-notes")
 @RequiredArgsConstructor
-public class StaffController {
+public class CreditNoteController {
 
-    private final StaffService staffService;
+    private final CreditNoteService creditNoteService;
 
     @GetMapping
-    @RequiresPermission("MANAGE_STAFF")
-    public ResponseEntity<List<StaffResponse>> listStaff() {
-        return ResponseEntity.ok(staffService.listStaff());
+    @RequiresPermission("VIEW_BILLING")
+    public ResponseEntity<List<CreditNote>> list() {
+        return ResponseEntity.ok(creditNoteService.listCreditNotes());
     }
 
     @GetMapping("/{id}")
-    @RequiresPermission("MANAGE_STAFF")
-    public ResponseEntity<StaffResponse> getStaff(@PathVariable Long id) {
-        return ResponseEntity.ok(staffService.getStaff(id));
+    @RequiresPermission("VIEW_BILLING")
+    public ResponseEntity<CreditNote> get(@PathVariable Long id) {
+        return ResponseEntity.ok(creditNoteService.getCreditNote(id));
     }
 
     @PostMapping
-    @RequiresPermission("MANAGE_STAFF")
-    public ResponseEntity<StaffResponse> createStaff(
-            @Valid @RequestBody CreateStaffRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(staffService.createStaff(request));
-    }
-
-    @PutMapping("/{id}")
-    @RequiresPermission("MANAGE_STAFF")
-    public ResponseEntity<StaffResponse> updateStaff(
-            @PathVariable Long id, @RequestBody UpdateStaffRequest request) {
-        return ResponseEntity.ok(staffService.updateStaff(id, request));
-    }
-
-    @DeleteMapping("/{id}")
-    @RequiresPermission("MANAGE_STAFF")
-    public ResponseEntity<Void> deactivateStaff(@PathVariable Long id) {
-        staffService.deactivateStaff(id);
-        return ResponseEntity.noContent().build();
+    @RequiresPermission("MANAGE_BILLING")
+    public ResponseEntity<CreditNote> create(@RequestBody CreditNoteRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(creditNoteService.createCreditNote(request));
     }
 }

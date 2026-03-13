@@ -21,28 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.dto.staff;
+package com.aurajewels.jewel.dto.dashboard;
 
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.List;
-import lombok.Builder;
+import java.time.LocalDate;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@Builder
-public class StaffResponse {
-
-    private Long id;
-    private String name;
-    private String mobile;
-    private String email;
-    private String role;
-    private BigDecimal salary;
-    private BigDecimal commission;
-    private BigDecimal salesTarget;
-    private boolean active;
-    private List<String> stores;
-    private List<String> permissions;
-    private Instant createdAt;
+@AllArgsConstructor
+public class RevenuePoint {
+    private LocalDate date;
+    private BigDecimal amount;
 }

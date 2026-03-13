@@ -21,28 +21,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.dto.staff;
+package com.aurajewels.jewel.controller;
 
-import java.math.BigDecimal;
-import java.time.Instant;
+import com.aurajewels.jewel.entity.ActivityLog;
+import com.aurajewels.jewel.service.ActivityLogService;
+import java.time.LocalDate;
 import java.util.List;
-import lombok.Builder;
-import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-@Data
-@Builder
-public class StaffResponse {
+@RestController
+@RequestMapping("/api/activity-logs")
+@RequiredArgsConstructor
+public class ActivityLogController {
 
-    private Long id;
-    private String name;
-    private String mobile;
-    private String email;
-    private String role;
-    private BigDecimal salary;
-    private BigDecimal commission;
-    private BigDecimal salesTarget;
-    private boolean active;
-    private List<String> stores;
-    private List<String> permissions;
-    private Instant createdAt;
+    private final ActivityLogService activityLogService;
+
+    @GetMapping
+    public ResponseEntity<List<ActivityLog>> list(
+            @RequestParam(required = false) String module,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                    LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                    LocalDate to) {
+        return ResponseEntity.ok(activityLogService.findFiltered(module, from, to));
+    }
 }

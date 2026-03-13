@@ -25,6 +25,7 @@ package com.aurajewels.jewel.service;
 
 import com.aurajewels.jewel.dto.staff.CreateStaffRequest;
 import com.aurajewels.jewel.dto.staff.StaffResponse;
+import com.aurajewels.jewel.dto.staff.UpdateStaffRequest;
 import com.aurajewels.jewel.entity.*;
 import com.aurajewels.jewel.repository.*;
 import com.aurajewels.jewel.security.StoreContext;
@@ -127,6 +128,91 @@ public class StaffService {
     }
 
     @Transactional
+    public StaffResponse updateStaff(Long userId, UpdateStaffRequest request) {
+        Long orgId = StoreContext.getCurrentOrgId();
+        User user =
+                userRepository
+                        .findByIdAndOrganizationId(userId, orgId)
+                        .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (user.getRole() == Role.OWNER) {
+            throw new IllegalArgumentException("Cannot update OWNER via this endpoint");
+        }
+
+        if (request.getName() != null) user.setName(request.getName());
+        if (request.getMobile() != null) user.setMobile(request.getMobile());
+        if (request.getEmail() != null) user.setEmail(request.getEmail());
+        if (request.getSalary() != null) user.setSalary(request.getSalary());
+        if (request.getCommission() != null) user.setCommission(request.getCommission());
+        if (request.getSalesTarget() != null) user.setSalesTarget(request.getSalesTarget());
+
+        if (request.getStatus() != null) {
+            user.setActive("ACTIVE".equalsIgnoreCase(request.getStatus()));
+        }
+
+        if (request.getRole() != null) {
+            Role newRole = Role.valueOf(request.getRole().toUpperCase());
+            if (newRole == Role.OWNER) {
+                throw new IllegalArgumentException("Cannot assign OWNER role");
+            }
+            String callerRole = StoreContext.getCurrentRole();
+            if (newRole == Role.ADMIN && !"OWNER".equals(callerRole)) {
+                throw new IllegalArgumentException("Only OWNER can assign ADMIN role");
+            }
+            user.setRole(newRole);
+        }
+
+        userRepository.save(user);
+
+        // Update store access if provided
+        if (request.getStoreIds() != null) {
+            userStoreAccessRepository.deleteByUserId(user.getId());
+            for (Long storeId : request.getStoreIds()) {
+                Store store =
+                        storeRepository
+                                .findById(storeId)
+                                .orElseThrow(
+                                        () ->
+                                                new IllegalArgumentException(
+                                                        "Store not found: " + storeId));
+                UserStoreAccess access = UserStoreAccess.builder().user(user).store(store).build();
+                userStoreAccessRepository.save(access);
+            }
+        }
+
+        // Update permissions if provided (only meaningful for STAFF)
+        if (request.getPermissions() != null) {
+            userPermissionRepository.deleteByUserId(user.getId());
+            if (user.getRole() == Role.STAFF) {
+                List<Permission> perms =
+                        permissionRepository.findByNameIn(request.getPermissions());
+                List<Long> storeIds =
+                        request.getStoreIds() != null
+                                ? request.getStoreIds()
+                                : userStoreAccessRepository.findByUserId(user.getId()).stream()
+                                        .map(sa -> sa.getStore().getId())
+                                        .toList();
+                for (Permission perm : perms) {
+                    for (Long storeId : storeIds) {
+                        Store store = storeRepository.findById(storeId).orElse(null);
+                        if (store != null) {
+                            UserPermission up =
+                                    UserPermission.builder()
+                                            .user(user)
+                                            .store(store)
+                                            .permission(perm)
+                                            .build();
+                            userPermissionRepository.save(up);
+                        }
+                    }
+                }
+            }
+        }
+
+        return toStaffResponse(user);
+    }
+
+    @Transactional
     public void deactivateStaff(Long userId) {
         Long orgId = StoreContext.getCurrentOrgId();
         User user =
@@ -160,7 +246,11 @@ public class StaffService {
                 .id(user.getId())
                 .name(user.getName())
                 .mobile(user.getMobile())
+                .email(user.getEmail())
                 .role(user.getRole().name())
+                .salary(user.getSalary())
+                .commission(user.getCommission())
+                .salesTarget(user.getSalesTarget())
                 .active(user.getActive() != null && user.getActive())
                 .stores(storeAccess.stream().map(sa -> sa.getStore().getName()).toList())
                 .permissions(

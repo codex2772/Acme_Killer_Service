@@ -21,28 +21,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.dto.staff;
+package com.aurajewels.jewel.repository;
 
-import java.math.BigDecimal;
-import java.time.Instant;
+import com.aurajewels.jewel.entity.CashRegister;
+import java.time.LocalDate;
 import java.util.List;
-import lombok.Builder;
-import lombok.Data;
+import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-@Data
-@Builder
-public class StaffResponse {
+@Repository
+public interface CashRegisterRepository extends JpaRepository<CashRegister, Long> {
 
-    private Long id;
-    private String name;
-    private String mobile;
-    private String email;
-    private String role;
-    private BigDecimal salary;
-    private BigDecimal commission;
-    private BigDecimal salesTarget;
-    private boolean active;
-    private List<String> stores;
-    private List<String> permissions;
-    private Instant createdAt;
+    Optional<CashRegister> findByStoreIdAndRegisterDate(Long storeId, LocalDate date);
+
+    Optional<CashRegister> findByStoreIdAndStatus(Long storeId, CashRegister.RegisterStatus status);
+
+    List<CashRegister> findByStoreIdOrderByRegisterDateDesc(Long storeId);
+
+    Optional<CashRegister> findByIdAndStoreId(Long id, Long storeId);
 }

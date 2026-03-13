@@ -21,28 +21,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.dto.staff;
+package com.aurajewels.jewel.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.List;
-import lombok.Builder;
-import lombok.Data;
+import java.time.LocalDate;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
-@Data
+@Entity
+@Table(name = "old_gold_melting_records")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class StaffResponse {
+public class OldGoldMeltingRecord {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
-    private String mobile;
-    private String email;
-    private String role;
-    private BigDecimal salary;
-    private BigDecimal commission;
-    private BigDecimal salesTarget;
-    private boolean active;
-    private List<String> stores;
-    private List<String> permissions;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "old_gold_id", nullable = false)
+    @JsonIgnore
+    private OldGoldPurchase oldGoldPurchase;
+
+    @Column(name = "melted_weight", precision = 10, scale = 3, nullable = false)
+    private BigDecimal meltedWeight;
+
+    @Column(name = "melt_date", nullable = false)
+    private LocalDate meltDate;
+
+    @Column(name = "melted_by", length = 150)
+    private String meltedBy;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
     private Instant createdAt;
 }

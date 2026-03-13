@@ -21,28 +21,56 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.dto.staff;
+package com.aurajewels.jewel.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.List;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
-@Data
+@Entity
+@Table(name = "rate_alerts")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class StaffResponse {
+public class RateAlert {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
-    private String mobile;
-    private String email;
-    private String role;
-    private BigDecimal salary;
-    private BigDecimal commission;
-    private BigDecimal salesTarget;
-    private boolean active;
-    private List<String> stores;
-    private List<String> permissions;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_id", nullable = false)
+    @JsonIgnore
+    private Store store;
+
+    @Column(name = "metal", nullable = false, length = 50)
+    private String metal;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "condition_type", nullable = false)
+    private ConditionType conditionType;
+
+    @Column(name = "threshold", precision = 12, scale = 2, nullable = false)
+    private BigDecimal threshold;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
+
+    @Column(name = "is_active")
+    private Boolean isActive = true;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
     private Instant createdAt;
+
+    public enum ConditionType {
+        ABOVE,
+        BELOW
+    }
 }

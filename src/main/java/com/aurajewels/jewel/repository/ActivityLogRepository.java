@@ -21,28 +21,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.dto.staff;
+package com.aurajewels.jewel.repository;
 
-import java.math.BigDecimal;
+import com.aurajewels.jewel.entity.ActivityLog;
 import java.time.Instant;
 import java.util.List;
-import lombok.Builder;
-import lombok.Data;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
-@Data
-@Builder
-public class StaffResponse {
+@Repository
+public interface ActivityLogRepository extends JpaRepository<ActivityLog, Long> {
 
-    private Long id;
-    private String name;
-    private String mobile;
-    private String email;
-    private String role;
-    private BigDecimal salary;
-    private BigDecimal commission;
-    private BigDecimal salesTarget;
-    private boolean active;
-    private List<String> stores;
-    private List<String> permissions;
-    private Instant createdAt;
+    @Query(
+            "SELECT a FROM ActivityLog a WHERE a.store.id = :storeId "
+                    + "AND (:module IS NULL OR a.module = :module) "
+                    + "AND (:from IS NULL OR a.createdAt >= :from) "
+                    + "AND (:to IS NULL OR a.createdAt <= :to) "
+                    + "ORDER BY a.createdAt DESC")
+    List<ActivityLog> findFiltered(Long storeId, String module, Instant from, Instant to);
 }

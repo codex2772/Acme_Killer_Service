@@ -21,28 +21,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.dto.staff;
+package com.aurajewels.jewel.repository;
 
-import java.math.BigDecimal;
-import java.time.Instant;
+import com.aurajewels.jewel.entity.LedgerEntry;
+import java.time.LocalDate;
 import java.util.List;
-import lombok.Builder;
-import lombok.Data;
+import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
-@Data
-@Builder
-public class StaffResponse {
+@Repository
+public interface LedgerEntryRepository extends JpaRepository<LedgerEntry, Long> {
 
-    private Long id;
-    private String name;
-    private String mobile;
-    private String email;
-    private String role;
-    private BigDecimal salary;
-    private BigDecimal commission;
-    private BigDecimal salesTarget;
-    private boolean active;
-    private List<String> stores;
-    private List<String> permissions;
-    private Instant createdAt;
+    List<LedgerEntry> findByStoreIdAndActiveTrueOrderByEntryDateDesc(Long storeId);
+
+    Optional<LedgerEntry> findByIdAndStoreId(Long id, Long storeId);
+
+    @Query(
+            "SELECT l FROM LedgerEntry l WHERE l.store.id = :storeId AND l.active = true "
+                    + "AND (:type IS NULL OR l.type = :type) "
+                    + "AND (:from IS NULL OR l.entryDate >= :from) "
+                    + "AND (:to IS NULL OR l.entryDate <= :to) "
+                    + "ORDER BY l.entryDate DESC")
+    List<LedgerEntry> findFiltered(
+            Long storeId, LedgerEntry.LedgerType type, LocalDate from, LocalDate to);
 }

@@ -23,55 +23,60 @@
  */
 package com.aurajewels.jewel.controller;
 
-import com.aurajewels.jewel.dto.staff.CreateStaffRequest;
-import com.aurajewels.jewel.dto.staff.StaffResponse;
-import com.aurajewels.jewel.dto.staff.UpdateStaffRequest;
+import com.aurajewels.jewel.dto.accounts.ExpenseRequest;
+import com.aurajewels.jewel.entity.Expense;
 import com.aurajewels.jewel.security.RequiresPermission;
-import com.aurajewels.jewel.service.StaffService;
-import jakarta.validation.Valid;
+import com.aurajewels.jewel.service.ExpenseService;
+import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/staff")
+@RequestMapping("/api/expenses")
 @RequiredArgsConstructor
-public class StaffController {
+public class ExpenseController {
 
-    private final StaffService staffService;
+    private final ExpenseService expenseService;
 
     @GetMapping
-    @RequiresPermission("MANAGE_STAFF")
-    public ResponseEntity<List<StaffResponse>> listStaff() {
-        return ResponseEntity.ok(staffService.listStaff());
+    @RequiresPermission("VIEW_ACCOUNTS")
+    public ResponseEntity<List<Expense>> list(
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                    LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+                    LocalDate to) {
+        return ResponseEntity.ok(expenseService.listExpenses(category, from, to));
     }
 
     @GetMapping("/{id}")
-    @RequiresPermission("MANAGE_STAFF")
-    public ResponseEntity<StaffResponse> getStaff(@PathVariable Long id) {
-        return ResponseEntity.ok(staffService.getStaff(id));
+    @RequiresPermission("VIEW_ACCOUNTS")
+    public ResponseEntity<Expense> get(@PathVariable Long id) {
+        return ResponseEntity.ok(expenseService.getExpense(id));
     }
 
     @PostMapping
-    @RequiresPermission("MANAGE_STAFF")
-    public ResponseEntity<StaffResponse> createStaff(
-            @Valid @RequestBody CreateStaffRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(staffService.createStaff(request));
+    @RequiresPermission("MANAGE_ACCOUNTS")
+    public ResponseEntity<Expense> create(@RequestBody ExpenseRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(expenseService.createExpense(request));
     }
 
     @PutMapping("/{id}")
-    @RequiresPermission("MANAGE_STAFF")
-    public ResponseEntity<StaffResponse> updateStaff(
-            @PathVariable Long id, @RequestBody UpdateStaffRequest request) {
-        return ResponseEntity.ok(staffService.updateStaff(id, request));
+    @RequiresPermission("MANAGE_ACCOUNTS")
+    public ResponseEntity<Expense> update(
+            @PathVariable Long id, @RequestBody ExpenseRequest request) {
+        return ResponseEntity.ok(expenseService.updateExpense(id, request));
     }
 
     @DeleteMapping("/{id}")
-    @RequiresPermission("MANAGE_STAFF")
-    public ResponseEntity<Void> deactivateStaff(@PathVariable Long id) {
-        staffService.deactivateStaff(id);
+    @RequiresPermission("MANAGE_ACCOUNTS")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        expenseService.deleteExpense(id);
         return ResponseEntity.noContent().build();
     }
 }

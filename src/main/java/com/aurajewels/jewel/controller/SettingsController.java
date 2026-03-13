@@ -21,28 +21,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.dto.staff;
+package com.aurajewels.jewel.controller;
 
-import java.math.BigDecimal;
-import java.time.Instant;
+import com.aurajewels.jewel.security.RequiresPermission;
+import com.aurajewels.jewel.service.OrgSettingService;
 import java.util.List;
-import lombok.Builder;
-import lombok.Data;
+import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-@Data
-@Builder
-public class StaffResponse {
+@RestController
+@RequestMapping("/api/settings")
+@RequiredArgsConstructor
+public class SettingsController {
 
-    private Long id;
-    private String name;
-    private String mobile;
-    private String email;
-    private String role;
-    private BigDecimal salary;
-    private BigDecimal commission;
-    private BigDecimal salesTarget;
-    private boolean active;
-    private List<String> stores;
-    private List<String> permissions;
-    private Instant createdAt;
+    private final OrgSettingService orgSettingService;
+
+    @GetMapping
+    public ResponseEntity<Map<String, String>> getSettings() {
+        return ResponseEntity.ok(orgSettingService.getSettings());
+    }
+
+    @PutMapping
+    @RequiresPermission("MANAGE_SETTINGS")
+    public ResponseEntity<Map<String, String>> updateSettings(
+            @RequestBody Map<String, String> settings) {
+        return ResponseEntity.ok(orgSettingService.updateSettings(settings));
+    }
+
+    @GetMapping("/expense-categories")
+    public ResponseEntity<List<String>> getExpenseCategories() {
+        return ResponseEntity.ok(orgSettingService.getExpenseCategories());
+    }
 }

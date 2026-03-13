@@ -21,28 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.dto.staff;
+package com.aurajewels.jewel.repository;
 
-import java.math.BigDecimal;
-import java.time.Instant;
+import com.aurajewels.jewel.entity.InvoiceItem;
 import java.util.List;
-import lombok.Builder;
-import lombok.Data;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-@Data
-@Builder
-public class StaffResponse {
-
-    private Long id;
-    private String name;
-    private String mobile;
-    private String email;
-    private String role;
-    private BigDecimal salary;
-    private BigDecimal commission;
-    private BigDecimal salesTarget;
-    private boolean active;
-    private List<String> stores;
-    private List<String> permissions;
-    private Instant createdAt;
+@Repository
+public interface InvoiceItemRepository extends JpaRepository<InvoiceItem, Long> {
+    List<InvoiceItem> findByInvoiceId(Long invoiceId);
 }

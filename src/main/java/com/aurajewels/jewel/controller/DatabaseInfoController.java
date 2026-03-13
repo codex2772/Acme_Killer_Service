@@ -64,8 +64,7 @@ public class DatabaseInfoController {
                     jdbcTemplate.queryForObject("SELECT COUNT(*) FROM organizations", Long.class);
             Long storeCount =
                     jdbcTemplate.queryForObject("SELECT COUNT(*) FROM stores", Long.class);
-            Long userCount =
-                    jdbcTemplate.queryForObject("SELECT COUNT(*) FROM users", Long.class);
+            Long userCount = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM users", Long.class);
 
             info.put("connected", true);
             info.put("database", dbName);

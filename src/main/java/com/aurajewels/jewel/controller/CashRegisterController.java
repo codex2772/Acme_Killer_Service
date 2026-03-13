@@ -23,12 +23,11 @@
  */
 package com.aurajewels.jewel.controller;
 
-import com.aurajewels.jewel.dto.staff.CreateStaffRequest;
-import com.aurajewels.jewel.dto.staff.StaffResponse;
-import com.aurajewels.jewel.dto.staff.UpdateStaffRequest;
+import com.aurajewels.jewel.dto.accounts.CloseRegisterRequest;
+import com.aurajewels.jewel.dto.accounts.OpenRegisterRequest;
+import com.aurajewels.jewel.entity.CashRegister;
 import com.aurajewels.jewel.security.RequiresPermission;
-import com.aurajewels.jewel.service.StaffService;
-import jakarta.validation.Valid;
+import com.aurajewels.jewel.service.CashRegisterService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -36,42 +35,39 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/staff")
+@RequestMapping("/api/cash-register")
 @RequiredArgsConstructor
-public class StaffController {
+public class CashRegisterController {
 
-    private final StaffService staffService;
+    private final CashRegisterService cashRegisterService;
 
     @GetMapping
-    @RequiresPermission("MANAGE_STAFF")
-    public ResponseEntity<List<StaffResponse>> listStaff() {
-        return ResponseEntity.ok(staffService.listStaff());
+    @RequiresPermission("VIEW_ACCOUNTS")
+    public ResponseEntity<List<CashRegister>> list() {
+        return ResponseEntity.ok(cashRegisterService.listRegisters());
     }
 
-    @GetMapping("/{id}")
-    @RequiresPermission("MANAGE_STAFF")
-    public ResponseEntity<StaffResponse> getStaff(@PathVariable Long id) {
-        return ResponseEntity.ok(staffService.getStaff(id));
+    @GetMapping("/current")
+    @RequiresPermission("VIEW_ACCOUNTS")
+    public ResponseEntity<CashRegister> getCurrent() {
+        CashRegister register = cashRegisterService.getCurrentRegister();
+        if (register == null) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(register);
     }
 
-    @PostMapping
-    @RequiresPermission("MANAGE_STAFF")
-    public ResponseEntity<StaffResponse> createStaff(
-            @Valid @RequestBody CreateStaffRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(staffService.createStaff(request));
+    @PostMapping("/open")
+    @RequiresPermission("MANAGE_ACCOUNTS")
+    public ResponseEntity<CashRegister> open(@RequestBody OpenRegisterRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(cashRegisterService.openRegister(request));
     }
 
-    @PutMapping("/{id}")
-    @RequiresPermission("MANAGE_STAFF")
-    public ResponseEntity<StaffResponse> updateStaff(
-            @PathVariable Long id, @RequestBody UpdateStaffRequest request) {
-        return ResponseEntity.ok(staffService.updateStaff(id, request));
-    }
-
-    @DeleteMapping("/{id}")
-    @RequiresPermission("MANAGE_STAFF")
-    public ResponseEntity<Void> deactivateStaff(@PathVariable Long id) {
-        staffService.deactivateStaff(id);
-        return ResponseEntity.noContent().build();
+    @PatchMapping("/{id}/close")
+    @RequiresPermission("MANAGE_ACCOUNTS")
+    public ResponseEntity<CashRegister> close(
+            @PathVariable Long id, @RequestBody CloseRegisterRequest request) {
+        return ResponseEntity.ok(cashRegisterService.closeRegister(id, request));
     }
 }

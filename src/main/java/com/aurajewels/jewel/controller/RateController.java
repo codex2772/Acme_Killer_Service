@@ -23,12 +23,12 @@
  */
 package com.aurajewels.jewel.controller;
 
-import com.aurajewels.jewel.dto.staff.CreateStaffRequest;
-import com.aurajewels.jewel.dto.staff.StaffResponse;
-import com.aurajewels.jewel.dto.staff.UpdateStaffRequest;
+import com.aurajewels.jewel.dto.rates.RateAlertRequest;
+import com.aurajewels.jewel.dto.rates.RateRequest;
+import com.aurajewels.jewel.entity.DailyRate;
+import com.aurajewels.jewel.entity.RateAlert;
 import com.aurajewels.jewel.security.RequiresPermission;
-import com.aurajewels.jewel.service.StaffService;
-import jakarta.validation.Valid;
+import com.aurajewels.jewel.service.DailyRateService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -36,42 +36,41 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/staff")
+@RequestMapping("/api/rates")
 @RequiredArgsConstructor
-public class StaffController {
+public class RateController {
 
-    private final StaffService staffService;
+    private final DailyRateService dailyRateService;
 
     @GetMapping
-    @RequiresPermission("MANAGE_STAFF")
-    public ResponseEntity<List<StaffResponse>> listStaff() {
-        return ResponseEntity.ok(staffService.listStaff());
+    public ResponseEntity<DailyRate> getCurrentRates() {
+        DailyRate rate = dailyRateService.getCurrentRates();
+        if (rate == null) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(rate);
     }
 
-    @GetMapping("/{id}")
-    @RequiresPermission("MANAGE_STAFF")
-    public ResponseEntity<StaffResponse> getStaff(@PathVariable Long id) {
-        return ResponseEntity.ok(staffService.getStaff(id));
+    @PutMapping
+    @RequiresPermission("MANAGE_RATES")
+    public ResponseEntity<DailyRate> updateRates(@RequestBody RateRequest request) {
+        return ResponseEntity.ok(dailyRateService.updateRates(request));
     }
 
-    @PostMapping
-    @RequiresPermission("MANAGE_STAFF")
-    public ResponseEntity<StaffResponse> createStaff(
-            @Valid @RequestBody CreateStaffRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(staffService.createStaff(request));
+    @GetMapping("/history")
+    public ResponseEntity<List<DailyRate>> getHistory(@RequestParam(defaultValue = "30") int days) {
+        return ResponseEntity.ok(dailyRateService.getRateHistory(days));
     }
 
-    @PutMapping("/{id}")
-    @RequiresPermission("MANAGE_STAFF")
-    public ResponseEntity<StaffResponse> updateStaff(
-            @PathVariable Long id, @RequestBody UpdateStaffRequest request) {
-        return ResponseEntity.ok(staffService.updateStaff(id, request));
+    @PostMapping("/alerts")
+    @RequiresPermission("MANAGE_RATES")
+    public ResponseEntity<RateAlert> createAlert(@RequestBody RateAlertRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(dailyRateService.createAlert(request));
     }
 
-    @DeleteMapping("/{id}")
-    @RequiresPermission("MANAGE_STAFF")
-    public ResponseEntity<Void> deactivateStaff(@PathVariable Long id) {
-        staffService.deactivateStaff(id);
-        return ResponseEntity.noContent().build();
+    @GetMapping("/alerts")
+    public ResponseEntity<List<RateAlert>> getAlerts() {
+        return ResponseEntity.ok(dailyRateService.getActiveAlerts());
     }
 }

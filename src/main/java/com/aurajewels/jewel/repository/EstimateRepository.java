@@ -21,28 +21,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.dto.staff;
+package com.aurajewels.jewel.repository;
 
-import java.math.BigDecimal;
-import java.time.Instant;
+import com.aurajewels.jewel.entity.Estimate;
 import java.util.List;
-import lombok.Builder;
-import lombok.Data;
+import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-@Data
-@Builder
-public class StaffResponse {
+@Repository
+public interface EstimateRepository extends JpaRepository<Estimate, Long> {
 
-    private Long id;
-    private String name;
-    private String mobile;
-    private String email;
-    private String role;
-    private BigDecimal salary;
-    private BigDecimal commission;
-    private BigDecimal salesTarget;
-    private boolean active;
-    private List<String> stores;
-    private List<String> permissions;
-    private Instant createdAt;
+    List<Estimate> findByStoreIdAndActiveTrueOrderByCreatedAtDesc(Long storeId);
+
+    Optional<Estimate> findByIdAndStoreId(Long id, Long storeId);
+
+    @org.springframework.data.jpa.repository.Query(
+            "SELECT COALESCE(MAX(CAST(SUBSTRING(e.estimateNumber, LENGTH(:prefix) + 1) AS int)), 0) "
+                    + "FROM Estimate e WHERE e.store.id = :storeId AND e.estimateNumber LIKE CONCAT(:prefix, '%')")
+    int findMaxEstimateNumber(Long storeId, String prefix);
 }

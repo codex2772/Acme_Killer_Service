@@ -21,28 +21,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.dto.staff;
+package com.aurajewels.jewel.repository;
 
-import java.math.BigDecimal;
-import java.time.Instant;
+import com.aurajewels.jewel.entity.CreditNote;
 import java.util.List;
-import lombok.Builder;
-import lombok.Data;
+import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-@Data
-@Builder
-public class StaffResponse {
+@Repository
+public interface CreditNoteRepository extends JpaRepository<CreditNote, Long> {
 
-    private Long id;
-    private String name;
-    private String mobile;
-    private String email;
-    private String role;
-    private BigDecimal salary;
-    private BigDecimal commission;
-    private BigDecimal salesTarget;
-    private boolean active;
-    private List<String> stores;
-    private List<String> permissions;
-    private Instant createdAt;
+    List<CreditNote> findByStoreIdAndActiveTrueOrderByCreatedAtDesc(Long storeId);
+
+    Optional<CreditNote> findByIdAndStoreId(Long id, Long storeId);
+
+    @org.springframework.data.jpa.repository.Query(
+            "SELECT COALESCE(MAX(CAST(SUBSTRING(c.creditNoteNumber, LENGTH(:prefix) + 1) AS int)), 0) "
+                    + "FROM CreditNote c WHERE c.store.id = :storeId AND c.creditNoteNumber LIKE CONCAT(:prefix, '%')")
+    int findMaxCreditNoteNumber(Long storeId, String prefix);
 }
