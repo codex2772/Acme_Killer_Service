@@ -99,6 +99,15 @@ jobs:
           container_cpu    = 512
           container_memory = 1024
           desired_count    = 1
+
+          # RDS MySQL
+          db_instance_class = "db.t3.micro"
+          db_name           = "jewelerpdb"
+          db_username       = "jeweladmin"
+          db_password       = "${{ secrets.DB_PASSWORD }}"
+
+          # JWT
+          jwt_secret = "${{ secrets.JWT_SECRET }}"
           EOF
 
       - name: Terraform Validate
@@ -139,6 +148,7 @@ jobs:
           echo "| ECS Cluster | \`$(terraform output -raw ecs_cluster_name)\` |" >> $GITHUB_STEP_SUMMARY
           echo "| ECS Service | \`$(terraform output -raw ecs_service_name)\` |" >> $GITHUB_STEP_SUMMARY
           echo "| ALB DNS | \`$(terraform output -raw alb_dns_name)\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| RDS Endpoint | \`$(terraform output -raw rds_endpoint)\` |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🌐 Application URL" >> $GITHUB_STEP_SUMMARY
           echo "http://$(terraform output -raw alb_dns_name)/api/hello" >> $GITHUB_STEP_SUMMARY

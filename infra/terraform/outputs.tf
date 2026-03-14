@@ -55,3 +55,21 @@ output "alb_zone_id" {
   value       = aws_lb.main.zone_id
 }
 
+# ================================
+# RDS Outputs
+# ================================
+output "rds_endpoint" {
+  description = "RDS MySQL endpoint"
+  value       = aws_db_instance.main.address
+}
+
+output "rds_port" {
+  description = "RDS MySQL port"
+  value       = aws_db_instance.main.port
+}
+
+output "db_credentials_secret_arn" {
+  description = "Secrets Manager ARN for DB credentials"
+  value       = aws_secretsmanager_secret.db_credentials.arn
+}
+
