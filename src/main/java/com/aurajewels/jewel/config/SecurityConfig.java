@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2026 AuraJewels
+ * Copyright (c) 2026 AuraJewels (Raviraj Bhosale)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,6 +36,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+/**
+ * @author Raviraj Bhosale
+ */
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor

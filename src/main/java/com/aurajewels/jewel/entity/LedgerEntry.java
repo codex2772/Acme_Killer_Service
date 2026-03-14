@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2026 AuraJewels
+ * Copyright (c) 2026 AuraJewels (Raviraj Bhosale)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,9 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+/**
+ * @author Raviraj Bhosale
+ */
 @Entity
 @Table(name = "ledger_entries")
 @Getter

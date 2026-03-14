@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2026 AuraJewels
+ * Copyright (c) 2026 AuraJewels (Raviraj Bhosale)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+/**
+ * @author Raviraj Bhosale
+ */
 @Repository
 public interface LedgerEntryRepository extends JpaRepository<LedgerEntry, Long> {
 

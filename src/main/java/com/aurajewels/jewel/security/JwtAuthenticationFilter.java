@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2026 AuraJewels
+ * Copyright (c) 2026 AuraJewels (Raviraj Bhosale)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +37,9 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+/**
+ * @author Raviraj Bhosale
+ */
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {

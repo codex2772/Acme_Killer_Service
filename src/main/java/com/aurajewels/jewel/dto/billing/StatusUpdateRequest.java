@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2026 AuraJewels
+ * Copyright (c) 2026 AuraJewels (Raviraj Bhosale)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,9 @@ package com.aurajewels.jewel.dto.billing;
 
 import lombok.Data;
 
+/**
+ * @author Raviraj Bhosale
+ */
 @Data
 public class StatusUpdateRequest {
     private String status;
