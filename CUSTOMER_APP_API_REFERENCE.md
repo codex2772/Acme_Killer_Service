@@ -1,6 +1,6 @@
 # JewelERP — Customer Mobile App API Reference
 
-> **Base URL:** `https://<alb-dns>/api/customer-app`
+> **Base URL:** `http://jewel-erp-alb-2124014483.ap-south-1.elb.amazonaws.com`
 >
 > **Auth:** Endpoints marked 🔓 require a `Bearer <token>` header (customer JWT).
 > Endpoints marked 🌐 are public.
