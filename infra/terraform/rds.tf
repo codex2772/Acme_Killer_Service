@@ -44,7 +44,7 @@ resource "aws_db_subnet_group" "main" {
 resource "aws_secretsmanager_secret" "db_credentials" {
   name                    = "${var.app_name}/${var.environment}/db-credentials"
   description             = "RDS MySQL credentials for ${var.app_name}"
-  recovery_window_in_days = 7
+  recovery_window_in_days = 0  # Immediate delete — no 7-day wait (safe for dev/staging)
 
   tags = {
     Name = "${var.app_name}-db-credentials"
