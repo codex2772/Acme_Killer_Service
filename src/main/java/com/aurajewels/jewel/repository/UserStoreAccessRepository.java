@@ -26,6 +26,9 @@ package com.aurajewels.jewel.repository;
 import com.aurajewels.jewel.entity.UserStoreAccess;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -38,5 +41,7 @@ public interface UserStoreAccessRepository extends JpaRepository<UserStoreAccess
 
     boolean existsByUserIdAndStoreId(Long userId, Long storeId);
 
-    void deleteByUserId(Long userId);
+    @Modifying(clearAutomatically = true)
+    @Query("DELETE FROM UserStoreAccess usa WHERE usa.user.id = :userId")
+    void deleteByUserId(@Param("userId") Long userId);
 }

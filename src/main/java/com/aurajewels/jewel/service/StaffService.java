@@ -170,6 +170,7 @@ public class StaffService {
         // Update store access if provided
         if (request.getStoreIds() != null) {
             userStoreAccessRepository.deleteByUserId(user.getId());
+            userStoreAccessRepository.flush();
             for (Long storeId : request.getStoreIds()) {
                 Store store =
                         storeRepository
@@ -186,6 +187,7 @@ public class StaffService {
         // Update permissions if provided (only meaningful for STAFF)
         if (request.getPermissions() != null) {
             userPermissionRepository.deleteByUserId(user.getId());
+            userPermissionRepository.flush();
             if (user.getRole() == Role.STAFF) {
                 List<Permission> perms =
                         permissionRepository.findByNameIn(request.getPermissions());
