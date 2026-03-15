@@ -114,6 +114,15 @@ jobs:
         id: validate
         run: terraform validate
 
+      - name: Cleanup pending-deletion secrets
+        run: |
+          # Force-delete secrets stuck in 'scheduled for deletion' state
+          # This happens when terraform destroy runs with recovery_window > 0
+          aws secretsmanager delete-secret \
+            --secret-id jewel-erp/prod/db-credentials \
+            --force-delete-without-recovery \
+            --region ${{ env.AWS_REGION }} 2>/dev/null || true
+
       - name: Terraform Plan
         id: plan
         run: |
