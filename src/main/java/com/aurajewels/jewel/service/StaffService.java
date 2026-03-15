@@ -214,6 +214,12 @@ public class StaffService {
             }
         }
 
+        // Re-fetch user to get the latest state after persistence context clears
+        user =
+                userRepository
+                        .findByIdAndOrganizationId(userId, orgId)
+                        .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
         return toStaffResponse(user);
     }
 
