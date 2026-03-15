@@ -7,7 +7,7 @@
 -- =============================================
 -- New Permissions
 -- =============================================
-INSERT INTO permissions (name, description) VALUES
+INSERT IGNORE INTO permissions (name, description) VALUES
     ('VIEW_BILLING',      'View invoices, estimates, credit notes'),
     ('MANAGE_BILLING',    'Create/update invoices, estimates, credit notes'),
     ('VIEW_ACCOUNTS',     'View ledger, expenses, suppliers, cash register'),
@@ -18,34 +18,68 @@ INSERT INTO permissions (name, description) VALUES
 
 -- =============================================
 -- Alter existing invoices table to add new columns
+-- (Idempotent: skip columns that V3 already added)
 -- =============================================
-ALTER TABLE invoices ADD COLUMN store_id BIGINT AFTER id;
-ALTER TABLE invoices ADD COLUMN active BOOLEAN DEFAULT TRUE AFTER status;
-ALTER TABLE invoices ADD COLUMN gst_rate DECIMAL(5,2) NOT NULL DEFAULT 3.00 AFTER discount;
-ALTER TABLE invoices ADD COLUMN gst_amount DECIMAL(14,2) NOT NULL DEFAULT 0 AFTER gst_rate;
-ALTER TABLE invoices ADD COLUMN round_off DECIMAL(10,2) NOT NULL DEFAULT 0 AFTER gst_amount;
-ALTER TABLE invoices ADD COLUMN old_gold_adjustment DECIMAL(14,2) NOT NULL DEFAULT 0 AFTER round_off;
-ALTER TABLE invoices ADD COLUMN digital_signature VARCHAR(200) AFTER notes;
-ALTER TABLE invoices ADD COLUMN due_date DATE AFTER payment_mode;
-ALTER TABLE invoices ADD COLUMN created_by BIGINT AFTER active;
-ALTER TABLE invoices ADD COLUMN invoice_type ENUM('INVOICE','ESTIMATE','CREDIT_NOTE') DEFAULT 'INVOICE' AFTER store_id;
+DROP PROCEDURE IF EXISTS jewel_v6_alter_invoices;
+DELIMITER //
+CREATE PROCEDURE jewel_v6_alter_invoices()
+BEGIN
+    -- store_id may already exist from V3
+    IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'invoices' AND COLUMN_NAME = 'invoice_type') THEN
+        ALTER TABLE invoices ADD COLUMN invoice_type ENUM('INVOICE','ESTIMATE','CREDIT_NOTE') DEFAULT 'INVOICE' AFTER id;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'invoices' AND COLUMN_NAME = 'active') THEN
+        ALTER TABLE invoices ADD COLUMN active BOOLEAN DEFAULT TRUE AFTER status;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'invoices' AND COLUMN_NAME = 'gst_rate') THEN
+        ALTER TABLE invoices ADD COLUMN gst_rate DECIMAL(5,2) NOT NULL DEFAULT 3.00 AFTER discount;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'invoices' AND COLUMN_NAME = 'gst_amount') THEN
+        ALTER TABLE invoices ADD COLUMN gst_amount DECIMAL(14,2) NOT NULL DEFAULT 0 AFTER gst_rate;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'invoices' AND COLUMN_NAME = 'round_off') THEN
+        ALTER TABLE invoices ADD COLUMN round_off DECIMAL(10,2) NOT NULL DEFAULT 0 AFTER gst_amount;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'invoices' AND COLUMN_NAME = 'old_gold_adjustment') THEN
+        ALTER TABLE invoices ADD COLUMN old_gold_adjustment DECIMAL(14,2) NOT NULL DEFAULT 0 AFTER round_off;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'invoices' AND COLUMN_NAME = 'digital_signature') THEN
+        ALTER TABLE invoices ADD COLUMN digital_signature VARCHAR(200) AFTER notes;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'invoices' AND COLUMN_NAME = 'due_date') THEN
+        ALTER TABLE invoices ADD COLUMN due_date DATE AFTER payment_mode;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'invoices' AND COLUMN_NAME = 'created_by') THEN
+        ALTER TABLE invoices ADD COLUMN created_by BIGINT AFTER active;
+    END IF;
+END //
+DELIMITER ;
+CALL jewel_v6_alter_invoices();
+DROP PROCEDURE IF EXISTS jewel_v6_alter_invoices;
 
--- Set store_id to 1 for existing invoices
+-- Set store_id to 1 for existing invoices (idempotent)
 UPDATE invoices SET store_id = 1 WHERE store_id IS NULL;
-ALTER TABLE invoices MODIFY store_id BIGINT NOT NULL;
-ALTER TABLE invoices ADD CONSTRAINT fk_inv_store FOREIGN KEY (store_id) REFERENCES stores(id);
-ALTER TABLE invoices ADD KEY idx_inv_store (store_id);
 
--- Add store_id to existing invoice_items table
-ALTER TABLE invoice_items ADD COLUMN store_id BIGINT AFTER invoice_id;
-UPDATE invoice_items SET store_id = 1 WHERE store_id IS NULL;
-ALTER TABLE invoice_items MODIFY store_id BIGINT NOT NULL;
-ALTER TABLE invoice_items ADD CONSTRAINT fk_ii_store FOREIGN KEY (store_id) REFERENCES stores(id);
+-- Add FK/index only if not already present (from V3)
+DROP PROCEDURE IF EXISTS jewel_v6_alter_invoice_items;
+DELIMITER //
+CREATE PROCEDURE jewel_v6_alter_invoice_items()
+BEGIN
+    -- invoice_items.store_id may already exist from V3
+    IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'invoice_items' AND COLUMN_NAME = 'store_id') THEN
+        ALTER TABLE invoice_items ADD COLUMN store_id BIGINT AFTER invoice_id;
+        UPDATE invoice_items SET store_id = 1 WHERE store_id IS NULL;
+        ALTER TABLE invoice_items MODIFY store_id BIGINT NOT NULL;
+    END IF;
+END //
+DELIMITER ;
+CALL jewel_v6_alter_invoice_items();
+DROP PROCEDURE IF EXISTS jewel_v6_alter_invoice_items;
 
 -- =============================================
 -- Invoice Payments (split payments)
 -- =============================================
-CREATE TABLE invoice_payments (
+CREATE TABLE IF NOT EXISTS invoice_payments (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     invoice_id      BIGINT         NOT NULL,
     store_id        BIGINT         NOT NULL,
@@ -63,7 +97,7 @@ CREATE TABLE invoice_payments (
 -- =============================================
 -- Estimates
 -- =============================================
-CREATE TABLE estimates (
+CREATE TABLE IF NOT EXISTS estimates (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     store_id        BIGINT         NOT NULL,
     estimate_number VARCHAR(30)    NOT NULL,
@@ -95,7 +129,7 @@ CREATE TABLE estimates (
 -- =============================================
 -- Estimate Line Items
 -- =============================================
-CREATE TABLE estimate_items (
+CREATE TABLE IF NOT EXISTS estimate_items (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     estimate_id     BIGINT         NOT NULL,
     store_id        BIGINT         NOT NULL,
@@ -117,7 +151,7 @@ CREATE TABLE estimate_items (
 -- =============================================
 -- Credit Notes
 -- =============================================
-CREATE TABLE credit_notes (
+CREATE TABLE IF NOT EXISTS credit_notes (
     id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
     store_id            BIGINT         NOT NULL,
     credit_note_number  VARCHAR(30)    NOT NULL,
@@ -148,7 +182,7 @@ CREATE TABLE credit_notes (
 -- =============================================
 -- Credit Note Line Items
 -- =============================================
-CREATE TABLE credit_note_items (
+CREATE TABLE IF NOT EXISTS credit_note_items (
     id                  BIGINT AUTO_INCREMENT PRIMARY KEY,
     credit_note_id      BIGINT         NOT NULL,
     store_id            BIGINT         NOT NULL,
@@ -170,7 +204,7 @@ CREATE TABLE credit_note_items (
 -- =============================================
 -- Ledger Entries
 -- =============================================
-CREATE TABLE ledger_entries (
+CREATE TABLE IF NOT EXISTS ledger_entries (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     store_id        BIGINT         NOT NULL,
     entry_date      DATE           NOT NULL,
@@ -195,7 +229,7 @@ CREATE TABLE ledger_entries (
 -- =============================================
 -- Expenses
 -- =============================================
-CREATE TABLE expenses (
+CREATE TABLE IF NOT EXISTS expenses (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     store_id        BIGINT         NOT NULL,
     expense_date    DATE           NOT NULL,
@@ -216,7 +250,7 @@ CREATE TABLE expenses (
 -- =============================================
 -- Cash Registers
 -- =============================================
-CREATE TABLE cash_registers (
+CREATE TABLE IF NOT EXISTS cash_registers (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     store_id        BIGINT         NOT NULL,
     register_date   DATE           NOT NULL,
@@ -237,7 +271,7 @@ CREATE TABLE cash_registers (
 -- =============================================
 -- Suppliers
 -- =============================================
-CREATE TABLE suppliers (
+CREATE TABLE IF NOT EXISTS suppliers (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     store_id        BIGINT         NOT NULL,
     name            VARCHAR(200)   NOT NULL,
@@ -257,7 +291,7 @@ CREATE TABLE suppliers (
 -- =============================================
 -- Supplier Metals (many-to-many simple)
 -- =============================================
-CREATE TABLE supplier_metals (
+CREATE TABLE IF NOT EXISTS supplier_metals (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     supplier_id     BIGINT         NOT NULL,
     metal           VARCHAR(50)    NOT NULL,
@@ -268,7 +302,7 @@ CREATE TABLE supplier_metals (
 -- =============================================
 -- Daily Rates
 -- =============================================
-CREATE TABLE daily_rates (
+CREATE TABLE IF NOT EXISTS daily_rates (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     store_id        BIGINT         NOT NULL,
     rate_date       DATE           NOT NULL,
@@ -292,7 +326,7 @@ CREATE TABLE daily_rates (
 -- =============================================
 -- Rate Alerts
 -- =============================================
-CREATE TABLE rate_alerts (
+CREATE TABLE IF NOT EXISTS rate_alerts (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     store_id        BIGINT         NOT NULL,
     metal           VARCHAR(50)    NOT NULL,
@@ -309,7 +343,7 @@ CREATE TABLE rate_alerts (
 -- =============================================
 -- Old Gold Purchases
 -- =============================================
-CREATE TABLE old_gold_purchases (
+CREATE TABLE IF NOT EXISTS old_gold_purchases (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     store_id        BIGINT         NOT NULL,
     customer_id     BIGINT         NOT NULL,
@@ -334,7 +368,7 @@ CREATE TABLE old_gold_purchases (
 -- =============================================
 -- Old Gold Purity Tests
 -- =============================================
-CREATE TABLE old_gold_purity_tests (
+CREATE TABLE IF NOT EXISTS old_gold_purity_tests (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     old_gold_id     BIGINT         NOT NULL,
     method          VARCHAR(50)    NOT NULL COMMENT 'XRF, Acid Test, Fire Assay',
@@ -349,7 +383,7 @@ CREATE TABLE old_gold_purity_tests (
 -- =============================================
 -- Old Gold Melting Records
 -- =============================================
-CREATE TABLE old_gold_melting_records (
+CREATE TABLE IF NOT EXISTS old_gold_melting_records (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     old_gold_id     BIGINT         NOT NULL,
     melted_weight   DECIMAL(10,3)  NOT NULL,
@@ -363,7 +397,7 @@ CREATE TABLE old_gold_melting_records (
 -- =============================================
 -- Saving Schemes
 -- =============================================
-CREATE TABLE schemes (
+CREATE TABLE IF NOT EXISTS schemes (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     store_id        BIGINT         NOT NULL,
     name            VARCHAR(200)   NOT NULL,
@@ -384,7 +418,7 @@ CREATE TABLE schemes (
 -- =============================================
 -- Scheme Members
 -- =============================================
-CREATE TABLE scheme_members (
+CREATE TABLE IF NOT EXISTS scheme_members (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     scheme_id       BIGINT         NOT NULL,
     customer_id     BIGINT,
@@ -402,7 +436,7 @@ CREATE TABLE scheme_members (
 -- =============================================
 -- Scheme Payments
 -- =============================================
-CREATE TABLE scheme_payments (
+CREATE TABLE IF NOT EXISTS scheme_payments (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     scheme_member_id BIGINT        NOT NULL,
     month_number    INT            NOT NULL,
@@ -417,7 +451,7 @@ CREATE TABLE scheme_payments (
 -- =============================================
 -- Organization Settings
 -- =============================================
-CREATE TABLE org_settings (
+CREATE TABLE IF NOT EXISTS org_settings (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     org_id          BIGINT         NOT NULL,
     setting_key     VARCHAR(100)   NOT NULL,
@@ -429,7 +463,7 @@ CREATE TABLE org_settings (
 -- =============================================
 -- Activity Logs
 -- =============================================
-CREATE TABLE activity_logs (
+CREATE TABLE IF NOT EXISTS activity_logs (
     id              BIGINT AUTO_INCREMENT PRIMARY KEY,
     store_id        BIGINT         NOT NULL,
     user_id         BIGINT,
