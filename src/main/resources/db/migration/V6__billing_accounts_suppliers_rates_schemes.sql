@@ -482,8 +482,25 @@ CREATE TABLE IF NOT EXISTS activity_logs (
 
 -- =============================================
 -- Add email column to users table for staff updates
+-- (Idempotent: skip if columns already exist)
 -- =============================================
-ALTER TABLE users ADD COLUMN email VARCHAR(150) AFTER mobile;
-ALTER TABLE users ADD COLUMN salary DECIMAL(14,2) AFTER email;
-ALTER TABLE users ADD COLUMN commission DECIMAL(5,2) AFTER salary;
-ALTER TABLE users ADD COLUMN sales_target DECIMAL(14,2) AFTER commission;
+DROP PROCEDURE IF EXISTS jewel_v6_alter_users;
+DELIMITER //
+CREATE PROCEDURE jewel_v6_alter_users()
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'email') THEN
+        ALTER TABLE users ADD COLUMN email VARCHAR(150) AFTER mobile;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'salary') THEN
+        ALTER TABLE users ADD COLUMN salary DECIMAL(14,2) AFTER email;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'commission') THEN
+        ALTER TABLE users ADD COLUMN commission DECIMAL(5,2) AFTER salary;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'sales_target') THEN
+        ALTER TABLE users ADD COLUMN sales_target DECIMAL(14,2) AFTER commission;
+    END IF;
+END //
+DELIMITER ;
+CALL jewel_v6_alter_users();
+DROP PROCEDURE IF EXISTS jewel_v6_alter_users;
