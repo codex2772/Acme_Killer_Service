@@ -21,34 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.repository;
+package com.aurajewels.jewel.dto.customerapp;
 
-import com.aurajewels.jewel.entity.Customer;
-import java.util.List;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import lombok.Data;
 
 /**
  * @author Raviraj Bhosale
  */
-@Repository
-public interface CustomerRepository extends JpaRepository<Customer, Long> {
-
-    List<Customer> findByActiveTrue();
-
-    List<Customer> findByStoreIdAndActiveTrue(Long storeId);
-
-    Optional<Customer> findByIdAndStoreId(Long id, Long storeId);
-
-    Optional<Customer> findByPhone(String phone);
-
-    Optional<Customer> findByPhoneAndActiveTrue(String phone);
-
-    Optional<Customer> findByPhoneAndStoreId(String phone, Long storeId);
-
-    List<Customer> findByFirstNameContainingIgnoreCaseAndActiveTrue(String name);
-
-    List<Customer> findByFirstNameContainingIgnoreCaseAndStoreIdAndActiveTrue(
-            String name, Long storeId);
+@Data
+public class CustomerLoginRequest {
+    private String phone;
+    private String password;
+    private Long storeId;
 }

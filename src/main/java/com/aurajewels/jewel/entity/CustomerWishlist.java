@@ -24,59 +24,41 @@
 package com.aurajewels.jewel.entity;
 
 import jakarta.persistence.*;
+import java.time.Instant;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 /**
  * @author Raviraj Bhosale
  */
 @Entity
-@Table(name = "customers")
+@Table(name = "customer_wishlists")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Customer extends BaseEntity {
+public class CustomerWishlist {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private Customer customer;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "jewelry_item_id", nullable = false)
+    private JewelryItem jewelryItem;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id", nullable = false)
     @com.fasterxml.jackson.annotation.JsonIgnore
     private Store store;
 
-    @Column(name = "first_name", nullable = false, length = 100)
-    private String firstName;
-
-    @Column(name = "last_name", length = 100)
-    private String lastName;
-
-    @Column(name = "phone", nullable = false, unique = true, length = 15)
-    private String phone;
-
-    @Column(name = "email", length = 150)
-    private String email;
-
-    @Column(name = "password_hash")
-    @com.fasterxml.jackson.annotation.JsonIgnore
-    private String passwordHash;
-
-    @Column(name = "address_line1")
-    private String addressLine1;
-
-    @Column(name = "address_line2")
-    private String addressLine2;
-
-    @Column(name = "city", length = 100)
-    private String city;
-
-    @Column(name = "state", length = 100)
-    private String state;
-
-    @Column(name = "pincode", length = 10)
-    private String pincode;
-
-    @Column(name = "gstin", length = 20)
-    private String gstin;
-
-    @Column(name = "pan", length = 15)
-    private String pan;
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private Instant createdAt;
 }

@@ -23,7 +23,7 @@
  */
 package com.aurajewels.jewel.repository;
 
-import com.aurajewels.jewel.entity.Customer;
+import com.aurajewels.jewel.entity.CustomerWishlist;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -33,22 +33,14 @@ import org.springframework.stereotype.Repository;
  * @author Raviraj Bhosale
  */
 @Repository
-public interface CustomerRepository extends JpaRepository<Customer, Long> {
+public interface CustomerWishlistRepository extends JpaRepository<CustomerWishlist, Long> {
 
-    List<Customer> findByActiveTrue();
+    List<CustomerWishlist> findByCustomerIdOrderByCreatedAtDesc(Long customerId);
 
-    List<Customer> findByStoreIdAndActiveTrue(Long storeId);
+    Optional<CustomerWishlist> findByCustomerIdAndJewelryItemId(
+            Long customerId, Long jewelryItemId);
 
-    Optional<Customer> findByIdAndStoreId(Long id, Long storeId);
+    boolean existsByCustomerIdAndJewelryItemId(Long customerId, Long jewelryItemId);
 
-    Optional<Customer> findByPhone(String phone);
-
-    Optional<Customer> findByPhoneAndActiveTrue(String phone);
-
-    Optional<Customer> findByPhoneAndStoreId(String phone, Long storeId);
-
-    List<Customer> findByFirstNameContainingIgnoreCaseAndActiveTrue(String name);
-
-    List<Customer> findByFirstNameContainingIgnoreCaseAndStoreIdAndActiveTrue(
-            String name, Long storeId);
+    void deleteByCustomerIdAndJewelryItemId(Long customerId, Long jewelryItemId);
 }

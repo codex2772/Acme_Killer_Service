@@ -1,0 +1,94 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2026 AuraJewels (Raviraj Bhosale)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+package com.aurajewels.jewel.entity;
+
+import jakarta.persistence.*;
+import java.time.Instant;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+/**
+ * @author Raviraj Bhosale
+ */
+@Entity
+@Table(name = "customer_enquiries")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class CustomerEnquiry {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private Customer customer;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "jewelry_item_id")
+    private JewelryItem jewelryItem;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private Store store;
+
+    @Column(name = "subject", nullable = false, length = 200)
+    private String subject;
+
+    @Column(name = "message", nullable = false, columnDefinition = "TEXT")
+    private String message;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private EnquiryStatus status = EnquiryStatus.OPEN;
+
+    @Column(name = "admin_response", columnDefinition = "TEXT")
+    private String adminResponse;
+
+    @Column(name = "responded_by")
+    private Long respondedBy;
+
+    @Column(name = "responded_at")
+    private Instant respondedAt;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private Instant createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private Instant updatedAt;
+
+    public enum EnquiryStatus {
+        OPEN,
+        RESPONDED,
+        CLOSED
+    }
+}

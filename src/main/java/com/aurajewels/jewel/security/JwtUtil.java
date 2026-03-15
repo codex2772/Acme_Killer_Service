@@ -24,6 +24,7 @@
 package com.aurajewels.jewel.security;
 
 import com.aurajewels.jewel.config.JwtProperties;
+import com.aurajewels.jewel.entity.Customer;
 import com.aurajewels.jewel.entity.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -64,6 +65,33 @@ public class JwtUtil {
         return Jwts.builder()
                 .subject(String.valueOf(user.getId()))
                 .claim("type", "refresh")
+                .issuedAt(new Date())
+                .expiration(
+                        new Date(
+                                System.currentTimeMillis()
+                                        + jwtProperties.getRefreshExpirationMs()))
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    public String generateCustomerToken(Customer customer, Long storeId) {
+        return Jwts.builder()
+                .subject(String.valueOf(customer.getId()))
+                .claim("storeId", storeId)
+                .claim("role", "CUSTOMER")
+                .claim("name", customer.getFirstName())
+                .claim("permissions", List.of())
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + jwtProperties.getExpirationMs()))
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    public String generateCustomerRefreshToken(Customer customer) {
+        return Jwts.builder()
+                .subject(String.valueOf(customer.getId()))
+                .claim("type", "refresh")
+                .claim("role", "CUSTOMER")
                 .issuedAt(new Date())
                 .expiration(
                         new Date(

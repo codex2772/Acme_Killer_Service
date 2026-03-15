@@ -68,8 +68,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             Long userId = jwtUtil.extractUserId(token);
             String role = jwtUtil.extractRole(token);
-            Long orgId = jwtUtil.extractOrgId(token);
             List<String> permissions = jwtUtil.extractPermissions(token);
+
+            // Customer tokens don't have orgId
+            Long orgId = null;
+            if (!"CUSTOMER".equals(role)) {
+                orgId = jwtUtil.extractOrgId(token);
+            }
 
             // Check for X-Store-Id header (store switching)
             Long storeId;

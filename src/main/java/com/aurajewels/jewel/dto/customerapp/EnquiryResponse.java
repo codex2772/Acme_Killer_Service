@@ -21,34 +21,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.repository;
+package com.aurajewels.jewel.dto.customerapp;
 
-import com.aurajewels.jewel.entity.Customer;
-import java.util.List;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import java.time.Instant;
+import lombok.Builder;
+import lombok.Data;
 
 /**
  * @author Raviraj Bhosale
  */
-@Repository
-public interface CustomerRepository extends JpaRepository<Customer, Long> {
-
-    List<Customer> findByActiveTrue();
-
-    List<Customer> findByStoreIdAndActiveTrue(Long storeId);
-
-    Optional<Customer> findByIdAndStoreId(Long id, Long storeId);
-
-    Optional<Customer> findByPhone(String phone);
-
-    Optional<Customer> findByPhoneAndActiveTrue(String phone);
-
-    Optional<Customer> findByPhoneAndStoreId(String phone, Long storeId);
-
-    List<Customer> findByFirstNameContainingIgnoreCaseAndActiveTrue(String name);
-
-    List<Customer> findByFirstNameContainingIgnoreCaseAndStoreIdAndActiveTrue(
-            String name, Long storeId);
+@Data
+@Builder
+public class EnquiryResponse {
+    private Long id;
+    private Long jewelryItemId;
+    private String jewelryItemName;
+    private String subject;
+    private String message;
+    private String status;
+    private String adminResponse;
+    private Instant createdAt;
+    private Instant respondedAt;
 }

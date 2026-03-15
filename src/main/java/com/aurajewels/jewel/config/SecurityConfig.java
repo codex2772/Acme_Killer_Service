@@ -55,6 +55,9 @@ public class SecurityConfig {
                         auth ->
                                 auth.requestMatchers(
                                                 "/api/auth/**",
+                                                "/api/customer-app/register",
+                                                "/api/customer-app/login",
+                                                "/api/customer-app/catalog/**",
                                                 "/api/hello",
                                                 "/api",
                                                 "/actuator/**")

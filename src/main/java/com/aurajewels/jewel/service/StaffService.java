@@ -165,7 +165,9 @@ public class StaffService {
             user.setRole(newRole);
         }
 
-        userRepository.save(user);
+        // Force immediate DB write BEFORE the delete operations
+        // which use @Modifying(clearAutomatically=true) and wipe the persistence context
+        user = userRepository.saveAndFlush(user);
 
         // Update store access if provided
         if (request.getStoreIds() != null) {
