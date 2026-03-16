@@ -554,6 +554,7 @@ CREATE TABLE scheme_members (
     phone           VARCHAR(15),
     join_date       DATE           NOT NULL,
     status          ENUM('ACTIVE','COMPLETED','DROPPED') DEFAULT 'ACTIVE',
+    active          BOOLEAN DEFAULT TRUE,
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     KEY idx_smem_scheme (scheme_id),
@@ -568,7 +569,9 @@ CREATE TABLE scheme_payments (
     amount           DECIMAL(14,2) NOT NULL,
     payment_date     DATE          NOT NULL,
     status           ENUM('PAID','PENDING','LATE') DEFAULT 'PAID',
+    active           BOOLEAN DEFAULT TRUE,
     created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     KEY idx_sp_member (scheme_member_id),
     CONSTRAINT fk_sp_member FOREIGN KEY (scheme_member_id) REFERENCES scheme_members(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
