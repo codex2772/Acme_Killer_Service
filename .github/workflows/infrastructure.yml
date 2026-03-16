@@ -115,13 +115,23 @@ jobs:
         run: terraform validate
 
       - name: Cleanup pending-deletion secrets
+        if: github.event.inputs.action == 'apply' || github.event.inputs.action == 'destroy'
         run: |
           # Force-delete secrets stuck in 'scheduled for deletion' state
-          # This happens when terraform destroy runs with recovery_window > 0
-          aws secretsmanager delete-secret \
+          # Only runs on apply/destroy — NOT on plan (to avoid deleting active secrets)
+          SECRET_STATUS=$(aws secretsmanager describe-secret \
             --secret-id jewel-erp/prod/db-credentials \
-            --force-delete-without-recovery \
-            --region ${{ env.AWS_REGION }} 2>/dev/null || true
+            --query 'DeletedDate' --output text \
+            --region ${{ env.AWS_REGION }} 2>/dev/null || echo "NOT_FOUND")
+          if [ "$SECRET_STATUS" != "None" ] && [ "$SECRET_STATUS" != "NOT_FOUND" ]; then
+            echo "Secret is scheduled for deletion, force-deleting..."
+            aws secretsmanager delete-secret \
+              --secret-id jewel-erp/prod/db-credentials \
+              --force-delete-without-recovery \
+              --region ${{ env.AWS_REGION }} 2>/dev/null || true
+          else
+            echo "Secret is active or does not exist, skipping cleanup."
+          fi
 
       - name: Terraform Plan
         id: plan
