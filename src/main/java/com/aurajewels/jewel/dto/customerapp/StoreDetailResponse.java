@@ -21,20 +21,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.repository;
+package com.aurajewels.jewel.dto.customerapp;
 
-import com.aurajewels.jewel.entity.Store;
 import java.util.List;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import lombok.Builder;
+import lombok.Data;
 
 /**
+ * Response DTO for store detail view in the customer mobile app. Includes store info, categories,
+ * and catalog summary.
+ *
  * @author Raviraj Bhosale
  */
-@Repository
-public interface StoreRepository extends JpaRepository<Store, Long> {
+@Data
+@Builder
+public class StoreDetailResponse {
+    private Long id;
+    private String name;
+    private String organizationName;
+    private String address;
+    private String city;
+    private String state;
+    private String pincode;
+    private String phone;
+    private String gstin;
+    private List<CategoryInfo> categories;
+    private int totalItems;
 
-    List<Store> findByOrganizationIdAndActiveTrue(Long orgId);
-
-    List<Store> findByActiveTrueOrderByNameAsc();
+    @Data
+    @Builder
+    public static class CategoryInfo {
+        private Long id;
+        private String name;
+        private String description;
+        private long itemCount;
+    }
 }

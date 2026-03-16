@@ -46,6 +46,20 @@ public class CustomerAppController {
 
     private final CustomerAppService customerAppService;
 
+    // ======================== STORES (Public) ========================
+
+    /** GET /api/customer-app/stores — List all active stores across all organizations. */
+    @GetMapping("/stores")
+    public ResponseEntity<List<StoreListResponse>> listStores() {
+        return ResponseEntity.ok(customerAppService.listAllStores());
+    }
+
+    /** GET /api/customer-app/stores/{storeId} — Get store details with categories summary. */
+    @GetMapping("/stores/{storeId}")
+    public ResponseEntity<StoreDetailResponse> getStoreDetail(@PathVariable Long storeId) {
+        return ResponseEntity.ok(customerAppService.getStoreDetail(storeId));
+    }
+
     // ======================== AUTH (Public) ========================
 
     @PostMapping("/register")

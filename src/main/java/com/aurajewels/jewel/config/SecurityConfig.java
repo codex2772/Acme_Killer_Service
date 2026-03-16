@@ -58,6 +58,8 @@ public class SecurityConfig {
                                                 "/api/customer-app/register",
                                                 "/api/customer-app/login",
                                                 "/api/customer-app/catalog/**",
+                                                "/api/customer-app/stores",
+                                                "/api/customer-app/stores/**",
                                                 "/api/hello",
                                                 "/api",
                                                 "/actuator/**")

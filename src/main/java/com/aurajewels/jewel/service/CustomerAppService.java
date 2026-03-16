@@ -49,8 +49,77 @@ public class CustomerAppService {
     private final JewelryItemRepository jewelryItemRepository;
     private final CustomerWishlistRepository wishlistRepository;
     private final CustomerEnquiryRepository enquiryRepository;
+    private final CategoryRepository categoryRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+
+    // ======================== STORES (Public) ========================
+
+    /** List all active stores across all organizations. */
+    @Transactional(readOnly = true)
+    public List<StoreListResponse> listAllStores() {
+        return storeRepository.findByActiveTrueOrderByNameAsc().stream()
+                .map(
+                        store ->
+                                StoreListResponse.builder()
+                                        .id(store.getId())
+                                        .name(store.getName())
+                                        .organizationName(store.getOrganization().getName())
+                                        .address(store.getAddress())
+                                        .city(store.getCity())
+                                        .state(store.getState())
+                                        .pincode(store.getPincode())
+                                        .phone(store.getPhone())
+                                        .build())
+                .toList();
+    }
+
+    /** Get store details with categories and catalog summary. */
+    @Transactional(readOnly = true)
+    public StoreDetailResponse getStoreDetail(Long storeId) {
+        Store store =
+                storeRepository
+                        .findById(storeId)
+                        .orElseThrow(() -> new IllegalArgumentException("Store not found"));
+
+        List<Category> categories = categoryRepository.findByStoreIdAndActiveTrue(storeId);
+        List<JewelryItem> items = jewelryItemRepository.findByStoreIdAndActiveTrue(storeId);
+
+        List<StoreDetailResponse.CategoryInfo> categoryInfos =
+                categories.stream()
+                        .map(
+                                cat ->
+                                        StoreDetailResponse.CategoryInfo.builder()
+                                                .id(cat.getId())
+                                                .name(cat.getName())
+                                                .description(cat.getDescription())
+                                                .itemCount(
+                                                        items.stream()
+                                                                .filter(
+                                                                        i ->
+                                                                                i.getCategory()
+                                                                                        .getId()
+                                                                                        .equals(
+                                                                                                cat
+                                                                                                        .getId()))
+                                                                .count())
+                                                .build())
+                        .toList();
+
+        return StoreDetailResponse.builder()
+                .id(store.getId())
+                .name(store.getName())
+                .organizationName(store.getOrganization().getName())
+                .address(store.getAddress())
+                .city(store.getCity())
+                .state(store.getState())
+                .pincode(store.getPincode())
+                .phone(store.getPhone())
+                .gstin(store.getGstin())
+                .categories(categoryInfos)
+                .totalItems(items.size())
+                .build();
+    }
 
     // ======================== AUTH ========================
 
