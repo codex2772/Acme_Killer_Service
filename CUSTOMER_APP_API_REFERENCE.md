@@ -110,9 +110,138 @@ POST /api/customer-app/login
 
 ---
 
-## 2. Catalog (Browse Products)
+## 2. Stores (Discover Stores)
 
-### 2.1 Get Store Catalog 🌐
+### 2.1 List All Stores 🌐
+
+Returns all active stores across all organizations. This is the first screen in the customer app — the customer picks a store to browse.
+
+```
+GET /api/customer-app/stores
+```
+
+**Response:** `200 OK`
+```json
+[
+  {
+    "id": 1,
+    "name": "AuraJewels - Pune",
+    "organizationName": "AuraJewels Pvt Ltd",
+    "address": "MG Road, Camp",
+    "city": "Pune",
+    "state": "Maharashtra",
+    "pincode": "411001",
+    "phone": "9876543210"
+  },
+  {
+    "id": 2,
+    "name": "AuraJewels - Mumbai",
+    "organizationName": "AuraJewels Pvt Ltd",
+    "address": "Linking Road, Bandra",
+    "city": "Mumbai",
+    "state": "Maharashtra",
+    "pincode": "400050",
+    "phone": "9876543211"
+  },
+  {
+    "id": 3,
+    "name": "Sharma Jewellers",
+    "organizationName": "Sharma & Sons",
+    "address": "Karol Bagh",
+    "city": "New Delhi",
+    "state": "Delhi",
+    "pincode": "110005",
+    "phone": "9812345678"
+  }
+]
+```
+
+| Field            | Type   | Description                          |
+|------------------|--------|--------------------------------------|
+| id               | Long   | Store ID (use for catalog/register)  |
+| name             | String | Store name                           |
+| organizationName | String | Parent organization name             |
+| address          | String | Street address                       |
+| city             | String | City                                 |
+| state            | String | State                                |
+| pincode          | String | PIN code                             |
+| phone            | String | Store contact number                 |
+
+---
+
+### 2.2 Get Store Details 🌐
+
+Returns detailed information about a specific store including categories and catalog summary.
+
+```
+GET /api/customer-app/stores/{storeId}
+```
+
+**Path Parameters:**
+| Param   | Type | Description |
+|---------|------|-------------|
+| storeId | Long | Store ID    |
+
+**Response:** `200 OK`
+```json
+{
+  "id": 1,
+  "name": "AuraJewels - Pune",
+  "organizationName": "AuraJewels Pvt Ltd",
+  "address": "MG Road, Camp",
+  "city": "Pune",
+  "state": "Maharashtra",
+  "pincode": "411001",
+  "phone": "9876543210",
+  "gstin": "27AABCU9603R1ZM",
+  "categories": [
+    {
+      "id": 1,
+      "name": "Rings",
+      "description": "All types of rings",
+      "itemCount": 5
+    },
+    {
+      "id": 2,
+      "name": "Necklaces",
+      "description": "Chains and necklaces",
+      "itemCount": 8
+    },
+    {
+      "id": 3,
+      "name": "Earrings",
+      "description": "Studs, drops, and hoops",
+      "itemCount": 3
+    }
+  ],
+  "totalItems": 16
+}
+```
+
+| Field            | Type           | Description                         |
+|------------------|----------------|-------------------------------------|
+| id               | Long           | Store ID                            |
+| name             | String         | Store name                          |
+| organizationName | String         | Parent organization name            |
+| address          | String         | Street address                      |
+| city             | String         | City                                |
+| state            | String         | State                               |
+| pincode          | String         | PIN code                            |
+| phone            | String         | Store contact number                |
+| gstin            | String         | GSTIN                               |
+| categories       | Array          | List of categories with item counts |
+| totalItems       | Integer        | Total in-stock items in the store   |
+
+**Errors:**
+| Status | Message |
+|--------|---------|
+| 400    | Store not found |
+
+---
+
+## 3. Catalog (Browse Products)
+
+### 3.1 Get Store Catalog 🌐
 
 Returns all in-stock jewelry items for a given store. If the customer is logged in (sends JWT), each item includes a `wishlisted` flag.
 
@@ -174,7 +303,7 @@ Authorization: Bearer <customer_jwt_token>
 
 ---
 
-### 2.2 Get Catalog Item Detail 🌐
+### 3.2 Get Catalog Item Detail 🌐
 
 Returns a single jewelry item's full details.
 
@@ -222,9 +351,9 @@ Authorization: Bearer <customer_jwt_token>
 
 ---
 
-## 3. Wishlist
+## 4. Wishlist
 
-### 3.1 Get Wishlist 🔓
+### 4.1 Get Wishlist 🔓
 
 Returns all items in the customer's wishlist.
 
@@ -263,7 +392,7 @@ Authorization: Bearer <customer_jwt_token>
 
 ---
 
-### 3.2 Add to Wishlist 🔓
+### 4.2 Add to Wishlist 🔓
 
 Adds a jewelry item to the customer's wishlist.
 
@@ -296,7 +425,7 @@ Authorization: Bearer <customer_jwt_token>
 
 ---
 
-### 3.3 Remove from Wishlist 🔓
+### 4.3 Remove from Wishlist 🔓
 
 Removes a jewelry item from the customer's wishlist.
 
@@ -323,9 +452,9 @@ Authorization: Bearer <customer_jwt_token>
 
 ---
 
-## 4. Enquiry
+## 5. Enquiry
 
-### 4.1 Create Enquiry 🔓
+### 5.1 Create Enquiry 🔓
 
 Sends an enquiry about a product or general question to the store.
 
@@ -377,7 +506,7 @@ Authorization: Bearer <customer_jwt_token>
 
 ---
 
-### 4.2 Get My Enquiries 🔓
+### 5.2 Get My Enquiries 🔓
 
 Returns all enquiries submitted by the customer, newest first.
 
@@ -427,9 +556,9 @@ Authorization: Bearer <customer_jwt_token>
 
 ---
 
-## 5. Profile
+## 6. Profile
 
-### 5.1 Get Profile 🔓
+### 6.1 Get Profile 🔓
 
 Returns the customer's profile information.
 
@@ -460,7 +589,7 @@ Authorization: Bearer <customer_jwt_token>
 
 ---
 
-### 5.2 Update Profile 🔓
+### 6.2 Update Profile 🔓
 
 Updates the customer's profile. Only non-null fields are updated (partial update).
 
@@ -568,6 +697,16 @@ All errors follow this structure:
 ---
 
 ## Quick Start — cURL Examples
+
+### List All Stores
+```bash
+curl http://<ALB_DNS>/api/customer-app/stores
+```
+
+### Get Store Details
+```bash
+curl http://<ALB_DNS>/api/customer-app/stores/1
+```
 
 ### Register
 ```bash
