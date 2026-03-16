@@ -86,11 +86,13 @@ public class JwtUtil {
     }
 
     public Long extractStoreId(String token) {
-        return extractAllClaims(token).get("storeId", Long.class);
+        Object val = extractAllClaims(token).get("storeId");
+        return val != null ? ((Number) val).longValue() : null;
     }
 
     public Long extractOrgId(String token) {
-        return extractAllClaims(token).get("orgId", Long.class);
+        Object val = extractAllClaims(token).get("orgId");
+        return val != null ? ((Number) val).longValue() : null;
     }
 
     public String extractRole(String token) {
