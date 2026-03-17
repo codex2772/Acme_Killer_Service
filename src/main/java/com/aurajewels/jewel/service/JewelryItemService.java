@@ -98,6 +98,8 @@ public class JewelryItemService {
         existing.setHsnCode(updated.getHsnCode());
         existing.setBarcode(updated.getBarcode());
         existing.setStatus(updated.getStatus());
+        existing.setCategory(updated.getCategory());
+        existing.setMetalType(updated.getMetalType());
         return jewelryItemRepository.save(existing);
     }
 
