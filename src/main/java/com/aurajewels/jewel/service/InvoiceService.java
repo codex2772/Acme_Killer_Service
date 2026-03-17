@@ -110,6 +110,15 @@ public class InvoiceService {
                                 request.getGstAmount() != null
                                         ? request.getGstAmount()
                                         : BigDecimal.ZERO)
+                        .cgstAmount(
+                            request.getGstAmount() != null
+                                ? request.getGstAmount().divide(BigDecimal.valueOf(2), 2, java.math.RoundingMode.HALF_UP)
+                                : BigDecimal.ZERO)
+                        .sgstAmount(
+                            request.getGstAmount() != null
+                                ? request.getGstAmount().divide(BigDecimal.valueOf(2), 2, java.math.RoundingMode.HALF_UP)
+                                : BigDecimal.ZERO)
+                        .igstAmount(BigDecimal.ZERO)
                         .roundOff(
                                 request.getRoundOff() != null
                                         ? request.getRoundOff()
