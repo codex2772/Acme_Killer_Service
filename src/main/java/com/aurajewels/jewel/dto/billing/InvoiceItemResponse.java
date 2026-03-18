@@ -36,11 +36,17 @@ public class InvoiceItemResponse {
     private Long id;
     private Long jewelryItemId;
     private String name;
-    private BigDecimal weight;
-    private String purity;
-    private BigDecimal rate;
-    private BigDecimal makingCharge;
-    private String makingChargeType;
-    private BigDecimal wastage;
-    private BigDecimal amount;
+    private Integer quantity;
+    private BigDecimal metalRate;
+    private BigDecimal metalValue;
+    private BigDecimal makingCharges;
+    private BigDecimal stoneCharges;
+    private BigDecimal otherCharges;
+    private BigDecimal discount;
+    private BigDecimal taxableAmount;
+    private BigDecimal cgstPercent;
+    private BigDecimal sgstPercent;
+    private BigDecimal cgstAmount;
+    private BigDecimal sgstAmount;
+    private BigDecimal totalAmount;
 }
