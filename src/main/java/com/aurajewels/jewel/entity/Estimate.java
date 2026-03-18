@@ -58,7 +58,7 @@ public class Estimate {
     @Column(name = "estimate_number", nullable = false)
     private String estimateNumber;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 
@@ -105,7 +105,11 @@ public class Estimate {
     @Column(name = "created_by")
     private Long createdBy;
 
-    @OneToMany(mappedBy = "estimate", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(
+            mappedBy = "estimate",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.EAGER)
     @Builder.Default
     private List<EstimateItem> items = new ArrayList<>();
 

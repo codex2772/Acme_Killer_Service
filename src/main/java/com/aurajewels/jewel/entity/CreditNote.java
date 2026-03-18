@@ -58,7 +58,7 @@ public class CreditNote {
     @Column(name = "credit_note_number", nullable = false)
     private String creditNoteNumber;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 
@@ -106,7 +106,11 @@ public class CreditNote {
     @Column(name = "created_by")
     private Long createdBy;
 
-    @OneToMany(mappedBy = "creditNote", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(
+            mappedBy = "creditNote",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.EAGER)
     @Builder.Default
     private List<CreditNoteItem> items = new ArrayList<>();
 

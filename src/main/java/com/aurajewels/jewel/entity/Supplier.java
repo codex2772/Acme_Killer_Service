@@ -78,7 +78,7 @@ public class Supplier {
     @Column(name = "active")
     private Boolean active = true;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "supplier_metals", joinColumns = @JoinColumn(name = "supplier_id"))
     @Column(name = "metal")
     @Builder.Default

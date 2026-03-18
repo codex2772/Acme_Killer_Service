@@ -55,7 +55,7 @@ public class OldGoldPurchase {
     @JsonIgnore
     private Store store;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 
@@ -90,11 +90,19 @@ public class OldGoldPurchase {
     @Column(name = "created_by")
     private Long createdBy;
 
-    @OneToMany(mappedBy = "oldGoldPurchase", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(
+            mappedBy = "oldGoldPurchase",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.EAGER)
     @Builder.Default
     private List<OldGoldPurityTest> purityTests = new ArrayList<>();
 
-    @OneToMany(mappedBy = "oldGoldPurchase", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(
+            mappedBy = "oldGoldPurchase",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.EAGER)
     @Builder.Default
     private List<OldGoldMeltingRecord> meltingRecords = new ArrayList<>();
 
