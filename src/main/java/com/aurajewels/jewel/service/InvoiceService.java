@@ -46,6 +46,7 @@ public class InvoiceService {
     private final CustomerRepository customerRepository;
     private final StoreRepository storeRepository;
     private final JewelryItemRepository jewelryItemRepository;
+    private final LedgerEntryRepository ledgerEntryRepository;
     private final ActivityLogService activityLogService;
 
     @Transactional(readOnly = true)
@@ -239,6 +240,38 @@ public class InvoiceService {
 
         invoiceRepository.save(invoice);
 
+        // Auto-create ledger entry for payments received
+        if (invoice.getPaidAmount() != null
+                && invoice.getPaidAmount().compareTo(BigDecimal.ZERO) > 0) {
+            String customerName =
+                    customer.getFirstName()
+                            + (customer.getLastName() != null
+                                    ? " " + customer.getLastName()
+                                    : "");
+            LedgerEntry ledgerEntry =
+                    LedgerEntry.builder()
+                            .store(store)
+                            .entryDate(
+                                    request.getDate() != null
+                                            ? request.getDate()
+                                            : LocalDate.now())
+                            .party(customerName)
+                            .type(LedgerEntry.LedgerType.CR)
+                            .amount(invoice.getPaidAmount())
+                            .mode(
+                                    request.getPaymentMode() != null
+                                            ? request.getPaymentMode()
+                                            : "CASH")
+                            .note("Payment for " + invoiceNumber)
+                            .category("Sales")
+                            .referenceId(invoiceNumber)
+                            .referenceType("INVOICE")
+                            .createdBy(StoreContext.getCurrentUserId())
+                            .active(true)
+                            .build();
+            ledgerEntryRepository.save(ledgerEntry);
+        }
+
         activityLogService.log(
                 "Created Invoice",
                 "Invoice " + invoiceNumber + " for " + customer.getFirstName(),
@@ -320,6 +353,29 @@ public class InvoiceService {
         }
 
         invoiceRepository.save(invoice);
+
+        // Auto-create ledger entry for the payment
+        String customerName =
+                invoice.getCustomer().getFirstName()
+                        + (invoice.getCustomer().getLastName() != null
+                                ? " " + invoice.getCustomer().getLastName()
+                                : "");
+        LedgerEntry ledgerEntry =
+                LedgerEntry.builder()
+                        .store(store)
+                        .entryDate(LocalDate.now())
+                        .party(customerName)
+                        .type(LedgerEntry.LedgerType.CR)
+                        .amount(request.getAmount())
+                        .mode(request.getMode() != null ? request.getMode() : "CASH")
+                        .note("Payment for " + invoice.getInvoiceNumber())
+                        .category("Sales")
+                        .referenceId(invoice.getInvoiceNumber())
+                        .referenceType("INVOICE")
+                        .createdBy(StoreContext.getCurrentUserId())
+                        .active(true)
+                        .build();
+        ledgerEntryRepository.save(ledgerEntry);
 
         activityLogService.log(
                 "Payment Recorded",
