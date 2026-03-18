@@ -97,6 +97,7 @@ public class JewelryItemService {
         existing.setQuantity(updated.getQuantity());
         existing.setHsnCode(updated.getHsnCode());
         existing.setBarcode(updated.getBarcode());
+        existing.setImageUrl(updated.getImageUrl());
         existing.setStatus(updated.getStatus());
         existing.setCategory(updated.getCategory());
         existing.setMetalType(updated.getMetalType());

@@ -85,6 +85,9 @@ public class JewelryItem extends BaseEntity {
     @Column(name = "barcode", length = 100)
     private String barcode;
 
+    @Column(name = "image_url", length = 500)
+    private String imageUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private ItemStatus status = ItemStatus.IN_STOCK;

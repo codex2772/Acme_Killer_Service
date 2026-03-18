@@ -25,6 +25,7 @@
 	<properties>
 		<java.version>21</java.version>
 		<jjwt.version>0.12.6</jjwt.version>
+		<aws.sdk.version>2.25.16</aws.sdk.version>
 	</properties>
 
 	<dependencies>
@@ -112,6 +113,13 @@
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
+		</dependency>
+
+		<!-- AWS S3 SDK for image uploads -->
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3</artifactId>
+			<version>${aws.sdk.version}</version>
 		</dependency>
 
 		<!-- Testing -->

@@ -31,6 +31,12 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
+  # File upload limits
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+
 server:
   port: ${PORT:8080}
   shutdown: graceful
@@ -64,4 +70,10 @@ jwt:
   secret: ${JWT_SECRET:jewel-erp-default-dev-secret-key-change-in-production-min-256-bits}
   expiration-ms: 86400000       # 24 hours
   refresh-expiration-ms: 604800000  # 7 days
+
+# AWS S3 Configuration
+aws:
+  s3:
+    bucket: ${S3_BUCKET_NAME:jewel-erp-images-ap-south-1}
+    region: ${S3_REGION:ap-south-1}
 

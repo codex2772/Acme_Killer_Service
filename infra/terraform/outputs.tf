@@ -73,3 +73,16 @@ output "db_credentials_secret_arn" {
   value       = aws_secretsmanager_secret.db_credentials.arn
 }
 
+# ================================
+# S3 Outputs
+# ================================
+output "s3_images_bucket" {
+  description = "S3 bucket name for images"
+  value       = aws_s3_bucket.images.bucket
+}
+
+output "s3_images_bucket_url" {
+  description = "S3 bucket URL for images"
+  value       = "https://${aws_s3_bucket.images.bucket}.s3.${var.aws_region}.amazonaws.com"
+}
+

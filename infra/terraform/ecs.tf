@@ -156,6 +156,14 @@ resource "aws_ecs_task_definition" "main" {
         {
           name  = "PORT"
           value = tostring(var.container_port)
+        },
+        {
+          name  = "S3_BUCKET_NAME"
+          value = aws_s3_bucket.images.bucket
+        },
+        {
+          name  = "S3_REGION"
+          value = var.aws_region
         }
       ]
 
