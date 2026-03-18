@@ -45,6 +45,7 @@ public class InvoiceService {
     private final InvoiceRepository invoiceRepository;
     private final CustomerRepository customerRepository;
     private final StoreRepository storeRepository;
+    private final JewelryItemRepository jewelryItemRepository;
     private final ActivityLogService activityLogService;
 
     @Transactional(readOnly = true)
@@ -339,24 +340,31 @@ public class InvoiceService {
         List<InvoiceItemResponse> itemResponses =
                 invoice.getItems().stream()
                         .map(
-                                item ->
-                                        InvoiceItemResponse.builder()
-                                                .id(item.getId())
-                                                .jewelryItemId(item.getJewelryItemId())
-                                                .quantity(item.getQuantity())
-                                                .metalRate(item.getMetalRate())
-                                                .metalValue(item.getMetalValue())
-                                                .makingCharges(item.getMakingCharges())
-                                                .stoneCharges(item.getStoneCharges())
-                                                .otherCharges(item.getOtherCharges())
-                                                .discount(item.getDiscount())
-                                                .taxableAmount(item.getTaxableAmount())
-                                                .cgstPercent(item.getCgstPercent())
-                                                .sgstPercent(item.getSgstPercent())
-                                                .cgstAmount(item.getCgstAmount())
-                                                .sgstAmount(item.getSgstAmount())
-                                                .totalAmount(item.getTotalAmount())
-                                                .build())
+                                item -> {
+                                    String itemName =
+                                            jewelryItemRepository
+                                                    .findById(item.getJewelryItemId())
+                                                    .map(JewelryItem::getName)
+                                                    .orElse(null);
+                                    return InvoiceItemResponse.builder()
+                                            .id(item.getId())
+                                            .jewelryItemId(item.getJewelryItemId())
+                                            .name(itemName)
+                                            .quantity(item.getQuantity())
+                                            .metalRate(item.getMetalRate())
+                                            .metalValue(item.getMetalValue())
+                                            .makingCharges(item.getMakingCharges())
+                                            .stoneCharges(item.getStoneCharges())
+                                            .otherCharges(item.getOtherCharges())
+                                            .discount(item.getDiscount())
+                                            .taxableAmount(item.getTaxableAmount())
+                                            .cgstPercent(item.getCgstPercent())
+                                            .sgstPercent(item.getSgstPercent())
+                                            .cgstAmount(item.getCgstAmount())
+                                            .sgstAmount(item.getSgstAmount())
+                                            .totalAmount(item.getTotalAmount())
+                                            .build();
+                                })
                         .toList();
         List<PaymentResponse> paymentResponses =
                 invoice.getPayments().stream()
