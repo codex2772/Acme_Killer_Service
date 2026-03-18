@@ -113,13 +113,21 @@ public class InvoiceService {
                                         ? request.getGstAmount()
                                         : BigDecimal.ZERO)
                         .cgstAmount(
-                            request.getGstAmount() != null
-                                ? request.getGstAmount().divide(BigDecimal.valueOf(2), 2, java.math.RoundingMode.HALF_UP)
-                                : BigDecimal.ZERO)
+                                request.getGstAmount() != null
+                                        ? request.getGstAmount()
+                                                .divide(
+                                                        BigDecimal.valueOf(2),
+                                                        2,
+                                                        java.math.RoundingMode.HALF_UP)
+                                        : BigDecimal.ZERO)
                         .sgstAmount(
-                            request.getGstAmount() != null
-                                ? request.getGstAmount().divide(BigDecimal.valueOf(2), 2, java.math.RoundingMode.HALF_UP)
-                                : BigDecimal.ZERO)
+                                request.getGstAmount() != null
+                                        ? request.getGstAmount()
+                                                .divide(
+                                                        BigDecimal.valueOf(2),
+                                                        2,
+                                                        java.math.RoundingMode.HALF_UP)
+                                        : BigDecimal.ZERO)
                         .igstAmount(BigDecimal.ZERO)
                         .roundOff(
                                 request.getRoundOff() != null
@@ -186,25 +194,19 @@ public class InvoiceService {
                                         itemReq.getAmount() != null
                                                 ? itemReq.getAmount()
                                                         .multiply(new BigDecimal("0.015"))
-                                                        .setScale(
-                                                                2,
-                                                                java.math.RoundingMode.HALF_UP)
+                                                        .setScale(2, java.math.RoundingMode.HALF_UP)
                                                 : BigDecimal.ZERO)
                                 .sgstAmount(
                                         itemReq.getAmount() != null
                                                 ? itemReq.getAmount()
                                                         .multiply(new BigDecimal("0.015"))
-                                                        .setScale(
-                                                                2,
-                                                                java.math.RoundingMode.HALF_UP)
+                                                        .setScale(2, java.math.RoundingMode.HALF_UP)
                                                 : BigDecimal.ZERO)
                                 .totalAmount(
                                         itemReq.getAmount() != null
                                                 ? itemReq.getAmount()
                                                         .multiply(new BigDecimal("1.03"))
-                                                        .setScale(
-                                                                2,
-                                                                java.math.RoundingMode.HALF_UP)
+                                                        .setScale(2, java.math.RoundingMode.HALF_UP)
                                                 : BigDecimal.ZERO)
                                 .build();
                 invoice.getItems().add(item);
@@ -245,16 +247,12 @@ public class InvoiceService {
                 && invoice.getPaidAmount().compareTo(BigDecimal.ZERO) > 0) {
             String customerName =
                     customer.getFirstName()
-                            + (customer.getLastName() != null
-                                    ? " " + customer.getLastName()
-                                    : "");
+                            + (customer.getLastName() != null ? " " + customer.getLastName() : "");
             LedgerEntry ledgerEntry =
                     LedgerEntry.builder()
                             .store(store)
                             .entryDate(
-                                    request.getDate() != null
-                                            ? request.getDate()
-                                            : LocalDate.now())
+                                    request.getDate() != null ? request.getDate() : LocalDate.now())
                             .party(customerName)
                             .type(LedgerEntry.LedgerType.CR)
                             .amount(invoice.getPaidAmount())
