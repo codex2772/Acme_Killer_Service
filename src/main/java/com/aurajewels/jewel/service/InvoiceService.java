@@ -242,33 +242,31 @@ public class InvoiceService {
 
         invoiceRepository.save(invoice);
 
-        // Auto-create ledger entry for payments received
-        if (invoice.getPaidAmount() != null
-                && invoice.getPaidAmount().compareTo(BigDecimal.ZERO) > 0) {
-            String customerName =
-                    customer.getFirstName()
-                            + (customer.getLastName() != null ? " " + customer.getLastName() : "");
-            LedgerEntry ledgerEntry =
-                    LedgerEntry.builder()
-                            .store(store)
-                            .entryDate(
-                                    request.getDate() != null ? request.getDate() : LocalDate.now())
-                            .party(customerName)
-                            .type(LedgerEntry.LedgerType.CR)
-                            .amount(invoice.getPaidAmount())
-                            .mode(
-                                    request.getPaymentMode() != null
-                                            ? request.getPaymentMode()
-                                            : "CASH")
-                            .note("Payment for " + invoiceNumber)
-                            .category("Sales")
-                            .referenceId(invoiceNumber)
-                            .referenceType("INVOICE")
-                            .createdBy(StoreContext.getCurrentUserId())
-                            .active(true)
-                            .build();
-            ledgerEntryRepository.save(ledgerEntry);
-        }
+        // Auto-create ledger entry for invoice sale
+        String customerName =
+                customer.getFirstName()
+                        + (customer.getLastName() != null ? " " + customer.getLastName() : "");
+        BigDecimal ledgerAmount =
+                invoice.getPaidAmount() != null
+                                && invoice.getPaidAmount().compareTo(BigDecimal.ZERO) > 0
+                        ? invoice.getPaidAmount()
+                        : invoice.getTotalAmount();
+        LedgerEntry ledgerEntry =
+                LedgerEntry.builder()
+                        .store(store)
+                        .entryDate(request.getDate() != null ? request.getDate() : LocalDate.now())
+                        .party(customerName)
+                        .type(LedgerEntry.LedgerType.CR)
+                        .amount(ledgerAmount)
+                        .mode(request.getPaymentMode() != null ? request.getPaymentMode() : "CASH")
+                        .note("Sale — " + invoiceNumber)
+                        .category("Sales")
+                        .referenceId(invoiceNumber)
+                        .referenceType("INVOICE")
+                        .createdBy(StoreContext.getCurrentUserId())
+                        .active(true)
+                        .build();
+        ledgerEntryRepository.save(ledgerEntry);
 
         activityLogService.log(
                 "Created Invoice",
