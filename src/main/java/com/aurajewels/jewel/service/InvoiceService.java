@@ -150,6 +150,65 @@ public class InvoiceService {
 
         invoiceRepository.save(invoice);
 
+        // Handle invoice items
+        if (request.getItems() != null && !request.getItems().isEmpty()) {
+            for (InvoiceItemRequest itemReq : request.getItems()) {
+                InvoiceItem item =
+                        InvoiceItem.builder()
+                                .invoice(invoice)
+                                .store(store)
+                                .jewelryItemId(itemReq.getJewelryItemId())
+                                .quantity(1)
+                                .metalRate(
+                                        itemReq.getRate() != null
+                                                ? itemReq.getRate()
+                                                : BigDecimal.ZERO)
+                                .metalValue(
+                                        itemReq.getWeight() != null
+                                                ? itemReq.getWeight()
+                                                : BigDecimal.ZERO)
+                                .makingCharges(
+                                        itemReq.getMakingCharge() != null
+                                                ? itemReq.getMakingCharge()
+                                                : BigDecimal.ZERO)
+                                .stoneCharges(BigDecimal.ZERO)
+                                .otherCharges(BigDecimal.ZERO)
+                                .discount(BigDecimal.ZERO)
+                                .taxableAmount(
+                                        itemReq.getAmount() != null
+                                                ? itemReq.getAmount()
+                                                : BigDecimal.ZERO)
+                                .cgstPercent(new BigDecimal("1.50"))
+                                .sgstPercent(new BigDecimal("1.50"))
+                                .cgstAmount(
+                                        itemReq.getAmount() != null
+                                                ? itemReq.getAmount()
+                                                        .multiply(new BigDecimal("0.015"))
+                                                        .setScale(
+                                                                2,
+                                                                java.math.RoundingMode.HALF_UP)
+                                                : BigDecimal.ZERO)
+                                .sgstAmount(
+                                        itemReq.getAmount() != null
+                                                ? itemReq.getAmount()
+                                                        .multiply(new BigDecimal("0.015"))
+                                                        .setScale(
+                                                                2,
+                                                                java.math.RoundingMode.HALF_UP)
+                                                : BigDecimal.ZERO)
+                                .totalAmount(
+                                        itemReq.getAmount() != null
+                                                ? itemReq.getAmount()
+                                                        .multiply(new BigDecimal("1.03"))
+                                                        .setScale(
+                                                                2,
+                                                                java.math.RoundingMode.HALF_UP)
+                                                : BigDecimal.ZERO)
+                                .build();
+                invoice.getItems().add(item);
+            }
+        }
+
         // Handle split payments
         if (request.getSplitPayments() != null && !request.getSplitPayments().isEmpty()) {
             BigDecimal totalPaid = BigDecimal.ZERO;
