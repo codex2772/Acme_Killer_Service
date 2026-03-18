@@ -25,8 +25,10 @@ package com.aurajewels.jewel.service;
 
 import com.aurajewels.jewel.dto.accounts.ExpenseRequest;
 import com.aurajewels.jewel.entity.Expense;
+import com.aurajewels.jewel.entity.LedgerEntry;
 import com.aurajewels.jewel.entity.Store;
 import com.aurajewels.jewel.repository.ExpenseRepository;
+import com.aurajewels.jewel.repository.LedgerEntryRepository;
 import com.aurajewels.jewel.repository.StoreRepository;
 import com.aurajewels.jewel.security.StoreContext;
 import java.time.LocalDate;
@@ -44,6 +46,7 @@ public class ExpenseService {
 
     private final ExpenseRepository expenseRepository;
     private final StoreRepository storeRepository;
+    private final LedgerEntryRepository ledgerEntryRepository;
     private final ActivityLogService activityLogService;
 
     @Transactional(readOnly = true)
@@ -82,6 +85,24 @@ public class ExpenseService {
                         .build();
 
         expense = expenseRepository.save(expense);
+
+        // Auto-create DR ledger entry for expense
+        LedgerEntry ledgerEntry =
+                LedgerEntry.builder()
+                        .store(store)
+                        .entryDate(expense.getExpenseDate())
+                        .party(request.getCategory())
+                        .type(LedgerEntry.LedgerType.DR)
+                        .amount(request.getAmount())
+                        .mode(request.getMode() != null ? request.getMode() : "CASH")
+                        .note("Expense — " + request.getDescription())
+                        .category("Expense")
+                        .referenceId(String.valueOf(expense.getId()))
+                        .referenceType("EXPENSE")
+                        .createdBy(StoreContext.getCurrentUserId())
+                        .active(true)
+                        .build();
+        ledgerEntryRepository.save(ledgerEntry);
 
         activityLogService.log(
                 "Created Expense",

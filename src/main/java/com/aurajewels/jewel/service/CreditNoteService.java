@@ -45,6 +45,7 @@ public class CreditNoteService {
     private final CreditNoteRepository creditNoteRepository;
     private final CustomerRepository customerRepository;
     private final StoreRepository storeRepository;
+    private final LedgerEntryRepository ledgerEntryRepository;
     private final ActivityLogService activityLogService;
 
     @Transactional(readOnly = true)
@@ -144,6 +145,27 @@ public class CreditNoteService {
         }
 
         creditNote = creditNoteRepository.save(creditNote);
+
+        // Auto-create DR ledger entry for credit note (refund)
+        String customerName =
+                customer.getFirstName()
+                        + (customer.getLastName() != null ? " " + customer.getLastName() : "");
+        LedgerEntry ledgerEntry =
+                LedgerEntry.builder()
+                        .store(store)
+                        .entryDate(creditNote.getCreditNoteDate())
+                        .party(customerName)
+                        .type(LedgerEntry.LedgerType.DR)
+                        .amount(creditNote.getTotalAmount())
+                        .mode(request.getRefundMode() != null ? request.getRefundMode() : "CASH")
+                        .note("Refund — " + cnNumber)
+                        .category("Sales Return")
+                        .referenceId(cnNumber)
+                        .referenceType("CREDIT_NOTE")
+                        .createdBy(StoreContext.getCurrentUserId())
+                        .active(true)
+                        .build();
+        ledgerEntryRepository.save(ledgerEntry);
 
         activityLogService.log(
                 "Created Credit Note",

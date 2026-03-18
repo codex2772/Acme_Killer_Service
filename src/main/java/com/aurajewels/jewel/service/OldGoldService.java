@@ -28,6 +28,7 @@ import com.aurajewels.jewel.dto.oldgold.OldGoldRequest;
 import com.aurajewels.jewel.dto.oldgold.PurityTestRequest;
 import com.aurajewels.jewel.entity.*;
 import com.aurajewels.jewel.repository.CustomerRepository;
+import com.aurajewels.jewel.repository.LedgerEntryRepository;
 import com.aurajewels.jewel.repository.OldGoldPurchaseRepository;
 import com.aurajewels.jewel.repository.StoreRepository;
 import com.aurajewels.jewel.security.StoreContext;
@@ -47,6 +48,7 @@ public class OldGoldService {
     private final OldGoldPurchaseRepository oldGoldPurchaseRepository;
     private final CustomerRepository customerRepository;
     private final StoreRepository storeRepository;
+    private final LedgerEntryRepository ledgerEntryRepository;
     private final ActivityLogService activityLogService;
 
     @Transactional(readOnly = true)
@@ -123,6 +125,31 @@ public class OldGoldService {
         }
 
         purchase = oldGoldPurchaseRepository.save(purchase);
+
+        // Auto-create DR ledger entry for old gold purchase
+        String customerName =
+                customer.getFirstName()
+                        + (customer.getLastName() != null ? " " + customer.getLastName() : "");
+        LedgerEntry ledgerEntry =
+                LedgerEntry.builder()
+                        .store(store)
+                        .entryDate(purchase.getPurchaseDate())
+                        .party(customerName)
+                        .type(LedgerEntry.LedgerType.DR)
+                        .amount(purchase.getTotal())
+                        .mode("CASH")
+                        .note(
+                                "Old Gold Purchase — "
+                                        + purchase.getWeight()
+                                        + "g "
+                                        + purchase.getPurity())
+                        .category("Old Gold")
+                        .referenceId(String.valueOf(purchase.getId()))
+                        .referenceType("OLD_GOLD")
+                        .createdBy(StoreContext.getCurrentUserId())
+                        .active(true)
+                        .build();
+        ledgerEntryRepository.save(ledgerEntry);
 
         activityLogService.log(
                 "Created Old Gold Purchase",
