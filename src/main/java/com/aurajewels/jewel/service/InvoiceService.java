@@ -277,7 +277,23 @@ public class InvoiceService {
     }
 
     private InvoiceResponse toResponse(Invoice invoice) {
-        List<InvoiceItemResponse> itemResponses = List.of(); // Items via existing invoice_items
+        List<InvoiceItemResponse> itemResponses =
+                invoice.getItems().stream()
+                        .map(
+                                item ->
+                                        InvoiceItemResponse.builder()
+                                                .id(item.getId())
+                                                .jewelryItemId(item.getJewelryItemId())
+                                                .name(null)
+                                                .weight(item.getMetalValue())
+                                                .purity(null)
+                                                .rate(item.getMetalRate())
+                                                .makingCharge(item.getMakingCharges())
+                                                .makingChargeType(null)
+                                                .wastage(null)
+                                                .amount(item.getTotalAmount())
+                                                .build())
+                        .toList();
         List<PaymentResponse> paymentResponses =
                 invoice.getPayments().stream()
                         .map(
