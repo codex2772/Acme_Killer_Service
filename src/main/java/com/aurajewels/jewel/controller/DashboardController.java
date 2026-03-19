@@ -24,6 +24,7 @@
 package com.aurajewels.jewel.controller;
 
 import com.aurajewels.jewel.dto.dashboard.DashboardSummary;
+import com.aurajewels.jewel.security.RequiresModule;
 import com.aurajewels.jewel.security.RequiresPermission;
 import com.aurajewels.jewel.service.DashboardService;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +45,7 @@ public class DashboardController {
 
     @GetMapping("/summary")
     @RequiresPermission("VIEW_REPORTS")
+    @RequiresModule("DASHBOARD")
     public ResponseEntity<DashboardSummary> getSummary() {
         return ResponseEntity.ok(dashboardService.getSummary());
     }

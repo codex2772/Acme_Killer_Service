@@ -27,6 +27,7 @@ import com.aurajewels.jewel.dto.auth.*;
 import com.aurajewels.jewel.entity.Role;
 import com.aurajewels.jewel.entity.User;
 import com.aurajewels.jewel.entity.UserStoreAccess;
+import com.aurajewels.jewel.repository.StoreFeatureModuleRepository;
 import com.aurajewels.jewel.repository.UserPermissionRepository;
 import com.aurajewels.jewel.repository.UserRepository;
 import com.aurajewels.jewel.repository.UserStoreAccessRepository;
@@ -48,6 +49,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final UserStoreAccessRepository userStoreAccessRepository;
     private final UserPermissionRepository userPermissionRepository;
+    private final StoreFeatureModuleRepository storeFeatureModuleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
@@ -79,16 +81,22 @@ public class AuthService {
         String token = jwtUtil.generateToken(user, defaultStoreId, permissions);
         String refreshToken = jwtUtil.generateRefreshToken(user);
 
-        // Build store list
+        // Build store list with enabled modules
         List<StoreDto> stores =
                 storeAccess.stream()
                         .map(
-                                sa ->
-                                        StoreDto.builder()
-                                                .id(sa.getStore().getId())
-                                                .name(sa.getStore().getName())
-                                                .city(sa.getStore().getCity())
-                                                .build())
+                                sa -> {
+                                    List<String> modules =
+                                            storeFeatureModuleRepository
+                                                    .findEnabledModuleCodesByStoreId(
+                                                            sa.getStore().getId());
+                                    return StoreDto.builder()
+                                            .id(sa.getStore().getId())
+                                            .name(sa.getStore().getName())
+                                            .city(sa.getStore().getCity())
+                                            .enabledModules(modules)
+                                            .build();
+                                })
                         .toList();
 
         return LoginResponse.builder()
@@ -140,12 +148,18 @@ public class AuthService {
         List<StoreDto> stores =
                 storeAccess.stream()
                         .map(
-                                sa ->
-                                        StoreDto.builder()
-                                                .id(sa.getStore().getId())
-                                                .name(sa.getStore().getName())
-                                                .city(sa.getStore().getCity())
-                                                .build())
+                                sa -> {
+                                    List<String> modules =
+                                            storeFeatureModuleRepository
+                                                    .findEnabledModuleCodesByStoreId(
+                                                            sa.getStore().getId());
+                                    return StoreDto.builder()
+                                            .id(sa.getStore().getId())
+                                            .name(sa.getStore().getName())
+                                            .city(sa.getStore().getCity())
+                                            .enabledModules(modules)
+                                            .build();
+                                })
                         .toList();
 
         return LoginResponse.builder()

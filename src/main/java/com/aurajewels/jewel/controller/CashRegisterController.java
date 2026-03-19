@@ -26,6 +26,7 @@ package com.aurajewels.jewel.controller;
 import com.aurajewels.jewel.dto.accounts.CloseRegisterRequest;
 import com.aurajewels.jewel.dto.accounts.OpenRegisterRequest;
 import com.aurajewels.jewel.entity.CashRegister;
+import com.aurajewels.jewel.security.RequiresModule;
 import com.aurajewels.jewel.security.RequiresPermission;
 import com.aurajewels.jewel.service.CashRegisterService;
 import java.util.List;
@@ -46,12 +47,14 @@ public class CashRegisterController {
 
     @GetMapping
     @RequiresPermission("VIEW_ACCOUNTS")
+    @RequiresModule("ACCOUNTS")
     public ResponseEntity<List<CashRegister>> list() {
         return ResponseEntity.ok(cashRegisterService.listRegisters());
     }
 
     @GetMapping("/current")
     @RequiresPermission("VIEW_ACCOUNTS")
+    @RequiresModule("ACCOUNTS")
     public ResponseEntity<CashRegister> getCurrent() {
         CashRegister register = cashRegisterService.getCurrentRegister();
         if (register == null) {
@@ -62,6 +65,7 @@ public class CashRegisterController {
 
     @PostMapping("/open")
     @RequiresPermission("MANAGE_ACCOUNTS")
+    @RequiresModule("ACCOUNTS")
     public ResponseEntity<CashRegister> open(@RequestBody OpenRegisterRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(cashRegisterService.openRegister(request));
@@ -69,6 +73,7 @@ public class CashRegisterController {
 
     @PatchMapping("/{id}/close")
     @RequiresPermission("MANAGE_ACCOUNTS")
+    @RequiresModule("ACCOUNTS")
     public ResponseEntity<CashRegister> close(
             @PathVariable Long id, @RequestBody CloseRegisterRequest request) {
         return ResponseEntity.ok(cashRegisterService.closeRegister(id, request));

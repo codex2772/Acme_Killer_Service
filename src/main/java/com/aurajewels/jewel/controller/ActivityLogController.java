@@ -24,6 +24,7 @@
 package com.aurajewels.jewel.controller;
 
 import com.aurajewels.jewel.entity.ActivityLog;
+import com.aurajewels.jewel.security.RequiresModule;
 import com.aurajewels.jewel.service.ActivityLogService;
 import java.time.LocalDate;
 import java.util.List;
@@ -43,6 +44,7 @@ public class ActivityLogController {
     private final ActivityLogService activityLogService;
 
     @GetMapping
+    @RequiresModule("REPORTS")
     public ResponseEntity<List<ActivityLog>> list(
             @RequestParam(required = false) String module,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)

@@ -70,6 +70,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String role = jwtUtil.extractRole(token);
             List<String> permissions = jwtUtil.extractPermissions(token);
 
+            // Platform admin tokens — no org/store context needed
+            if (jwtUtil.isPlatformAdminToken(token)) {
+                StoreContext ctx = new StoreContext();
+                ctx.setUserId(userId);
+                ctx.setOrgId(null);
+                ctx.setStoreId(null);
+                ctx.setRole(role);
+                StoreContext.set(ctx);
+
+                List<SimpleGrantedAuthority> authorities = new java.util.ArrayList<>();
+                authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
+
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(userId, null, authorities);
+                authentication.setDetails(
+                        new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                filterChain.doFilter(request, response);
+                return;
+            }
+
             // Customer tokens don't have orgId
             Long orgId = null;
             if (!"CUSTOMER".equals(role)) {

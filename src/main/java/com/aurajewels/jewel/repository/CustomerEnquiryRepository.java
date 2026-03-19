@@ -25,7 +25,10 @@ package com.aurajewels.jewel.repository;
 
 import com.aurajewels.jewel.entity.CustomerEnquiry;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -37,4 +40,21 @@ public interface CustomerEnquiryRepository extends JpaRepository<CustomerEnquiry
     List<CustomerEnquiry> findByCustomerIdOrderByCreatedAtDesc(Long customerId);
 
     List<CustomerEnquiry> findByStoreIdOrderByCreatedAtDesc(Long storeId);
+
+    /** Admin-side: fetch enquiries with customer and item eagerly loaded. */
+    @Query(
+            "SELECT e FROM CustomerEnquiry e"
+                    + " JOIN FETCH e.customer"
+                    + " LEFT JOIN FETCH e.jewelryItem"
+                    + " WHERE e.store.id = :storeId"
+                    + " ORDER BY e.createdAt DESC")
+    List<CustomerEnquiry> findByStoreIdWithDetails(@Param("storeId") Long storeId);
+
+    /** Admin-side: fetch single enquiry with customer and item eagerly loaded. */
+    @Query(
+            "SELECT e FROM CustomerEnquiry e"
+                    + " JOIN FETCH e.customer"
+                    + " LEFT JOIN FETCH e.jewelryItem"
+                    + " WHERE e.id = :id")
+    Optional<CustomerEnquiry> findByIdWithDetails(@Param("id") Long id);
 }

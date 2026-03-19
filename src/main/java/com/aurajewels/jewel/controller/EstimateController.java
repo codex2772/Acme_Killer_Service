@@ -26,6 +26,7 @@ package com.aurajewels.jewel.controller;
 import com.aurajewels.jewel.dto.billing.InvoiceRequest;
 import com.aurajewels.jewel.dto.billing.InvoiceResponse;
 import com.aurajewels.jewel.entity.Estimate;
+import com.aurajewels.jewel.security.RequiresModule;
 import com.aurajewels.jewel.security.RequiresPermission;
 import com.aurajewels.jewel.service.EstimateService;
 import java.util.List;
@@ -46,18 +47,21 @@ public class EstimateController {
 
     @GetMapping
     @RequiresPermission("VIEW_BILLING")
+    @RequiresModule("BILLING")
     public ResponseEntity<List<Estimate>> list() {
         return ResponseEntity.ok(estimateService.listEstimates());
     }
 
     @GetMapping("/{id}")
     @RequiresPermission("VIEW_BILLING")
+    @RequiresModule("BILLING")
     public ResponseEntity<Estimate> get(@PathVariable Long id) {
         return ResponseEntity.ok(estimateService.getEstimate(id));
     }
 
     @PostMapping
     @RequiresPermission("MANAGE_BILLING")
+    @RequiresModule("BILLING")
     public ResponseEntity<Estimate> create(@RequestBody InvoiceRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(estimateService.createEstimate(request));
@@ -65,6 +69,7 @@ public class EstimateController {
 
     @PutMapping("/{id}")
     @RequiresPermission("MANAGE_BILLING")
+    @RequiresModule("BILLING")
     public ResponseEntity<Estimate> update(
             @PathVariable Long id, @RequestBody InvoiceRequest request) {
         return ResponseEntity.ok(estimateService.updateEstimate(id, request));
@@ -72,6 +77,7 @@ public class EstimateController {
 
     @PostMapping("/{id}/convert")
     @RequiresPermission("MANAGE_BILLING")
+    @RequiresModule("BILLING")
     public ResponseEntity<InvoiceResponse> convertToInvoice(@PathVariable Long id) {
         return ResponseEntity.ok(estimateService.convertToInvoice(id));
     }

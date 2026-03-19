@@ -45,8 +45,11 @@ public class PermissionAspect {
         String requiredPermission = requiresPermission.value();
         String role = StoreContext.getCurrentRole();
 
-        // OWNER and ADMIN bypass permission checks
-        if ("OWNER".equals(role) || "ADMIN".equals(role)) {
+        // OWNER, ADMIN, and platform admins bypass permission checks
+        if ("OWNER".equals(role)
+                || "ADMIN".equals(role)
+                || "SUPER_ADMIN".equals(role)
+                || "SUPPORT".equals(role)) {
             return joinPoint.proceed();
         }
 

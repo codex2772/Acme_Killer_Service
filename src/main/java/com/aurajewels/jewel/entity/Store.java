@@ -62,4 +62,8 @@ public class Store extends BaseEntity {
 
     @Column(name = "gstin", length = 20)
     private String gstin;
+
+    @Column(name = "status", nullable = false, length = 20)
+    @Builder.Default
+    private String status = "ACTIVE";
 }

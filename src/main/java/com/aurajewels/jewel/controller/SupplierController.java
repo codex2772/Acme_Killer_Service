@@ -25,6 +25,7 @@ package com.aurajewels.jewel.controller;
 
 import com.aurajewels.jewel.dto.supplier.SupplierRequest;
 import com.aurajewels.jewel.entity.Supplier;
+import com.aurajewels.jewel.security.RequiresModule;
 import com.aurajewels.jewel.security.RequiresPermission;
 import com.aurajewels.jewel.service.SupplierService;
 import java.util.List;
@@ -45,18 +46,21 @@ public class SupplierController {
 
     @GetMapping
     @RequiresPermission("VIEW_ACCOUNTS")
+    @RequiresModule("ACCOUNTS")
     public ResponseEntity<List<Supplier>> list() {
         return ResponseEntity.ok(supplierService.listSuppliers());
     }
 
     @GetMapping("/{id}")
     @RequiresPermission("VIEW_ACCOUNTS")
+    @RequiresModule("ACCOUNTS")
     public ResponseEntity<Supplier> get(@PathVariable Long id) {
         return ResponseEntity.ok(supplierService.getSupplier(id));
     }
 
     @PostMapping
     @RequiresPermission("MANAGE_ACCOUNTS")
+    @RequiresModule("ACCOUNTS")
     public ResponseEntity<Supplier> create(@RequestBody SupplierRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(supplierService.createSupplier(request));
@@ -64,6 +68,7 @@ public class SupplierController {
 
     @PutMapping("/{id}")
     @RequiresPermission("MANAGE_ACCOUNTS")
+    @RequiresModule("ACCOUNTS")
     public ResponseEntity<Supplier> update(
             @PathVariable Long id, @RequestBody SupplierRequest request) {
         return ResponseEntity.ok(supplierService.updateSupplier(id, request));
@@ -71,6 +76,7 @@ public class SupplierController {
 
     @DeleteMapping("/{id}")
     @RequiresPermission("MANAGE_ACCOUNTS")
+    @RequiresModule("ACCOUNTS")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         supplierService.deleteSupplier(id);
         return ResponseEntity.noContent().build();

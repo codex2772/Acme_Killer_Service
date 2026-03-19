@@ -24,6 +24,7 @@
 package com.aurajewels.jewel.controller;
 
 import com.aurajewels.jewel.entity.MetalType;
+import com.aurajewels.jewel.security.RequiresModule;
 import com.aurajewels.jewel.security.RequiresPermission;
 import com.aurajewels.jewel.service.MetalTypeService;
 import java.util.List;
@@ -44,30 +45,35 @@ public class MetalTypeController {
 
     @GetMapping
     @RequiresPermission("VIEW_INVENTORY")
+    @RequiresModule("INVENTORY")
     public ResponseEntity<List<MetalType>> getAll() {
         return ResponseEntity.ok(metalTypeService.findAll());
     }
 
     @GetMapping("/{id}")
     @RequiresPermission("VIEW_INVENTORY")
+    @RequiresModule("INVENTORY")
     public ResponseEntity<MetalType> getById(@PathVariable Long id) {
         return ResponseEntity.ok(metalTypeService.findById(id));
     }
 
     @GetMapping("/search")
     @RequiresPermission("VIEW_INVENTORY")
+    @RequiresModule("INVENTORY")
     public ResponseEntity<List<MetalType>> getByName(@RequestParam String name) {
         return ResponseEntity.ok(metalTypeService.findByName(name));
     }
 
     @PostMapping
     @RequiresPermission("MANAGE_INVENTORY")
+    @RequiresModule("INVENTORY")
     public ResponseEntity<MetalType> create(@RequestBody MetalType metalType) {
         return ResponseEntity.status(HttpStatus.CREATED).body(metalTypeService.create(metalType));
     }
 
     @PutMapping("/{id}")
     @RequiresPermission("MANAGE_INVENTORY")
+    @RequiresModule("INVENTORY")
     public ResponseEntity<MetalType> update(
             @PathVariable Long id, @RequestBody MetalType metalType) {
         return ResponseEntity.ok(metalTypeService.update(id, metalType));
@@ -75,6 +81,7 @@ public class MetalTypeController {
 
     @DeleteMapping("/{id}")
     @RequiresPermission("MANAGE_INVENTORY")
+    @RequiresModule("INVENTORY")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         metalTypeService.delete(id);
         return ResponseEntity.noContent().build();

@@ -992,7 +992,55 @@ Login with mobile number and password.
 
 ---
 
-### 3.19 Activity Logs — `/api/activity-logs`
+### 3.19 Enquiries (Admin) — `/api/enquiries`
+
+> View and respond to customer enquiries submitted via the Customer App. Includes customer contact details, enquiry image, and response tracking.
+
+| # | Method | Endpoint | Permission | Description |
+|---|--------|----------|------------|-------------|
+| 1 | `GET` | `/api/enquiries` | VIEW_CUSTOMERS | List all enquiries for the current store |
+| 2 | `GET` | `/api/enquiries/{id}` | VIEW_CUSTOMERS | Get single enquiry with full details |
+| 3 | `PUT` | `/api/enquiries/{id}/respond` | MANAGE_CUSTOMERS | Respond to a customer enquiry |
+| 4 | `PATCH` | `/api/enquiries/{id}/close` | MANAGE_CUSTOMERS | Close an enquiry |
+
+**GET Response Item:**
+```json
+{
+  "id": 5,
+  "customerId": 12,
+  "customerName": "Priya Patel",
+  "customerPhone": "9876543210",
+  "customerEmail": "priya@email.com",
+  "jewelryItemId": 2,
+  "jewelryItemName": "Diamond Solitaire Ring",
+  "jewelryItemSku": "RNG-G22-001",
+  "subject": "Available in size 7?",
+  "message": "Hi, is this ring available in size 7? Attaching a reference image.",
+  "imageUrl": "https://jewel-erp-images-ap-south-1.s3.ap-south-1.amazonaws.com/enquiries/844732ce.png",
+  "status": "OPEN",
+  "adminResponse": null,
+  "respondedBy": null,
+  "respondedAt": null,
+  "createdAt": "2026-03-19T10:30:00Z",
+  "updatedAt": "2026-03-19T10:30:00Z"
+}
+```
+
+**PUT `/api/enquiries/{id}/respond` Request:**
+```json
+{
+  "adminResponse": "Yes, size 7 is available. Visit us this weekend!",
+  "status": "RESPONDED"
+}
+```
+
+**Status values:** `OPEN`, `RESPONDED`, `CLOSED`
+
+> **Note:** `customerPhone` is provided so the admin can directly call or WhatsApp the customer from the Desktop/Admin app. The `imageUrl` (if present) shows the reference image the customer attached.
+
+---
+
+### 3.20 Activity Logs — `/api/activity-logs`
 
 > Auto-created by the backend on create/update operations. Read-only for frontend.
 
@@ -1022,7 +1070,7 @@ Login with mobile number and password.
 
 ---
 
-### 3.20 DB Admin — `/api/db`
+### 3.21 DB Admin — `/api/db`
 
 > Internal/debug endpoints
 

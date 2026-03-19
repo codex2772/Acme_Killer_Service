@@ -68,6 +68,18 @@ public class GlobalExceptionHandler {
                                 "timestamp", Instant.now()));
     }
 
+    @ExceptionHandler(ModuleNotEnabledException.class)
+    public ResponseEntity<Map<String, Object>> handleModuleNotEnabled(
+            ModuleNotEnabledException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(
+                        Map.of(
+                                "error", "Module not enabled",
+                                "module", ex.getModule(),
+                                "message", ex.getMessage(),
+                                "timestamp", Instant.now()));
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, Object>> handleRuntime(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

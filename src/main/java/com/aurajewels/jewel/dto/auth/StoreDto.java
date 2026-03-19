@@ -23,6 +23,7 @@
  */
 package com.aurajewels.jewel.dto.auth;
 
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 
@@ -36,4 +37,5 @@ public class StoreDto {
     private Long id;
     private String name;
     private String city;
+    private List<String> enabledModules;
 }

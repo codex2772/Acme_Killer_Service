@@ -25,6 +25,7 @@ package com.aurajewels.jewel.security;
 
 import com.aurajewels.jewel.config.JwtProperties;
 import com.aurajewels.jewel.entity.Customer;
+import com.aurajewels.jewel.entity.PlatformAdmin;
 import com.aurajewels.jewel.entity.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -99,6 +100,43 @@ public class JwtUtil {
                                         + jwtProperties.getRefreshExpirationMs()))
                 .signWith(getSigningKey())
                 .compact();
+    }
+
+    public String generatePlatformAdminToken(PlatformAdmin admin) {
+        return Jwts.builder()
+                .subject(String.valueOf(admin.getId()))
+                .claim("type", "platform_admin")
+                .claim("role", admin.getRole().name())
+                .claim("name", admin.getName())
+                .claim("permissions", List.of())
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + jwtProperties.getExpirationMs()))
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    public String generatePlatformAdminRefreshToken(PlatformAdmin admin) {
+        return Jwts.builder()
+                .subject(String.valueOf(admin.getId()))
+                .claim("type", "refresh")
+                .claim("role", admin.getRole().name())
+                .claim("platformAdmin", true)
+                .issuedAt(new Date())
+                .expiration(
+                        new Date(
+                                System.currentTimeMillis()
+                                        + jwtProperties.getRefreshExpirationMs()))
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    public boolean isPlatformAdminToken(String token) {
+        try {
+            Claims claims = extractAllClaims(token);
+            return "platform_admin".equals(claims.get("type", String.class));
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public Claims extractAllClaims(String token) {

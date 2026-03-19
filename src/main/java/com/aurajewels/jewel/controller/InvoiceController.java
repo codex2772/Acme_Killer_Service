@@ -24,6 +24,7 @@
 package com.aurajewels.jewel.controller;
 
 import com.aurajewels.jewel.dto.billing.*;
+import com.aurajewels.jewel.security.RequiresModule;
 import com.aurajewels.jewel.security.RequiresPermission;
 import com.aurajewels.jewel.service.InvoiceService;
 import java.time.LocalDate;
@@ -46,6 +47,7 @@ public class InvoiceController {
 
     @GetMapping
     @RequiresPermission("VIEW_BILLING")
+    @RequiresModule("BILLING")
     public ResponseEntity<List<InvoiceResponse>> list(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String paymentStatus,
@@ -58,12 +60,14 @@ public class InvoiceController {
 
     @GetMapping("/{id}")
     @RequiresPermission("VIEW_BILLING")
+    @RequiresModule("BILLING")
     public ResponseEntity<InvoiceResponse> get(@PathVariable Long id) {
         return ResponseEntity.ok(invoiceService.getInvoice(id));
     }
 
     @PostMapping
     @RequiresPermission("MANAGE_BILLING")
+    @RequiresModule("BILLING")
     public ResponseEntity<InvoiceResponse> create(@RequestBody InvoiceRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(invoiceService.createInvoice(request));
@@ -71,6 +75,7 @@ public class InvoiceController {
 
     @PutMapping("/{id}")
     @RequiresPermission("MANAGE_BILLING")
+    @RequiresModule("BILLING")
     public ResponseEntity<InvoiceResponse> update(
             @PathVariable Long id, @RequestBody InvoiceRequest request) {
         return ResponseEntity.ok(invoiceService.updateInvoice(id, request));
@@ -78,6 +83,7 @@ public class InvoiceController {
 
     @PatchMapping("/{id}/status")
     @RequiresPermission("MANAGE_BILLING")
+    @RequiresModule("BILLING")
     public ResponseEntity<InvoiceResponse> updateStatus(
             @PathVariable Long id, @RequestBody StatusUpdateRequest request) {
         return ResponseEntity.ok(invoiceService.updateStatus(id, request.getStatus()));
@@ -85,6 +91,7 @@ public class InvoiceController {
 
     @PostMapping("/{id}/payments")
     @RequiresPermission("MANAGE_BILLING")
+    @RequiresModule("BILLING")
     public ResponseEntity<InvoiceResponse> recordPayment(
             @PathVariable Long id, @RequestBody SplitPaymentRequest request) {
         return ResponseEntity.ok(invoiceService.recordPayment(id, request));

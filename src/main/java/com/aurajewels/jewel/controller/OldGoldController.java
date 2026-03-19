@@ -25,6 +25,7 @@ package com.aurajewels.jewel.controller;
 
 import com.aurajewels.jewel.dto.oldgold.OldGoldRequest;
 import com.aurajewels.jewel.entity.OldGoldPurchase;
+import com.aurajewels.jewel.security.RequiresModule;
 import com.aurajewels.jewel.security.RequiresPermission;
 import com.aurajewels.jewel.service.OldGoldService;
 import java.util.List;
@@ -45,18 +46,21 @@ public class OldGoldController {
 
     @GetMapping
     @RequiresPermission("MANAGE_OLD_GOLD")
+    @RequiresModule("ACCOUNTS")
     public ResponseEntity<List<OldGoldPurchase>> list() {
         return ResponseEntity.ok(oldGoldService.listPurchases());
     }
 
     @GetMapping("/{id}")
     @RequiresPermission("MANAGE_OLD_GOLD")
+    @RequiresModule("ACCOUNTS")
     public ResponseEntity<OldGoldPurchase> get(@PathVariable Long id) {
         return ResponseEntity.ok(oldGoldService.getPurchase(id));
     }
 
     @PostMapping
     @RequiresPermission("MANAGE_OLD_GOLD")
+    @RequiresModule("ACCOUNTS")
     public ResponseEntity<OldGoldPurchase> create(@RequestBody OldGoldRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(oldGoldService.createPurchase(request));
@@ -64,6 +68,7 @@ public class OldGoldController {
 
     @PutMapping("/{id}")
     @RequiresPermission("MANAGE_OLD_GOLD")
+    @RequiresModule("ACCOUNTS")
     public ResponseEntity<OldGoldPurchase> update(
             @PathVariable Long id, @RequestBody OldGoldRequest request) {
         return ResponseEntity.ok(oldGoldService.updatePurchase(id, request));

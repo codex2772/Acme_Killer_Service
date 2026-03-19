@@ -26,6 +26,7 @@ package com.aurajewels.jewel.controller;
 import com.aurajewels.jewel.entity.Scheme;
 import com.aurajewels.jewel.entity.SchemeMember;
 import com.aurajewels.jewel.entity.SchemePayment;
+import com.aurajewels.jewel.security.RequiresModule;
 import com.aurajewels.jewel.security.RequiresPermission;
 import com.aurajewels.jewel.service.SchemeService;
 import java.util.List;
@@ -53,6 +54,7 @@ public class SchemeController {
     /** GET /api/schemes List all schemes */
     @GetMapping
     @RequiresPermission("MANAGE_SCHEMES")
+    @RequiresModule("SCHEMES")
     public ResponseEntity<List<Scheme>> getAll() {
         return ResponseEntity.ok(schemeService.findAll());
     }
@@ -60,6 +62,7 @@ public class SchemeController {
     /** GET /api/schemes/{id} Get scheme by id */
     @GetMapping("/{id}")
     @RequiresPermission("MANAGE_SCHEMES")
+    @RequiresModule("SCHEMES")
     public ResponseEntity<Scheme> getById(@PathVariable Long id) {
         return ResponseEntity.ok(schemeService.findById(id));
     }
@@ -67,6 +70,7 @@ public class SchemeController {
     /** POST /api/schemes Create new scheme */
     @PostMapping
     @RequiresPermission("MANAGE_SCHEMES")
+    @RequiresModule("SCHEMES")
     public ResponseEntity<Scheme> create(@RequestBody Scheme scheme) {
         return ResponseEntity.status(HttpStatus.CREATED).body(schemeService.create(scheme));
     }
@@ -74,6 +78,7 @@ public class SchemeController {
     /** PUT /api/schemes/{id} Update scheme */
     @PutMapping("/{id}")
     @RequiresPermission("MANAGE_SCHEMES")
+    @RequiresModule("SCHEMES")
     public ResponseEntity<Scheme> update(@PathVariable Long id, @RequestBody Scheme scheme) {
 
         return ResponseEntity.ok(schemeService.update(id, scheme));
@@ -82,6 +87,7 @@ public class SchemeController {
     /** GET /api/schemes/{id}/members List members of a scheme */
     @GetMapping("/{id}/members")
     @RequiresPermission("MANAGE_SCHEMES")
+    @RequiresModule("SCHEMES")
     public ResponseEntity<List<SchemeMember>> getMembers(@PathVariable Long id) {
         return ResponseEntity.ok(schemeService.findMembers(id));
     }
@@ -89,6 +95,7 @@ public class SchemeController {
     /** POST /api/schemes/{id}/members Add member to scheme */
     @PostMapping("/{id}/members")
     @RequiresPermission("MANAGE_SCHEMES")
+    @RequiresModule("SCHEMES")
     public ResponseEntity<SchemeMember> addMember(
             @PathVariable Long id, @RequestBody SchemeMember member) {
 
@@ -98,6 +105,7 @@ public class SchemeController {
     /** POST /api/schemes/{id}/members/{memberId}/payments Record monthly payment */
     @PostMapping("/{id}/members/{memberId}/payments")
     @RequiresPermission("MANAGE_SCHEMES")
+    @RequiresModule("SCHEMES")
     public ResponseEntity<SchemePayment> recordPayment(
             @PathVariable Long memberId, @RequestBody SchemePayment payment) {
 
@@ -108,6 +116,7 @@ public class SchemeController {
     /** GET /api/schemes/{id}/members/{memberId}/payments Get payment history */
     @GetMapping("/{id}/members/{memberId}/payments")
     @RequiresPermission("MANAGE_SCHEMES")
+    @RequiresModule("SCHEMES")
     public ResponseEntity<List<SchemePayment>> getPayments(@PathVariable Long memberId) {
 
         return ResponseEntity.ok(schemeService.findPayments(memberId));

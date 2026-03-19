@@ -25,6 +25,7 @@ package com.aurajewels.jewel.controller;
 
 import com.aurajewels.jewel.dto.billing.CreditNoteRequest;
 import com.aurajewels.jewel.entity.CreditNote;
+import com.aurajewels.jewel.security.RequiresModule;
 import com.aurajewels.jewel.security.RequiresPermission;
 import com.aurajewels.jewel.service.CreditNoteService;
 import java.util.List;
@@ -45,18 +46,21 @@ public class CreditNoteController {
 
     @GetMapping
     @RequiresPermission("VIEW_BILLING")
+    @RequiresModule("BILLING")
     public ResponseEntity<List<CreditNote>> list() {
         return ResponseEntity.ok(creditNoteService.listCreditNotes());
     }
 
     @GetMapping("/{id}")
     @RequiresPermission("VIEW_BILLING")
+    @RequiresModule("BILLING")
     public ResponseEntity<CreditNote> get(@PathVariable Long id) {
         return ResponseEntity.ok(creditNoteService.getCreditNote(id));
     }
 
     @PostMapping
     @RequiresPermission("MANAGE_BILLING")
+    @RequiresModule("BILLING")
     public ResponseEntity<CreditNote> create(@RequestBody CreditNoteRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(creditNoteService.createCreditNote(request));

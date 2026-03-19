@@ -34,6 +34,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface StoreRepository extends JpaRepository<Store, Long> {
 
+    List<Store> findByOrganizationId(Long orgId);
+
     List<Store> findByOrganizationIdAndActiveTrue(Long orgId);
 
     List<Store> findByActiveTrueOrderByNameAsc();

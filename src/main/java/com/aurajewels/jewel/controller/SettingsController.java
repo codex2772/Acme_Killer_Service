@@ -23,6 +23,7 @@
  */
 package com.aurajewels.jewel.controller;
 
+import com.aurajewels.jewel.security.RequiresModule;
 import com.aurajewels.jewel.security.RequiresPermission;
 import com.aurajewels.jewel.service.OrgSettingService;
 import java.util.List;
@@ -42,18 +43,21 @@ public class SettingsController {
     private final OrgSettingService orgSettingService;
 
     @GetMapping
+    @RequiresModule("SETTINGS")
     public ResponseEntity<Map<String, String>> getSettings() {
         return ResponseEntity.ok(orgSettingService.getSettings());
     }
 
     @PutMapping
     @RequiresPermission("MANAGE_SETTINGS")
+    @RequiresModule("SETTINGS")
     public ResponseEntity<Map<String, String>> updateSettings(
             @RequestBody Map<String, String> settings) {
         return ResponseEntity.ok(orgSettingService.updateSettings(settings));
     }
 
     @GetMapping("/expense-categories")
+    @RequiresModule("SETTINGS")
     public ResponseEntity<List<String>> getExpenseCategories() {
         return ResponseEntity.ok(orgSettingService.getExpenseCategories());
     }

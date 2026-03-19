@@ -24,6 +24,7 @@
 package com.aurajewels.jewel.entity;
 
 import jakarta.persistence.*;
+import java.time.Instant;
 import lombok.*;
 
 /**
@@ -40,4 +41,14 @@ public class Organization extends BaseEntity {
 
     @Column(name = "name", nullable = false, length = 200)
     private String name;
+
+    @Column(name = "onboarded_by")
+    private Long onboardedBy;
+
+    @Column(name = "onboarded_at")
+    private Instant onboardedAt;
+
+    @Column(name = "status", nullable = false, length = 20)
+    @Builder.Default
+    private String status = "ACTIVE";
 }

@@ -9,7 +9,7 @@
 > **Last Updated:** 2026-03-19
 > **Total Endpoints:** 110 | **Total DB Tables:** 33+ | **Architecture:** Multi-tenant SaaS
 
-A comprehensive cloud-native ERP backend for jewelry retailers — multi-store, multi-tenant — featuring inventory tracking, GST-compliant billing, saving schemes, customer mobile app, and S3-powered image uploads.
+A comprehensive cloud-native ERP backend for jewelry retailers — multi-store, multi-tenant — featuring inventory tracking, GST-compliant billing, saving schemes, S3-powered image uploads, and three client applications: **Desktop (Electron.js)**, **Admin Mobile (Flutter)**, and **Customer App (Flutter)**.
 
 ---
 
@@ -37,37 +37,47 @@ A comprehensive cloud-native ERP backend for jewelry retailers — multi-store, 
 ## 🏗 Architecture Overview
 
 ```
-┌──────────────────┐     ┌──────────────────┐
-│  Desktop App     │     │  Flutter Mobile   │
-│  (Electron.js)   │     │  (Customer App)   │
-└────────┬─────────┘     └────────┬──────────┘
-         │                        │
-         └────────┬───────────────┘
-                  │ HTTPS
-                  ▼
-         ┌────────────────┐
-         │  AWS ALB        │
-         │  (Load Balancer)│
-         └────────┬───────┘
-                  │
-                  ▼
-         ┌────────────────┐        ┌─────────────┐
-         │  AWS ECS Fargate│───────►│  AWS S3      │
-         │  (Spring Boot)  │        │  (Images)    │
-         └────────┬───────┘        └─────────────┘
-                  │
-         ┌────────┴───────┐
-         │  AWS RDS MySQL  │
-         │  (Database)     │
-         └────────────────┘
+┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
+│  Desktop App     │  │  Admin Mobile    │  │  Customer App    │
+│  (Electron.js)   │  │  (Flutter)       │  │  (Flutter)       │
+│  Owner/Admin/    │  │  Owner/Admin/    │  │  Browse catalog, │
+│  Staff access    │  │  Staff access    │  │  wishlist, enquiry│
+└────────┬─────────┘  └────────┬─────────┘  └────────┬─────────┘
+         │                     │                      │
+         └─────────────────────┼──────────────────────┘
+                               │ HTTPS
+                               ▼
+                      ┌────────────────┐
+                      │  AWS ALB        │
+                      │  (Load Balancer)│
+                      └────────┬───────┘
+                               │
+                               ▼
+                      ┌────────────────┐        ┌─────────────┐
+                      │  AWS ECS Fargate│───────►│  AWS S3      │
+                      │  (Spring Boot)  │        │  (Images)    │
+                      └────────┬───────┘        └─────────────┘
+                               │
+                      ┌────────┴───────┐
+                      │  AWS RDS MySQL  │
+                      │  (Database)     │
+                      └────────────────┘
 ```
+
+**Client Applications:**
+
+| App | Technology | Users | Purpose |
+|-----|-----------|-------|---------|
+| **Desktop App** | Electron.js | Owner, Admin, Staff | Full ERP — inventory, billing, accounts, schemes, reports |
+| **Admin Mobile App** | Flutter | Owner, Admin, Staff | Same as Desktop — manage store on the go |
+| **Customer App** | Flutter | Customers | Browse catalog, wishlist, enquiry, scheme payments, profile |
 
 **Multi-Tenant Architecture:**
 - **Organization** → owns multiple **Stores**
 - **Owner** → manages the organization
 - **Admin** → manages a specific store
 - **Staff** → works at a store with specific permissions
-- **Customer** → browses catalog, wishlists, enquires via mobile app
+- **Customer** → browses catalog, wishlists, pays scheme installments, enquires via mobile app
 
 ---
 
@@ -352,6 +362,17 @@ jewel-erp/
 | Method | Endpoint | Permission | Description |
 |--------|----------|------------|-------------|
 | `GET` | `/api/activity-logs` | VIEW_REPORTS | List activity logs |
+
+### Enquiries (Admin) — `/api/enquiries`
+
+| Method | Endpoint | Permission | Description |
+|--------|----------|------------|-------------|
+| `GET` | `/api/enquiries` | VIEW_CUSTOMERS | List all enquiries for the store |
+| `GET` | `/api/enquiries/{id}` | VIEW_CUSTOMERS | Get enquiry with customer contact details |
+| `PUT` | `/api/enquiries/{id}/respond` | MANAGE_CUSTOMERS | Respond to enquiry |
+| `PATCH` | `/api/enquiries/{id}/close` | MANAGE_CUSTOMERS | Close enquiry |
+
+> Admin sees: customer name, phone, email, enquiry message, attached image, linked jewelry item. Can respond and the customer sees the reply in their app.
 
 ### Image Upload — `/api/images`
 
@@ -719,7 +740,9 @@ aws ecs update-service \
 |------|-------------|
 | [`API_REFERENCE.md`](API_REFERENCE.md) | Detailed admin/staff API reference (103+ endpoints, DB schema, ERD) |
 | [`CUSTOMER_APP_API_REFERENCE.md`](CUSTOMER_APP_API_REFERENCE.md) | Customer mobile app API reference |
+| [`ENQUIRY_IMAGE_UPLOAD.md`](ENQUIRY_IMAGE_UPLOAD.md) | Customer enquiry image upload (Flutter integration guide) |
 | [`SAVING_SCHEMES.md`](SAVING_SCHEMES.md) | Saving schemes business logic |
+| [`BUSINESS_PLAN.md`](BUSINESS_PLAN.md) | Business plan, pricing, GTM strategy, financial projections |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Contribution guidelines |
 | [`infra/terraform/README.md`](infra/terraform/README.md) | Terraform infrastructure guide |
 | [`deploy/ecs/README.md`](deploy/ecs/README.md) | ECS deployment guide |

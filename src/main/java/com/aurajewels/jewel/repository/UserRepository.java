@@ -37,6 +37,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByMobileAndActiveTrue(String mobile);
 
+    List<User> findByOrganizationId(Long orgId);
+
     List<User> findByOrganizationIdAndActiveTrue(Long orgId);
 
     Optional<User> findByIdAndOrganizationId(Long id, Long orgId);

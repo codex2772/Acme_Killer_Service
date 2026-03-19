@@ -27,6 +27,7 @@ import com.aurajewels.jewel.dto.rates.RateAlertRequest;
 import com.aurajewels.jewel.dto.rates.RateRequest;
 import com.aurajewels.jewel.entity.DailyRate;
 import com.aurajewels.jewel.entity.RateAlert;
+import com.aurajewels.jewel.security.RequiresModule;
 import com.aurajewels.jewel.security.RequiresPermission;
 import com.aurajewels.jewel.service.DailyRateService;
 import java.util.List;
@@ -46,6 +47,7 @@ public class RateController {
     private final DailyRateService dailyRateService;
 
     @GetMapping
+    @RequiresModule("RATES")
     public ResponseEntity<DailyRate> getCurrentRates() {
         DailyRate rate = dailyRateService.getCurrentRates();
         if (rate == null) {
@@ -56,23 +58,27 @@ public class RateController {
 
     @PutMapping
     @RequiresPermission("MANAGE_RATES")
+    @RequiresModule("RATES")
     public ResponseEntity<DailyRate> updateRates(@RequestBody RateRequest request) {
         return ResponseEntity.ok(dailyRateService.updateRates(request));
     }
 
     @GetMapping("/history")
+    @RequiresModule("RATES")
     public ResponseEntity<List<DailyRate>> getHistory(@RequestParam(defaultValue = "30") int days) {
         return ResponseEntity.ok(dailyRateService.getRateHistory(days));
     }
 
     @PostMapping("/alerts")
     @RequiresPermission("MANAGE_RATES")
+    @RequiresModule("RATES")
     public ResponseEntity<RateAlert> createAlert(@RequestBody RateAlertRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(dailyRateService.createAlert(request));
     }
 
     @GetMapping("/alerts")
+    @RequiresModule("RATES")
     public ResponseEntity<List<RateAlert>> getAlerts() {
         return ResponseEntity.ok(dailyRateService.getActiveAlerts());
     }

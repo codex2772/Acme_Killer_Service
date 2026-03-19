@@ -23,6 +23,7 @@
  */
 package com.aurajewels.jewel.controller;
 
+import com.aurajewels.jewel.security.RequiresModule;
 import com.aurajewels.jewel.security.RequiresPermission;
 import com.aurajewels.jewel.service.S3Service;
 import java.util.Map;
@@ -49,6 +50,7 @@ public class ImageUploadController {
     /** Upload an image for a jewelry item. Returns the public S3 URL. */
     @PostMapping("/upload")
     @RequiresPermission("MANAGE_INVENTORY")
+    @RequiresModule("INVENTORY")
     public ResponseEntity<?> uploadImage(
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "folder", defaultValue = "jewelry-items") String folder) {

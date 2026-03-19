@@ -25,6 +25,7 @@ package com.aurajewels.jewel.controller;
 
 import com.aurajewels.jewel.dto.accounts.ExpenseRequest;
 import com.aurajewels.jewel.entity.Expense;
+import com.aurajewels.jewel.security.RequiresModule;
 import com.aurajewels.jewel.security.RequiresPermission;
 import com.aurajewels.jewel.service.ExpenseService;
 import java.time.LocalDate;
@@ -47,6 +48,7 @@ public class ExpenseController {
 
     @GetMapping
     @RequiresPermission("VIEW_ACCOUNTS")
+    @RequiresModule("ACCOUNTS")
     public ResponseEntity<List<Expense>> list(
             @RequestParam(required = false) String category,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -58,12 +60,14 @@ public class ExpenseController {
 
     @GetMapping("/{id}")
     @RequiresPermission("VIEW_ACCOUNTS")
+    @RequiresModule("ACCOUNTS")
     public ResponseEntity<Expense> get(@PathVariable Long id) {
         return ResponseEntity.ok(expenseService.getExpense(id));
     }
 
     @PostMapping
     @RequiresPermission("MANAGE_ACCOUNTS")
+    @RequiresModule("ACCOUNTS")
     public ResponseEntity<Expense> create(@RequestBody ExpenseRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(expenseService.createExpense(request));
@@ -71,6 +75,7 @@ public class ExpenseController {
 
     @PutMapping("/{id}")
     @RequiresPermission("MANAGE_ACCOUNTS")
+    @RequiresModule("ACCOUNTS")
     public ResponseEntity<Expense> update(
             @PathVariable Long id, @RequestBody ExpenseRequest request) {
         return ResponseEntity.ok(expenseService.updateExpense(id, request));
@@ -78,6 +83,7 @@ public class ExpenseController {
 
     @DeleteMapping("/{id}")
     @RequiresPermission("MANAGE_ACCOUNTS")
+    @RequiresModule("ACCOUNTS")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         expenseService.deleteExpense(id);
         return ResponseEntity.noContent().build();

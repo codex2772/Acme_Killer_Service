@@ -25,6 +25,7 @@ package com.aurajewels.jewel.controller;
 
 import com.aurajewels.jewel.dto.accounts.LedgerEntryRequest;
 import com.aurajewels.jewel.entity.LedgerEntry;
+import com.aurajewels.jewel.security.RequiresModule;
 import com.aurajewels.jewel.security.RequiresPermission;
 import com.aurajewels.jewel.service.LedgerService;
 import java.time.LocalDate;
@@ -47,6 +48,7 @@ public class LedgerController {
 
     @GetMapping
     @RequiresPermission("VIEW_ACCOUNTS")
+    @RequiresModule("ACCOUNTS")
     public ResponseEntity<List<LedgerEntry>> list(
             @RequestParam(required = false) String type,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
@@ -64,6 +66,7 @@ public class LedgerController {
 
     @PostMapping
     @RequiresPermission("MANAGE_ACCOUNTS")
+    @RequiresModule("ACCOUNTS")
     public ResponseEntity<LedgerEntry> create(@RequestBody LedgerEntryRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(ledgerService.createEntry(request));
     }

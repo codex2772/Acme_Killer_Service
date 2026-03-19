@@ -55,6 +55,7 @@ public class SecurityConfig {
                         auth ->
                                 auth.requestMatchers(
                                                 "/api/auth/**",
+                                                "/api/admin/auth/**",
                                                 "/api/customer-app/register",
                                                 "/api/customer-app/login",
                                                 "/api/customer-app/catalog/**",
@@ -64,6 +65,8 @@ public class SecurityConfig {
                                                 "/api",
                                                 "/actuator/**")
                                         .permitAll()
+                                        .requestMatchers("/api/admin/**")
+                                        .hasAnyRole("SUPER_ADMIN", "SUPPORT")
                                         .anyRequest()
                                         .authenticated())
                 .exceptionHandling(
