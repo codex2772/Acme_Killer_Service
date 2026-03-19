@@ -25,9 +25,15 @@ package com.aurajewels.jewel.controller.admin;
 
 import com.aurajewels.jewel.dto.admin.AdminLoginRequest;
 import com.aurajewels.jewel.dto.admin.AdminLoginResponse;
+import com.aurajewels.jewel.entity.PlatformAdmin;
+import com.aurajewels.jewel.entity.PlatformRole;
+import com.aurajewels.jewel.repository.PlatformAdminRepository;
 import com.aurajewels.jewel.service.admin.SuperAdminAuthService;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -39,9 +45,58 @@ import org.springframework.web.bind.annotation.*;
 public class SuperAdminAuthController {
 
     private final SuperAdminAuthService superAdminAuthService;
+    private final PlatformAdminRepository platformAdminRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @PostMapping("/login")
     public ResponseEntity<AdminLoginResponse> login(@RequestBody AdminLoginRequest request) {
         return ResponseEntity.ok(superAdminAuthService.login(request));
+    }
+
+    /**
+     * One-time bootstrap endpoint. Creates the first super admin. Only works when NO platform
+     * admins exist in the DB. Returns 409 if admins already exist.
+     */
+    @PostMapping("/bootstrap")
+    public ResponseEntity<?> bootstrap(@RequestBody Map<String, String> request) {
+        if (platformAdminRepository.count() > 0) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(
+                            Map.of(
+                                    "error",
+                                    "Bootstrap already completed. Super admin(s) already exist."));
+        }
+
+        String name = request.get("name");
+        String email = request.get("email");
+        String password = request.get("password");
+        String phone = request.getOrDefault("phone", null);
+
+        if (name == null || email == null || password == null) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "name, email and password are required"));
+        }
+
+        PlatformAdmin admin =
+                PlatformAdmin.builder()
+                        .name(name)
+                        .email(email)
+                        .phone(phone)
+                        .passwordHash(passwordEncoder.encode(password))
+                        .role(PlatformRole.SUPER_ADMIN)
+                        .active(true)
+                        .build();
+
+        platformAdminRepository.save(admin);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(
+                        Map.of(
+                                "message",
+                                "Super admin created successfully",
+                                "email",
+                                email,
+                                "name",
+                                name));
     }
 }
