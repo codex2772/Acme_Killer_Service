@@ -33,4 +33,5 @@ public class EnquiryRequest {
     private Long jewelryItemId;
     private String subject;
     private String message;
+    private String imageUrl;
 }

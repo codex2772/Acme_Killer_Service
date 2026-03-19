@@ -38,6 +38,7 @@ public class EnquiryResponse {
     private String jewelryItemName;
     private String subject;
     private String message;
+    private String imageUrl;
     private String status;
     private String adminResponse;
     private Instant createdAt;

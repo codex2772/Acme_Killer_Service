@@ -65,6 +65,9 @@ public class CustomerEnquiry {
     @Column(name = "message", nullable = false, columnDefinition = "TEXT")
     private String message;
 
+    @Column(name = "image_url", length = 500)
+    private String imageUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private EnquiryStatus status = EnquiryStatus.OPEN;

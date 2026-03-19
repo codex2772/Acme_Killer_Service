@@ -26,12 +26,14 @@ package com.aurajewels.jewel.controller;
 import com.aurajewels.jewel.dto.customerapp.*;
 import com.aurajewels.jewel.security.StoreContext;
 import com.aurajewels.jewel.service.CustomerAppService;
+import com.aurajewels.jewel.service.S3Service;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * REST controller for the customer-facing mobile application. Provides registration, login, catalog
@@ -45,6 +47,12 @@ import org.springframework.web.bind.annotation.*;
 public class CustomerAppController {
 
     private final CustomerAppService customerAppService;
+    private final S3Service s3Service;
+
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+    private static final String[] ALLOWED_TYPES = {
+        "image/jpeg", "image/png", "image/webp", "image/gif"
+    };
 
     // ======================== STORES (Public) ========================
 
@@ -110,6 +118,36 @@ public class CustomerAppController {
         Long customerId = requireCustomerId();
         customerAppService.removeFromWishlist(customerId, jewelryItemId);
         return ResponseEntity.noContent().build();
+    }
+
+    // ======================== IMAGE UPLOAD (Authenticated) ========================
+
+    /** POST /api/customer-app/images/upload — Upload an image for enquiry. */
+    @PostMapping("/images/upload")
+    public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file) {
+        requireCustomerId(); // ensure customer is logged in
+
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "File is empty"));
+        }
+        if (file.getSize() > MAX_FILE_SIZE) {
+            return ResponseEntity.badRequest().body(Map.of("error", "File size exceeds 5MB limit"));
+        }
+        String contentType = file.getContentType();
+        boolean isAllowed = false;
+        for (String type : ALLOWED_TYPES) {
+            if (type.equals(contentType)) {
+                isAllowed = true;
+                break;
+            }
+        }
+        if (!isAllowed) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Only JPEG, PNG, WebP, and GIF images are allowed"));
+        }
+
+        String imageUrl = s3Service.uploadFile(file, "enquiries");
+        return ResponseEntity.ok(Map.of("imageUrl", imageUrl));
     }
 
     // ======================== ENQUIRY (Authenticated) ========================

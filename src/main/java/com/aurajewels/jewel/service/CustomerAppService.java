@@ -337,6 +337,7 @@ public class CustomerAppService {
                         .store(customer.getStore())
                         .subject(request.getSubject())
                         .message(request.getMessage())
+                        .imageUrl(request.getImageUrl())
                         .status(CustomerEnquiry.EnquiryStatus.OPEN)
                         .build();
         enquiry = enquiryRepository.save(enquiry);
@@ -418,6 +419,7 @@ public class CustomerAppService {
                                 : null)
                 .subject(enquiry.getSubject())
                 .message(enquiry.getMessage())
+                .imageUrl(enquiry.getImageUrl())
                 .status(enquiry.getStatus().name())
                 .adminResponse(enquiry.getAdminResponse())
                 .createdAt(enquiry.getCreatedAt())
