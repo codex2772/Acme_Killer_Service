@@ -32,6 +32,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 /**
+ * AOP aspect enforcing permission checks on methods annotated with RequiresPermission.
+ *
  * @author Raviraj Bhosale
  */
 @Aspect

@@ -28,6 +28,8 @@ import java.util.List;
 import lombok.Data;
 
 /**
+ * DTO for updating a staff member profile, role, or permissions.
+ *
  * @author Raviraj Bhosale
  */
 @Data

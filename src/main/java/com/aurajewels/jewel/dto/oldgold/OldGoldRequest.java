@@ -28,6 +28,8 @@ import java.time.LocalDate;
 import lombok.Data;
 
 /**
+ * DTO for creating an old gold purchase entry.
+ *
  * @author Raviraj Bhosale
  */
 @Data

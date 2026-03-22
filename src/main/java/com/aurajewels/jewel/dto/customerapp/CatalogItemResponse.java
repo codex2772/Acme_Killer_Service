@@ -29,6 +29,8 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
+ * DTO for a jewelry catalog item in the customer app.
+ *
  * @author Raviraj Bhosale
  */
 @Data

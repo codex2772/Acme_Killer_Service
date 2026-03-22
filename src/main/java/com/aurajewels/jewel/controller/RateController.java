@@ -37,6 +37,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
+ * Daily metal rate REST API for managing gold, silver, and platinum rates.
+ *
  * @author Raviraj Bhosale
  */
 @RestController

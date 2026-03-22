@@ -34,6 +34,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
+ * Jewelry inventory REST API for CRUD on jewelry items with image upload support.
+ *
  * @author Raviraj Bhosale
  */
 @RestController

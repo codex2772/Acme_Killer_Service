@@ -38,6 +38,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Expense service for tracking and categorizing store expenses.
+ *
  * @author Raviraj Bhosale
  */
 @Service

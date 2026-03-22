@@ -27,6 +27,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 /**
+ * JPA entity mapping a user to a permission for a specific store.
+ *
  * @author Raviraj Bhosale
  */
 @Entity

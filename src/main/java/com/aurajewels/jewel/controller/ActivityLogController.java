@@ -34,6 +34,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
+ * Activity log REST API for fetching the audit trail of user actions.
+ *
  * @author Raviraj Bhosale
  */
 @RestController

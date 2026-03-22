@@ -33,6 +33,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
+ * Feature module admin REST API for enabling and disabling feature modules per store.
+ *
  * @author Raviraj Bhosale
  */
 @RestController

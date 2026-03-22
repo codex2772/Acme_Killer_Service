@@ -35,6 +35,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
+ * Supplier REST API for managing jewelry suppliers and their metal types.
+ *
  * @author Raviraj Bhosale
  */
 @RestController

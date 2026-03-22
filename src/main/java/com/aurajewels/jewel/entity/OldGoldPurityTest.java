@@ -31,6 +31,8 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 /**
+ * JPA entity representing a purity test result for an old gold purchase.
+ *
  * @author Raviraj Bhosale
  */
 @Entity

@@ -27,6 +27,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 /**
+ * JPA entity representing an installment payment for a scheme member.
+ *
  * @author Diksha Mohite
  */
 @Entity

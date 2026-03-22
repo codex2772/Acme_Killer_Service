@@ -30,6 +30,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 /**
+ * JPA entity representing a customer enquiry submitted via the mobile app.
+ *
  * @author Raviraj Bhosale
  */
 @Entity

@@ -27,6 +27,8 @@ import java.util.List;
 import lombok.Data;
 
 /**
+ * DTO for creating or updating a supplier.
+ *
  * @author Raviraj Bhosale
  */
 @Data

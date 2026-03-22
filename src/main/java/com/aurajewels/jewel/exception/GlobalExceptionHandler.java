@@ -33,6 +33,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /**
+ * Global exception handler that catches and formats all API errors as JSON responses.
+ *
  * @author Raviraj Bhosale
  */
 @RestControllerAdvice

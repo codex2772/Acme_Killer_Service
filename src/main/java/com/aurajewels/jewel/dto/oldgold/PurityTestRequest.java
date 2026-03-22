@@ -27,6 +27,8 @@ import java.math.BigDecimal;
 import lombok.Data;
 
 /**
+ * DTO for recording a purity test result.
+ *
  * @author Raviraj Bhosale
  */
 @Data

@@ -27,6 +27,8 @@ import java.math.BigDecimal;
 import lombok.Data;
 
 /**
+ * DTO for a split payment entry (cash, card, UPI).
+ *
  * @author Raviraj Bhosale
  */
 @Data

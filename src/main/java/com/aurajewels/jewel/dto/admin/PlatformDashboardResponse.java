@@ -28,6 +28,8 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
+ * DTO for aggregated platform metrics across all organizations.
+ *
  * @author Raviraj Bhosale
  */
 @Data

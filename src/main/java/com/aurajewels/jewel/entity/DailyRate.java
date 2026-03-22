@@ -33,6 +33,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 /**
+ * JPA entity representing the daily rate for a metal type at a store.
+ *
  * @author Raviraj Bhosale
  */
 @Entity

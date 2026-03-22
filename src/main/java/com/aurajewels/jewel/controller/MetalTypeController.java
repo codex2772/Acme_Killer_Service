@@ -34,6 +34,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
+ * Metal type REST API for managing metal types and their rates.
+ *
  * @author Raviraj Bhosale
  */
 @RestController

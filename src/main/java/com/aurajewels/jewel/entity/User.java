@@ -30,6 +30,8 @@ import java.util.Set;
 import lombok.*;
 
 /**
+ * JPA entity representing a system user (owner, admin, or staff member).
+ *
  * @author Raviraj Bhosale
  */
 @Entity

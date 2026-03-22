@@ -36,6 +36,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
+ * Invoice and billing REST API for creating and managing invoices with GST.
+ *
  * @author Raviraj Bhosale
  */
 @RestController

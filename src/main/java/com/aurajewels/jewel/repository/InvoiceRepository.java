@@ -32,6 +32,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
+ * Spring Data JPA repository for Invoice entities.
+ *
  * @author Raviraj Bhosale
  */
 @Repository

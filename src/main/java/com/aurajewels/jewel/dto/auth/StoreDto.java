@@ -28,6 +28,8 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
+ * DTO for lightweight store representation in auth responses.
+ *
  * @author Raviraj Bhosale
  */
 @Data

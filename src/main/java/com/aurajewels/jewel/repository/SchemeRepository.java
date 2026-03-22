@@ -30,6 +30,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 /**
+ * Spring Data JPA repository for Scheme entities.
+ *
  * @author Diksha Mohite
  */
 @Repository

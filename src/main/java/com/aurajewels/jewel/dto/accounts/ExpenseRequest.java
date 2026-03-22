@@ -28,6 +28,8 @@ import java.time.LocalDate;
 import lombok.Data;
 
 /**
+ * DTO for recording an expense.
+ *
  * @author Raviraj Bhosale
  */
 @Data

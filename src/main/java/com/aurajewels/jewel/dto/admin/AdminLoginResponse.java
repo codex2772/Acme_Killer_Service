@@ -27,6 +27,8 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
+ * DTO for super admin login response with JWT and role.
+ *
  * @author Raviraj Bhosale
  */
 @Data

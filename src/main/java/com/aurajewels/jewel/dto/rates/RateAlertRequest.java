@@ -27,6 +27,8 @@ import java.math.BigDecimal;
 import lombok.Data;
 
 /**
+ * DTO for setting a rate alert for a customer.
+ *
  * @author Raviraj Bhosale
  */
 @Data

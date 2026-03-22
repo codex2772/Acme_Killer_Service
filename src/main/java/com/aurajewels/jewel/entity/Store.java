@@ -27,6 +27,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 /**
+ * JPA entity representing a physical jewelry store belonging to an organization.
+ *
  * @author Raviraj Bhosale
  */
 @Entity

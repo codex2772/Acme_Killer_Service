@@ -32,6 +32,8 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 /**
+ * JPA entity representing a payment against an invoice.
+ *
  * @author Raviraj Bhosale
  */
 @Entity

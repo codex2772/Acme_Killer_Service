@@ -39,6 +39,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Old gold service for managing old gold purchases, purity testing, and melting records.
+ *
  * @author Raviraj Bhosale
  */
 @Service

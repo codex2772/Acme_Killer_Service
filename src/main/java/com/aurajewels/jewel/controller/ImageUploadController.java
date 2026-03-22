@@ -33,6 +33,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
+ * Image upload REST API that handles S3 image uploads for jewelry and enquiries.
+ *
  * @author Raviraj Bhosale
  */
 @RestController

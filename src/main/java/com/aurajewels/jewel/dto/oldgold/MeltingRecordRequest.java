@@ -28,6 +28,8 @@ import java.time.LocalDate;
 import lombok.Data;
 
 /**
+ * DTO for recording a melting operation.
+ *
  * @author Raviraj Bhosale
  */
 @Data

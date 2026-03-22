@@ -41,6 +41,9 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 /**
+ * Spring Security configuration with JWT-based stateless auth, CORS, and endpoint authorization
+ * rules.
+ *
  * @author Raviraj Bhosale
  */
 @Configuration

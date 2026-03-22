@@ -32,6 +32,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
+ * Spring Data JPA repository for CustomerEnquiry entities.
+ *
  * @author Raviraj Bhosale
  */
 @Repository

@@ -33,6 +33,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
+ * Spring Data JPA repository for StoreFeatureModule entities.
+ *
  * @author Raviraj Bhosale
  */
 @Repository

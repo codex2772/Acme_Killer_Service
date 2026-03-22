@@ -27,6 +27,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 /**
+ * JPA entity representing a savings scheme offered by a store.
+ *
  * @author Diksha Mohite
  */
 @Entity

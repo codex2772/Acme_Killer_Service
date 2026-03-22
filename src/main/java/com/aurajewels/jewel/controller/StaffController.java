@@ -36,6 +36,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
+ * Staff management REST API for CRUD operations on staff members.
+ *
  * @author Raviraj Bhosale
  */
 @RestController

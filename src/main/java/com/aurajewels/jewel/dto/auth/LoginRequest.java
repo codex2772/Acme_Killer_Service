@@ -27,6 +27,8 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
+ * DTO for login request with mobile number and password.
+ *
  * @author Raviraj Bhosale
  */
 @Data

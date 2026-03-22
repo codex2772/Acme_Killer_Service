@@ -29,6 +29,8 @@ import java.util.List;
 import lombok.Data;
 
 /**
+ * DTO for creating a new staff member with role and permissions.
+ *
  * @author Raviraj Bhosale
  */
 @Data

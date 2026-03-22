@@ -32,6 +32,8 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 /**
+ * JPA entity representing a melting record for old gold items.
+ *
  * @author Raviraj Bhosale
  */
 @Entity

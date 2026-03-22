@@ -27,6 +27,8 @@ import java.util.List;
 import lombok.Data;
 
 /**
+ * DTO for setting enabled feature modules for a store.
+ *
  * @author Raviraj Bhosale
  */
 @Data

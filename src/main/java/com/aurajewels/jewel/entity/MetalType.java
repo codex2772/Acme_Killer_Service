@@ -28,6 +28,8 @@ import java.math.BigDecimal;
 import lombok.*;
 
 /**
+ * JPA entity representing a metal type with purity and current rate.
+ *
  * @author Raviraj Bhosale
  */
 @Entity

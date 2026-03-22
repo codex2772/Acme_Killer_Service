@@ -34,6 +34,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
+ * Category REST API for managing jewelry categories.
+ *
  * @author Raviraj Bhosale
  */
 @RestController

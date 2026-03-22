@@ -29,6 +29,8 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
+ * DTO for response after onboarding with org, store, and owner details.
+ *
  * @author Raviraj Bhosale
  */
 @Data

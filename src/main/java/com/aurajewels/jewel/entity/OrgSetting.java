@@ -27,6 +27,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 /**
+ * JPA entity for key-value settings of an organization.
+ *
  * @author Raviraj Bhosale
  */
 @Entity

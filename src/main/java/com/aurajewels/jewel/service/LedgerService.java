@@ -36,6 +36,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Ledger service for managing financial ledger entries and balance calculations.
+ *
  * @author Raviraj Bhosale
  */
 @Service

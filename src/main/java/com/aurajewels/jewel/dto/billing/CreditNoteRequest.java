@@ -29,6 +29,8 @@ import java.util.List;
 import lombok.Data;
 
 /**
+ * DTO for creating a credit note with items.
+ *
  * @author Raviraj Bhosale
  */
 @Data

@@ -27,6 +27,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 /**
+ * JPA entity representing a store customer with contact and purchase history.
+ *
  * @author Raviraj Bhosale
  */
 @Entity

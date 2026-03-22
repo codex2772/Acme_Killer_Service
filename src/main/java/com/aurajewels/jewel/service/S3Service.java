@@ -36,6 +36,8 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 /**
+ * AWS S3 service that handles file upload to S3 buckets.
+ *
  * @author Raviraj Bhosale
  */
 @Service

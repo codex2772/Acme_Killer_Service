@@ -28,6 +28,8 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
+ * DTO for store feature modules and their status.
+ *
  * @author Raviraj Bhosale
  */
 @Data

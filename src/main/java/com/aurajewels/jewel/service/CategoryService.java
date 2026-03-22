@@ -34,6 +34,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Category service for managing jewelry categories.
+ *
  * @author Raviraj Bhosale
  */
 @Service

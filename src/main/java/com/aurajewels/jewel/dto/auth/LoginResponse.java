@@ -28,6 +28,8 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
+ * DTO for login response with JWT token, role, and store access.
+ *
  * @author Raviraj Bhosale
  */
 @Data

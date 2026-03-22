@@ -31,6 +31,8 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 /**
+ * JPA entity representing a line item in a credit note.
+ *
  * @author Raviraj Bhosale
  */
 @Entity

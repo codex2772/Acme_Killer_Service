@@ -24,6 +24,8 @@
 package com.aurajewels.jewel.entity;
 
 /**
+ * Enum defining user roles: OWNER, ADMIN, STAFF, CUSTOMER.
+ *
  * @author Raviraj Bhosale
  */
 public enum Role {

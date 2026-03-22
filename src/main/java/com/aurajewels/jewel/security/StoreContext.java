@@ -27,6 +27,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
+ * Thread-local store context that holds the current store ID for multi-tenant scoping.
+ *
  * @author Raviraj Bhosale
  */
 @Getter

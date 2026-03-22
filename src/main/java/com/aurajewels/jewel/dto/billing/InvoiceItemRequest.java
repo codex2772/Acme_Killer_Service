@@ -27,6 +27,8 @@ import java.math.BigDecimal;
 import lombok.Data;
 
 /**
+ * DTO for a single invoice line item.
+ *
  * @author Raviraj Bhosale
  */
 @Data

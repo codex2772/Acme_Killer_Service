@@ -27,6 +27,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 /**
+ * JPA entity representing a granular permission such as VIEW_INVENTORY or MANAGE_BILLING.
+ *
  * @author Raviraj Bhosale
  */
 @Entity

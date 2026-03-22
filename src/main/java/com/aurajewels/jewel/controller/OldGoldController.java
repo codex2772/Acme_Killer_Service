@@ -35,6 +35,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
+ * Old gold REST API for managing old gold purchases, purity tests, and melting records.
+ *
  * @author Raviraj Bhosale
  */
 @RestController

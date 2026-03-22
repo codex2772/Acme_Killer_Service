@@ -27,6 +27,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 /**
+ * JPA entity representing a jewelry category such as Rings, Necklaces, or Bangles.
+ *
  * @author Raviraj Bhosale
  */
 @Entity

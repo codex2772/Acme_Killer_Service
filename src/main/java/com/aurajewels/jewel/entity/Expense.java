@@ -33,6 +33,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 /**
+ * JPA entity representing a store expense entry with category and amount.
+ *
  * @author Raviraj Bhosale
  */
 @Entity

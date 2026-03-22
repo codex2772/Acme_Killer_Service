@@ -31,6 +31,8 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 /**
+ * JPA entity representing a customer rate alert subscription.
+ *
  * @author Raviraj Bhosale
  */
 @Entity

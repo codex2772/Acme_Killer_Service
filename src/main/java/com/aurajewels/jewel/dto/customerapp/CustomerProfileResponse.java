@@ -27,6 +27,8 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
+ * DTO for customer profile details in the mobile app.
+ *
  * @author Raviraj Bhosale
  */
 @Data

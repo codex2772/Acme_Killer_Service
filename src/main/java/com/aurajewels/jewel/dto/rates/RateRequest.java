@@ -27,6 +27,8 @@ import java.math.BigDecimal;
 import lombok.Data;
 
 /**
+ * DTO for updating daily metal rates.
+ *
  * @author Raviraj Bhosale
  */
 @Data

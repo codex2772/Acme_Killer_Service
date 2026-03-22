@@ -30,6 +30,8 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
+ * DTO for staff member response with role, permissions, and store access.
+ *
  * @author Raviraj Bhosale
  */
 @Data

@@ -29,6 +29,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 /**
+ * Configuration properties for JWT secret and expiration settings.
+ *
  * @author Raviraj Bhosale
  */
 @Component

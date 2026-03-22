@@ -28,6 +28,8 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
+ * DTO for invoice line item response with tax details.
+ *
  * @author Raviraj Bhosale
  */
 @Data

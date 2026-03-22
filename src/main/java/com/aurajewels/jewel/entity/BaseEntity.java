@@ -31,6 +31,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 /**
+ * JPA mapped superclass providing id, active, createdAt, and updatedAt fields.
+ *
  * @author Raviraj Bhosale
  */
 @Getter

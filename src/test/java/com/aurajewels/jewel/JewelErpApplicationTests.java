@@ -28,6 +28,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 /**
+ * Integration tests for the JewelERP Spring Boot application.
+ *
  * @author Raviraj Bhosale
  */
 @SpringBootTest

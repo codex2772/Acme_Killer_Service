@@ -28,6 +28,8 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
+ * DTO for customer enquiry response with status and replies.
+ *
  * @author Raviraj Bhosale
  */
 @Data

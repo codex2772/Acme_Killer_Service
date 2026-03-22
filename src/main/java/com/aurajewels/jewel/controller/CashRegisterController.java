@@ -36,6 +36,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
+ * Cash register REST API for opening, closing, and tracking daily cash flow.
+ *
  * @author Raviraj Bhosale
  */
 @RestController

@@ -27,6 +27,8 @@ import java.math.BigDecimal;
 import lombok.Data;
 
 /**
+ * DTO for opening a cash register session.
+ *
  * @author Raviraj Bhosale
  */
 @Data

@@ -35,6 +35,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
+ * Authentication REST API for login, token refresh, and password change.
+ *
  * @author Raviraj Bhosale
  */
 @RestController

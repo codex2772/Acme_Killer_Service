@@ -29,6 +29,8 @@ import java.util.List;
 import lombok.Data;
 
 /**
+ * DTO for creating an invoice with items and payment details.
+ *
  * @author Raviraj Bhosale
  */
 @Data

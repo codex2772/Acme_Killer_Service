@@ -36,6 +36,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Organization settings service for managing store-level configurations.
+ *
  * @author Raviraj Bhosale
  */
 @Service

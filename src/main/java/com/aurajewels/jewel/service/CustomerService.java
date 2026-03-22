@@ -34,6 +34,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Customer service for CRUD operations on store customers.
+ *
  * @author Raviraj Bhosale
  */
 @Service

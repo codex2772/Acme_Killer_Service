@@ -36,6 +36,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Credit note service for handling returns, adjustments, and credit note generation.
+ *
  * @author Raviraj Bhosale
  */
 @Service

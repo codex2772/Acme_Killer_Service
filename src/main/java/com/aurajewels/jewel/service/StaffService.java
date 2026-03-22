@@ -36,6 +36,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Staff management service for creating, updating, and listing staff with store access and
+ * permissions.
+ *
  * @author Raviraj Bhosale
  */
 @Service

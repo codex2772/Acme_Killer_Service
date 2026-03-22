@@ -38,6 +38,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Savings scheme service for managing schemes, member enrollment, and installment payments.
+ *
  * @author Diksha Mohite
  */
 @Service

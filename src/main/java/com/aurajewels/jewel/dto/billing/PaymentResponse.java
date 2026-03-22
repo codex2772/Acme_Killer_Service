@@ -29,6 +29,8 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
+ * DTO for payment entry response with mode, amount, and reference.
+ *
  * @author Raviraj Bhosale
  */
 @Data

@@ -26,6 +26,8 @@ package com.aurajewels.jewel.dto.customerapp;
 import lombok.Data;
 
 /**
+ * DTO for updating customer profile.
+ *
  * @author Raviraj Bhosale
  */
 @Data

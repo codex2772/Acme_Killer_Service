@@ -24,6 +24,8 @@
 package com.aurajewels.jewel.entity;
 
 /**
+ * Enum defining platform admin roles: SUPER_ADMIN, SUPPORT.
+ *
  * @author Raviraj Bhosale
  */
 public enum PlatformRole {

@@ -34,6 +34,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Jewelry item service for managing inventory items with category and metal type lookups.
+ *
  * @author Raviraj Bhosale
  */
 @Service

@@ -30,6 +30,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 /**
+ * Spring Data JPA repository for Estimate entities.
+ *
  * @author Raviraj Bhosale
  */
 @Repository

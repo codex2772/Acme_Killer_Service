@@ -26,6 +26,8 @@ package com.aurajewels.jewel.dto.billing;
 import lombok.Data;
 
 /**
+ * DTO for updating invoice or estimate status.
+ *
  * @author Raviraj Bhosale
  */
 @Data

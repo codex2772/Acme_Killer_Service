@@ -27,6 +27,8 @@ import java.util.Map;
 import lombok.Data;
 
 /**
+ * DTO for updating organization settings.
+ *
  * @author Raviraj Bhosale
  */
 @Data

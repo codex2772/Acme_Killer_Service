@@ -28,6 +28,8 @@ import java.time.LocalDate;
 import lombok.Data;
 
 /**
+ * DTO for creating a ledger entry.
+ *
  * @author Raviraj Bhosale
  */
 @Data

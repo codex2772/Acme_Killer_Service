@@ -28,6 +28,8 @@ import java.math.BigDecimal;
 import lombok.*;
 
 /**
+ * JPA entity representing a jewelry inventory item with weight, pricing, and stock info.
+ *
  * @author Raviraj Bhosale
  */
 @Entity

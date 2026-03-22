@@ -35,6 +35,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 /**
+ * JPA entity representing a price estimate given to a customer.
+ *
  * @author Raviraj Bhosale
  */
 @Entity

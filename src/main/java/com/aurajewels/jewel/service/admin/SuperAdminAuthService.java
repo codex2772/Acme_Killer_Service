@@ -33,6 +33,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
+ * Super admin auth service for authenticating platform administrators.
+ *
  * @author Raviraj Bhosale
  */
 @Service

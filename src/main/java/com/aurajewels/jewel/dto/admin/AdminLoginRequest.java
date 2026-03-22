@@ -26,6 +26,8 @@ package com.aurajewels.jewel.dto.admin;
 import lombok.Data;
 
 /**
+ * DTO for super admin login request.
+ *
  * @author Raviraj Bhosale
  */
 @Data

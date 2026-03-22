@@ -35,6 +35,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 /**
+ * JPA entity representing an old gold purchase from a customer.
+ *
  * @author Raviraj Bhosale
  */
 @Entity

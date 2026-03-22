@@ -29,6 +29,8 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 /**
+ * JPA entity representing a customer wishlist item for a jewelry product.
+ *
  * @author Raviraj Bhosale
  */
 @Entity

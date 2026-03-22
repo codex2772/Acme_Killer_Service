@@ -34,6 +34,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
+ * Dashboard REST API for aggregated business metrics and summaries.
+ *
  * @author Raviraj Bhosale
  */
 @RestController

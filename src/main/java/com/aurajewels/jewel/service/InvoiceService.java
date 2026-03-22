@@ -36,6 +36,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Invoice service for creating invoices with line items, GST calculation, and payments.
+ *
  * @author Raviraj Bhosale
  */
 @Service

@@ -31,6 +31,8 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
+ * DTO for invoice response with items, payments, and GST breakdown.
+ *
  * @author Raviraj Bhosale
  */
 @Data

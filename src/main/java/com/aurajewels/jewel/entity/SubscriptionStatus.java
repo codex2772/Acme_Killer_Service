@@ -24,6 +24,8 @@
 package com.aurajewels.jewel.entity;
 
 /**
+ * Enum defining subscription statuses: ACTIVE, TRIAL, EXPIRED, SUSPENDED.
+ *
  * @author Raviraj Bhosale
  */
 public enum SubscriptionStatus {

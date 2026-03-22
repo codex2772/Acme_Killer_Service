@@ -33,6 +33,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 /**
+ * JPA entity representing a jewelry supplier with contact info and metal specializations.
+ *
  * @author Raviraj Bhosale
  */
 @Entity

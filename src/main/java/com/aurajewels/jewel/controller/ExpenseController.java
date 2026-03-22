@@ -37,6 +37,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
+ * Expense REST API for tracking store expenses by category.
+ *
  * @author Raviraj Bhosale
  */
 @RestController

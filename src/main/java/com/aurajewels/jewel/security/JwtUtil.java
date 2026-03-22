@@ -36,6 +36,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
+ * JWT utility for token generation, parsing, and validation using HMAC-SHA256.
+ *
  * @author Raviraj Bhosale
  */
 @Component

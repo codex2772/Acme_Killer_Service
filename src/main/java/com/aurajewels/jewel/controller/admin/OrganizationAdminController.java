@@ -35,6 +35,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
+ * Organization admin REST API for onboarding organizations, managing stores and subscriptions.
+ *
  * @author Raviraj Bhosale
  */
 @RestController

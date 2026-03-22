@@ -30,6 +30,8 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 /**
+ * JPA entity for audit trail entries recording user actions in the system.
+ *
  * @author Raviraj Bhosale
  */
 @Entity

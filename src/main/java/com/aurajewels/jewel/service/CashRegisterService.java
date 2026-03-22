@@ -38,6 +38,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Cash register service for managing daily cash register open/close and transactions.
+ *
  * @author Raviraj Bhosale
  */
 @Service

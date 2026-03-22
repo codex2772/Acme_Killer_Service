@@ -29,6 +29,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
+ * DTO for a single data point in the revenue chart (date and amount).
+ *
  * @author Raviraj Bhosale
  */
 @Data

@@ -35,6 +35,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Supplier service for managing suppliers, their contact info, and metal specializations.
+ *
  * @author Raviraj Bhosale
  */
 @Service

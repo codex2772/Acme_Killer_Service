@@ -34,6 +34,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 /**
+ * JPA entity representing a sales invoice with GST, items, and payment details.
+ *
  * @author Raviraj Bhosale
  */
 @Entity

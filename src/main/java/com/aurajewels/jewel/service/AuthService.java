@@ -40,6 +40,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Authentication service handling login, JWT generation, password change, and token refresh.
+ *
  * @author Raviraj Bhosale
  */
 @Service

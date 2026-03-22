@@ -29,6 +29,8 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
+ * DTO for aggregated dashboard metrics including sales, revenue, and customers.
+ *
  * @author Raviraj Bhosale
  */
 @Data

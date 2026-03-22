@@ -29,6 +29,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Custom annotation marking endpoints that require specific user permissions.
+ *
  * @author Raviraj Bhosale
  */
 @Target(ElementType.METHOD)

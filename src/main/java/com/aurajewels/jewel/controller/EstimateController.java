@@ -36,6 +36,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
+ * Estimate REST API for creating and managing price estimates.
+ *
  * @author Raviraj Bhosale
  */
 @RestController

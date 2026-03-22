@@ -27,6 +27,8 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
+ * DTO for customer mobile app login response with JWT.
+ *
  * @author Raviraj Bhosale
  */
 @Data

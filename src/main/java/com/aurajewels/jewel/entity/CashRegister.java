@@ -33,6 +33,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 /**
+ * JPA entity representing a daily cash register session with opening and closing balances.
+ *
  * @author Raviraj Bhosale
  */
 @Entity

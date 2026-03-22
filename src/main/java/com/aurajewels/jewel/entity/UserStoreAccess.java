@@ -29,6 +29,8 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 /**
+ * JPA entity mapping a user to a store they have access to.
+ *
  * @author Raviraj Bhosale
  */
 @Entity

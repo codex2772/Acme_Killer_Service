@@ -31,6 +31,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
+ * Spring Data JPA repository for ActivityLog entities.
+ *
  * @author Raviraj Bhosale
  */
 @Repository

@@ -24,6 +24,8 @@
 package com.aurajewels.jewel.entity;
 
 /**
+ * Enum defining subscription tiers: STARTER, PROFESSIONAL, ENTERPRISE.
+ *
  * @author Raviraj Bhosale
  */
 public enum SubscriptionPlan {

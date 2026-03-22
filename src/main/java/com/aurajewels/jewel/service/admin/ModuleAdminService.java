@@ -40,6 +40,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Feature module admin service for enabling and disabling feature modules per store.
+ *
  * @author Raviraj Bhosale
  */
 @Service

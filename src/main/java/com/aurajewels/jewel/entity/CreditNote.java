@@ -35,6 +35,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 /**
+ * JPA entity representing a credit note for returns or adjustments.
+ *
  * @author Raviraj Bhosale
  */
 @Entity

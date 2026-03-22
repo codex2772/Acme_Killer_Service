@@ -39,6 +39,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Organization admin service for onboarding orgs, managing stores, and handling subscriptions.
+ *
  * @author Raviraj Bhosale
  */
 @Service

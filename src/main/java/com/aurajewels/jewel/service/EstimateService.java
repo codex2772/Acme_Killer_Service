@@ -36,6 +36,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Estimate service for creating and managing customer estimates.
+ *
  * @author Raviraj Bhosale
  */
 @Service

@@ -35,6 +35,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
+ * Credit note REST API for managing returns and credit adjustments.
+ *
  * @author Raviraj Bhosale
  */
 @RestController

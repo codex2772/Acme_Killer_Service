@@ -37,6 +37,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
+ * Ledger REST API for managing financial ledger entries and party accounts.
+ *
  * @author Raviraj Bhosale
  */
 @RestController

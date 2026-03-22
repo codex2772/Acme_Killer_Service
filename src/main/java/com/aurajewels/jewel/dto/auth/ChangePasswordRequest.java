@@ -27,6 +27,8 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
+ * DTO for password change request with old and new passwords.
+ *
  * @author Raviraj Bhosale
  */
 @Data

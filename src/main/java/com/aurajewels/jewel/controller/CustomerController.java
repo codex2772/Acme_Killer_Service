@@ -34,6 +34,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
+ * Customer management REST API for CRUD operations on store customers.
+ *
  * @author Raviraj Bhosale
  */
 @RestController

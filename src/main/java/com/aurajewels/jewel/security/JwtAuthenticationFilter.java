@@ -38,6 +38,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
+ * JWT authentication filter that intercepts requests and validates Bearer tokens.
+ *
  * @author Raviraj Bhosale
  */
 @Component

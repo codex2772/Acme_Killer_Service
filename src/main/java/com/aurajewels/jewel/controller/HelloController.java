@@ -37,6 +37,8 @@ import org.springframework.web.bind.annotation.RestController;
  * controllers.
  */
 /**
+ * Health check and hello world REST endpoint.
+ *
  * @author Raviraj Bhosale
  */
 @RestController

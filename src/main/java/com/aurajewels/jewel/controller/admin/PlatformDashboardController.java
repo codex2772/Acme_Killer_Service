@@ -35,6 +35,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
+ * Platform dashboard REST API for aggregated metrics across all organizations.
+ *
  * @author Raviraj Bhosale
  */
 @RestController

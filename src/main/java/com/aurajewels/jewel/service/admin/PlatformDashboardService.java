@@ -34,6 +34,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Platform dashboard service for aggregating metrics across all tenants.
+ *
  * @author Raviraj Bhosale
  */
 @Service

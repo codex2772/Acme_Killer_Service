@@ -28,6 +28,8 @@ import java.time.Instant;
 import lombok.*;
 
 /**
+ * JPA entity representing a jewelry business organization (tenant).
+ *
  * @author Raviraj Bhosale
  */
 @Entity

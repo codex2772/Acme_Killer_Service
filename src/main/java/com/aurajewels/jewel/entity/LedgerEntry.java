@@ -33,6 +33,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 /**
+ * JPA entity representing a financial ledger entry (debit/credit) for a party.
+ *
  * @author Raviraj Bhosale
  */
 @Entity

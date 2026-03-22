@@ -41,6 +41,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Daily rate service for managing daily metal rates and rate alerts.
+ *
  * @author Raviraj Bhosale
  */
 @Service

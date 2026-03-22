@@ -33,6 +33,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
+ * Organization settings REST API for managing store-level configuration.
+ *
  * @author Raviraj Bhosale
  */
 @RestController

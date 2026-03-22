@@ -36,6 +36,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
+ * Database diagnostic REST API that exposes DB connection info for debugging.
+ *
  * @author Raviraj Bhosale
  */
 @RestController

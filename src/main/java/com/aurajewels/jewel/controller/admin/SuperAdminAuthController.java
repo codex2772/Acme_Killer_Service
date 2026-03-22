@@ -37,6 +37,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 /**
+ * Super admin authentication REST API for platform administrator login.
+ *
  * @author Raviraj Bhosale
  */
 @RestController
