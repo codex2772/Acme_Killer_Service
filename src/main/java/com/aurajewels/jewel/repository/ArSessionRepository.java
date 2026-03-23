@@ -23,38 +23,41 @@
  */
 package com.aurajewels.jewel.repository;
 
-import com.aurajewels.jewel.entity.JewelryItem;
+import com.aurajewels.jewel.entity.ArSession;
+import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
- * Spring Data JPA repository for JewelryItem entities.
+ * Spring Data JPA repository for ArSession entities.
  *
  * @author Raviraj Bhosale
  */
 @Repository
-public interface JewelryItemRepository extends JpaRepository<JewelryItem, Long> {
+public interface ArSessionRepository extends JpaRepository<ArSession, Long> {
 
-    List<JewelryItem> findByActiveTrue();
+    List<ArSession> findByStoreIdOrderByCreatedAtDesc(Long storeId);
 
-    List<JewelryItem> findByStoreIdAndActiveTrue(Long storeId);
+    List<ArSession> findByJewelryItemId(Long jewelryItemId);
 
-    Optional<JewelryItem> findByIdAndStoreId(Long id, Long storeId);
+    @Query(
+            "SELECT COUNT(s) FROM ArSession s "
+                    + "WHERE s.store.id = :storeId AND s.createdAt >= :since")
+    long countSessionsSince(@Param("storeId") Long storeId, @Param("since") Instant since);
 
-    Optional<JewelryItem> findBySku(String sku);
+    @Query(
+            "SELECT COUNT(s) FROM ArSession s "
+                    + "WHERE s.store.id = :storeId AND s.ledToInvoice = true "
+                    + "AND s.createdAt >= :since")
+    long countConversionsSince(@Param("storeId") Long storeId, @Param("since") Instant since);
 
-    Optional<JewelryItem> findBySkuAndStoreId(String sku, Long storeId);
-
-    List<JewelryItem> findByCategoryIdAndActiveTrue(Long categoryId);
-
-    List<JewelryItem> findByCategoryIdAndStoreIdAndActiveTrue(Long categoryId, Long storeId);
-
-    List<JewelryItem> findByStatusAndActiveTrue(JewelryItem.ItemStatus status);
-
-    List<JewelryItem> findByStatusAndStoreIdAndActiveTrue(
-            JewelryItem.ItemStatus status, Long storeId);
-
-    long countByStoreIdAndActiveTrue(Long storeId);
+    @Query(
+            "SELECT s.jewelryItem.id, COUNT(s) as cnt FROM ArSession s "
+                    + "WHERE s.store.id = :storeId "
+                    + "GROUP BY s.jewelryItem.id ORDER BY cnt DESC")
+    List<Object[]> findMostTriedItems(@Param("storeId") Long storeId, Pageable pageable);
 }

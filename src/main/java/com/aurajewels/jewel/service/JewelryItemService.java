@@ -103,6 +103,8 @@ public class JewelryItemService {
         existing.setStatus(updated.getStatus());
         existing.setCategory(updated.getCategory());
         existing.setMetalType(updated.getMetalType());
+        if (updated.getArEnabled() != null) existing.setArEnabled(updated.getArEnabled());
+        if (updated.getArType() != null) existing.setArType(updated.getArType());
         return jewelryItemRepository.save(existing);
     }
 

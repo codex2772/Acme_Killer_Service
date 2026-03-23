@@ -21,40 +21,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.repository;
+package com.aurajewels.jewel.dto.ar;
 
-import com.aurajewels.jewel.entity.JewelryItem;
-import java.util.List;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import lombok.Data;
 
 /**
- * Spring Data JPA repository for JewelryItem entities.
+ * DTO for logging an AR virtual try-on session for analytics.
  *
  * @author Raviraj Bhosale
  */
-@Repository
-public interface JewelryItemRepository extends JpaRepository<JewelryItem, Long> {
+@Data
+public class ArSessionRequest {
 
-    List<JewelryItem> findByActiveTrue();
-
-    List<JewelryItem> findByStoreIdAndActiveTrue(Long storeId);
-
-    Optional<JewelryItem> findByIdAndStoreId(Long id, Long storeId);
-
-    Optional<JewelryItem> findBySku(String sku);
-
-    Optional<JewelryItem> findBySkuAndStoreId(String sku, Long storeId);
-
-    List<JewelryItem> findByCategoryIdAndActiveTrue(Long categoryId);
-
-    List<JewelryItem> findByCategoryIdAndStoreIdAndActiveTrue(Long categoryId, Long storeId);
-
-    List<JewelryItem> findByStatusAndActiveTrue(JewelryItem.ItemStatus status);
-
-    List<JewelryItem> findByStatusAndStoreIdAndActiveTrue(
-            JewelryItem.ItemStatus status, Long storeId);
-
-    long countByStoreIdAndActiveTrue(Long storeId);
+    private Long jewelryItemId;
+    private Integer durationSeconds;
+    private Boolean screenshotTaken;
+    private Boolean ledToInvoice;
+    private Long invoiceId;
+    private String deviceType;
 }

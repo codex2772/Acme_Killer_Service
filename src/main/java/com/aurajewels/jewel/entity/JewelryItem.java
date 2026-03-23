@@ -94,6 +94,13 @@ public class JewelryItem extends BaseEntity {
     @Column(name = "status")
     private ItemStatus status = ItemStatus.IN_STOCK;
 
+    @Column(name = "ar_enabled")
+    private Boolean arEnabled;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ar_type")
+    private ArAsset.ArType arType;
+
     public enum ItemStatus {
         IN_STOCK,
         SOLD,

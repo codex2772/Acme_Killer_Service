@@ -21,40 +21,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.repository;
+package com.aurajewels.jewel.dto.ar;
 
-import com.aurajewels.jewel.entity.JewelryItem;
 import java.util.List;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import lombok.Builder;
+import lombok.Data;
 
 /**
- * Spring Data JPA repository for JewelryItem entities.
+ * DTO for AR analytics response with session counts, conversion rate, and top tried items.
  *
  * @author Raviraj Bhosale
  */
-@Repository
-public interface JewelryItemRepository extends JpaRepository<JewelryItem, Long> {
+@Data
+@Builder
+public class ArAnalyticsResponse {
 
-    List<JewelryItem> findByActiveTrue();
+    private long totalSessions;
+    private long totalConversions;
+    private double conversionRate;
+    private long arReadyItems;
+    private long totalItems;
+    private List<TopTriedItem> topTriedItems;
 
-    List<JewelryItem> findByStoreIdAndActiveTrue(Long storeId);
+    /** A single top-tried item with try count. */
+    @Data
+    @Builder
+    public static class TopTriedItem {
 
-    Optional<JewelryItem> findByIdAndStoreId(Long id, Long storeId);
-
-    Optional<JewelryItem> findBySku(String sku);
-
-    Optional<JewelryItem> findBySkuAndStoreId(String sku, Long storeId);
-
-    List<JewelryItem> findByCategoryIdAndActiveTrue(Long categoryId);
-
-    List<JewelryItem> findByCategoryIdAndStoreIdAndActiveTrue(Long categoryId, Long storeId);
-
-    List<JewelryItem> findByStatusAndActiveTrue(JewelryItem.ItemStatus status);
-
-    List<JewelryItem> findByStatusAndStoreIdAndActiveTrue(
-            JewelryItem.ItemStatus status, Long storeId);
-
-    long countByStoreIdAndActiveTrue(Long storeId);
+        private Long itemId;
+        private String itemName;
+        private String itemSku;
+        private long tryCount;
+    }
 }

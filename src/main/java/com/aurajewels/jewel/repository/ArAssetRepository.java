@@ -23,38 +23,37 @@
  */
 package com.aurajewels.jewel.repository;
 
-import com.aurajewels.jewel.entity.JewelryItem;
+import com.aurajewels.jewel.entity.ArAsset;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
- * Spring Data JPA repository for JewelryItem entities.
+ * Spring Data JPA repository for ArAsset entities.
  *
  * @author Raviraj Bhosale
  */
 @Repository
-public interface JewelryItemRepository extends JpaRepository<JewelryItem, Long> {
+public interface ArAssetRepository extends JpaRepository<ArAsset, Long> {
 
-    List<JewelryItem> findByActiveTrue();
+    Optional<ArAsset> findByJewelryItemId(Long jewelryItemId);
 
-    List<JewelryItem> findByStoreIdAndActiveTrue(Long storeId);
+    Optional<ArAsset> findByJewelryItemIdAndStoreId(Long jewelryItemId, Long storeId);
 
-    Optional<JewelryItem> findByIdAndStoreId(Long id, Long storeId);
+    List<ArAsset> findByStoreIdAndStatus(Long storeId, ArAsset.ArAssetStatus status);
 
-    Optional<JewelryItem> findBySku(String sku);
+    List<ArAsset> findByStoreIdAndActiveTrue(Long storeId);
 
-    Optional<JewelryItem> findBySkuAndStoreId(String sku, Long storeId);
+    List<ArAsset> findByArTypeAndStoreIdAndStatus(
+            ArAsset.ArType arType, Long storeId, ArAsset.ArAssetStatus status);
 
-    List<JewelryItem> findByCategoryIdAndActiveTrue(Long categoryId);
+    @Query(
+            "SELECT a FROM ArAsset a WHERE a.store.id = :storeId "
+                    + "AND a.status = 'READY' AND a.active = true")
+    List<ArAsset> findReadyByStoreId(@Param("storeId") Long storeId);
 
-    List<JewelryItem> findByCategoryIdAndStoreIdAndActiveTrue(Long categoryId, Long storeId);
-
-    List<JewelryItem> findByStatusAndActiveTrue(JewelryItem.ItemStatus status);
-
-    List<JewelryItem> findByStatusAndStoreIdAndActiveTrue(
-            JewelryItem.ItemStatus status, Long storeId);
-
-    long countByStoreIdAndActiveTrue(Long storeId);
+    long countByStoreIdAndStatus(Long storeId, ArAsset.ArAssetStatus status);
 }
