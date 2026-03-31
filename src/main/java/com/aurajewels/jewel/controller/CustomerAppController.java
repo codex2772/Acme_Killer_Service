@@ -180,6 +180,22 @@ public class CustomerAppController {
         return ResponseEntity.ok(customerAppService.updateProfile(customerId, request));
     }
 
+    // ======================== SCHEMES (Authenticated) ========================
+
+    /** GET /api/customer-app/schemes — List all scheme memberships for the logged-in customer. */
+    @GetMapping("/schemes")
+    public ResponseEntity<List<CustomerSchemeResponse>> getMySchemes() {
+        Long customerId = requireCustomerId();
+        return ResponseEntity.ok(customerAppService.getMySchemes(customerId));
+    }
+
+    /** GET /api/customer-app/schemes/{memberId} — Get specific scheme membership detail. */
+    @GetMapping("/schemes/{memberId}")
+    public ResponseEntity<CustomerSchemeResponse> getMySchemeDetail(@PathVariable Long memberId) {
+        Long customerId = requireCustomerId();
+        return ResponseEntity.ok(customerAppService.getMySchemeDetail(customerId, memberId));
+    }
+
     // ======================== HELPERS ========================
 
     /**

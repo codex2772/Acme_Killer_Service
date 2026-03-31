@@ -40,4 +40,9 @@ public interface SchemeMemberRepository extends JpaRepository<SchemeMember, Long
     List<SchemeMember> findByScheme_Id(Long schemeId);
 
     Optional<SchemeMember> findByIdAndScheme_Id(Long id, Long schemeId);
+
+    List<SchemeMember> findByCustomer_Id(Long customerId);
+
+    List<SchemeMember> findByCustomer_IdAndStatus(
+            Long customerId, SchemeMember.MemberStatus status);
 }

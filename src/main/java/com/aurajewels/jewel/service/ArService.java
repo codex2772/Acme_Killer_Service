@@ -99,8 +99,7 @@ public class ArService {
         JewelryItem item =
                 jewelryItemRepository
                         .findByIdAndStoreId(request.getJewelryItemId(), storeId)
-                        .orElseThrow(
-                                () -> new IllegalArgumentException("Jewelry item not found"));
+                        .orElseThrow(() -> new IllegalArgumentException("Jewelry item not found"));
 
         // Upsert — create or update existing
         ArAsset asset =
@@ -204,8 +203,7 @@ public class ArService {
         long totalSessions = arSessionRepository.countSessionsSince(storeId, thirtyDaysAgo);
         long conversions = arSessionRepository.countConversionsSince(storeId, thirtyDaysAgo);
         long arReady =
-                arAssetRepository.countByStoreIdAndStatus(
-                        storeId, ArAsset.ArAssetStatus.READY);
+                arAssetRepository.countByStoreIdAndStatus(storeId, ArAsset.ArAssetStatus.READY);
         long totalItems = jewelryItemRepository.countByStoreIdAndActiveTrue(storeId);
 
         List<Object[]> topItems =

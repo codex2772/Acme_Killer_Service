@@ -50,6 +50,8 @@ public class CustomerAppService {
     private final CustomerWishlistRepository wishlistRepository;
     private final CustomerEnquiryRepository enquiryRepository;
     private final CategoryRepository categoryRepository;
+    private final SchemeMemberRepository schemeMemberRepository;
+    private final SchemePaymentRepository schemePaymentRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
@@ -440,5 +442,123 @@ public class CustomerAppService {
                 .state(customer.getState())
                 .pincode(customer.getPincode())
                 .build();
+    }
+
+    // ======================== SCHEMES (Authenticated Customer) ========================
+
+    /**
+     * Get all scheme memberships for a customer. Returns scheme info + payment summary for each
+     * membership the customer is enrolled in.
+     */
+    @Transactional(readOnly = true)
+    public List<CustomerSchemeResponse> getMySchemes(Long customerId) {
+        List<SchemeMember> memberships = schemeMemberRepository.findByCustomer_Id(customerId);
+
+        return memberships.stream()
+                .map(
+                        member -> {
+                            Scheme scheme = member.getScheme();
+                            List<SchemePayment> payments =
+                                    schemePaymentRepository.findByMember_Id(member.getId());
+
+                            int paidMonths =
+                                    (int)
+                                            payments.stream()
+                                                    .filter(
+                                                            p ->
+                                                                    p.getStatus()
+                                                                            == SchemePayment
+                                                                                    .PaymentStatus
+                                                                                    .PAID)
+                                                    .count();
+                            java.math.BigDecimal totalPaid =
+                                    payments.stream()
+                                            .filter(
+                                                    p ->
+                                                            p.getStatus()
+                                                                    == SchemePayment.PaymentStatus
+                                                                            .PAID)
+                                            .map(SchemePayment::getAmount)
+                                            .reduce(
+                                                    java.math.BigDecimal.ZERO,
+                                                    java.math.BigDecimal::add);
+                            java.math.BigDecimal totalDue =
+                                    scheme.getMonthlyAmount()
+                                            .multiply(
+                                                    java.math.BigDecimal.valueOf(
+                                                            scheme.getDurationMonths()))
+                                            .subtract(totalPaid);
+
+                            return CustomerSchemeResponse.builder()
+                                    .schemeId(scheme.getId())
+                                    .schemeName(scheme.getName())
+                                    .description(scheme.getDescription())
+                                    .durationMonths(scheme.getDurationMonths())
+                                    .monthlyAmount(scheme.getMonthlyAmount())
+                                    .startDate(scheme.getStartDate())
+                                    .endDate(scheme.getEndDate())
+                                    .bonusMonth(scheme.getBonusMonth())
+                                    .schemeStatus(
+                                            scheme.getStatus() != null
+                                                    ? scheme.getStatus().name()
+                                                    : null)
+                                    .memberId(member.getId())
+                                    .memberName(member.getName())
+                                    .joinDate(member.getJoinDate())
+                                    .memberStatus(
+                                            member.getStatus() != null
+                                                    ? member.getStatus().name()
+                                                    : null)
+                                    .paidMonths(paidMonths)
+                                    .totalMonths(scheme.getDurationMonths())
+                                    .totalPaid(totalPaid)
+                                    .totalDue(
+                                            totalDue.compareTo(java.math.BigDecimal.ZERO) < 0
+                                                    ? java.math.BigDecimal.ZERO
+                                                    : totalDue)
+                                    .payments(
+                                            payments.stream()
+                                                    .map(
+                                                            p ->
+                                                                    CustomerSchemeResponse
+                                                                            .PaymentDetail.builder()
+                                                                            .id(p.getId())
+                                                                            .monthNumber(
+                                                                                    p
+                                                                                            .getMonthNumber())
+                                                                            .amount(p.getAmount())
+                                                                            .paymentDate(
+                                                                                    p
+                                                                                            .getPaymentDate())
+                                                                            .status(
+                                                                                    p.getStatus()
+                                                                                                    != null
+                                                                                            ? p.getStatus()
+                                                                                                    .name()
+                                                                                            : null)
+                                                                            .createdAt(
+                                                                                    p
+                                                                                            .getCreatedAt())
+                                                                            .build())
+                                                    .toList())
+                                    .build();
+                        })
+                .toList();
+    }
+
+    /**
+     * Get a specific scheme membership detail for a customer. Validates that the membership belongs
+     * to the requesting customer.
+     */
+    @Transactional(readOnly = true)
+    public CustomerSchemeResponse getMySchemeDetail(Long customerId, Long memberId) {
+        List<CustomerSchemeResponse> schemes = getMySchemes(customerId);
+        return schemes.stream()
+                .filter(s -> s.getMemberId().equals(memberId))
+                .findFirst()
+                .orElseThrow(
+                        () ->
+                                new IllegalArgumentException(
+                                        "Scheme membership not found or does not belong to you"));
     }
 }
