@@ -52,6 +52,7 @@ public class CustomerAppService {
     private final CategoryRepository categoryRepository;
     private final SchemeMemberRepository schemeMemberRepository;
     private final SchemePaymentRepository schemePaymentRepository;
+    private final SchemeRepository schemeRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
@@ -445,6 +446,103 @@ public class CustomerAppService {
     }
 
     // ======================== SCHEMES (Authenticated Customer) ========================
+
+    /**
+     * List all ACTIVE schemes for a given store. If customerId is provided, each scheme includes
+     * whether the customer is already enrolled.
+     */
+    @Transactional(readOnly = true)
+    public List<AvailableSchemeResponse> getAvailableSchemes(Long storeId, Long customerId) {
+        Store store =
+                storeRepository
+                        .findById(storeId)
+                        .orElseThrow(() -> new IllegalArgumentException("Store not found"));
+
+        List<Scheme> schemes = schemeRepository.findByStore_IdAndActiveTrue(storeId);
+
+        return schemes.stream()
+                .filter(s -> s.getStatus() == Scheme.SchemeStatus.ACTIVE)
+                .map(
+                        scheme -> {
+                            int memberCount =
+                                    schemeMemberRepository.findByScheme_Id(scheme.getId()).size();
+                            boolean enrolled =
+                                    customerId != null
+                                            && schemeMemberRepository
+                                                    .existsByScheme_IdAndCustomer_Id(
+                                                            scheme.getId(), customerId);
+
+                            return AvailableSchemeResponse.builder()
+                                    .id(scheme.getId())
+                                    .name(scheme.getName())
+                                    .description(scheme.getDescription())
+                                    .durationMonths(scheme.getDurationMonths())
+                                    .monthlyAmount(scheme.getMonthlyAmount())
+                                    .totalAmount(
+                                            scheme.getMonthlyAmount()
+                                                    .multiply(
+                                                            java.math.BigDecimal.valueOf(
+                                                                    scheme.getDurationMonths())))
+                                    .startDate(scheme.getStartDate())
+                                    .endDate(scheme.getEndDate())
+                                    .bonusMonth(scheme.getBonusMonth())
+                                    .status(scheme.getStatus().name())
+                                    .storeName(store.getName())
+                                    .storeId(store.getId())
+                                    .currentMembers(memberCount)
+                                    .alreadyEnrolled(enrolled)
+                                    .build();
+                        })
+                .toList();
+    }
+
+    /**
+     * Enroll a customer into a scheme. Creates a SchemeMember entry linking the customer to the
+     * scheme. Validates that the scheme is ACTIVE and the customer is not already enrolled.
+     */
+    @Transactional
+    public CustomerSchemeResponse enrollInScheme(Long customerId, SchemeEnrollRequest request) {
+        if (request.getSchemeId() == null) {
+            throw new IllegalArgumentException("Scheme ID is required");
+        }
+
+        Scheme scheme =
+                schemeRepository
+                        .findById(request.getSchemeId())
+                        .orElseThrow(() -> new IllegalArgumentException("Scheme not found"));
+
+        if (scheme.getStatus() != Scheme.SchemeStatus.ACTIVE) {
+            throw new IllegalArgumentException("This scheme is not accepting new enrollments");
+        }
+
+        if (schemeMemberRepository.existsByScheme_IdAndCustomer_Id(scheme.getId(), customerId)) {
+            throw new IllegalArgumentException("You are already enrolled in this scheme");
+        }
+
+        Customer customer =
+                customerRepository
+                        .findById(customerId)
+                        .orElseThrow(() -> new IllegalArgumentException("Customer not found"));
+
+        SchemeMember member =
+                SchemeMember.builder()
+                        .scheme(scheme)
+                        .customer(customer)
+                        .name(
+                                customer.getFirstName()
+                                        + (customer.getLastName() != null
+                                                ? " " + customer.getLastName()
+                                                : ""))
+                        .phone(customer.getPhone())
+                        .joinDate(java.time.LocalDate.now())
+                        .status(SchemeMember.MemberStatus.ACTIVE)
+                        .build();
+        member.setActive(true);
+        schemeMemberRepository.save(member);
+
+        // Return the full membership detail (re-use getMySchemeDetail)
+        return getMySchemeDetail(customerId, member.getId());
+    }
 
     /**
      * Get all scheme memberships for a customer. Returns scheme info + payment summary for each

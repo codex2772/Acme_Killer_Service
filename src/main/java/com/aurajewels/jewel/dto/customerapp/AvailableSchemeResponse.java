@@ -21,30 +21,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.repository;
+package com.aurajewels.jewel.dto.customerapp;
 
-import com.aurajewels.jewel.entity.SchemeMember;
-import java.util.List;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import lombok.Builder;
+import lombok.Data;
 
 /**
- * Spring Data JPA repository for SchemeMember entities.
+ * DTO response for a store's available schemes (public browsing view).
  *
- * @author Diksha Mohite
+ * @author Raviraj Bhosale
  */
-@Repository
-public interface SchemeMemberRepository extends JpaRepository<SchemeMember, Long> {
+@Data
+@Builder
+public class AvailableSchemeResponse {
 
-    List<SchemeMember> findByScheme_Id(Long schemeId);
-
-    Optional<SchemeMember> findByIdAndScheme_Id(Long id, Long schemeId);
-
-    List<SchemeMember> findByCustomer_Id(Long customerId);
-
-    List<SchemeMember> findByCustomer_IdAndStatus(
-            Long customerId, SchemeMember.MemberStatus status);
-
-    boolean existsByScheme_IdAndCustomer_Id(Long schemeId, Long customerId);
+    private Long id;
+    private String name;
+    private String description;
+    private Integer durationMonths;
+    private BigDecimal monthlyAmount;
+    private BigDecimal totalAmount;
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private Boolean bonusMonth;
+    private String status;
+    private String storeName;
+    private Long storeId;
+    private Integer currentMembers;
+    private Boolean alreadyEnrolled;
 }

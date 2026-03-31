@@ -647,6 +647,236 @@ Authorization: Bearer <customer_jwt_token>
 
 ---
 
+## 7. Schemes
+
+### 7.1 Browse Available Schemes 🌐
+
+Returns all ACTIVE savings schemes for a given store. If the customer is logged in (sends JWT), each scheme includes an `alreadyEnrolled` flag.
+
+```
+GET /api/customer-app/stores/{storeId}/schemes
+```
+
+**Path Parameters:**
+| Param   | Type | Description |
+|---------|------|-------------|
+| storeId | Long | Store ID    |
+
+**Headers (optional):**
+```
+Authorization: Bearer <customer_jwt_token>
+```
+
+**Response:** `200 OK`
+```json
+[
+  {
+    "id": 1,
+    "name": "Gold Saving Scheme 2026",
+    "description": "Save monthly and get 1 month bonus gold at the end",
+    "durationMonths": 11,
+    "monthlyAmount": 5000.00,
+    "totalAmount": 55000.00,
+    "startDate": "2026-01-01",
+    "endDate": "2026-11-30",
+    "bonusMonth": true,
+    "status": "ACTIVE",
+    "storeName": "AuraJewels - Pune",
+    "storeId": 1,
+    "currentMembers": 25,
+    "alreadyEnrolled": false
+  },
+  {
+    "id": 2,
+    "name": "Diamond Saving Plan",
+    "description": "12-month plan for diamond jewelry",
+    "durationMonths": 12,
+    "monthlyAmount": 10000.00,
+    "totalAmount": 120000.00,
+    "startDate": "2026-03-01",
+    "endDate": "2027-02-28",
+    "bonusMonth": false,
+    "status": "ACTIVE",
+    "storeName": "AuraJewels - Pune",
+    "storeId": 1,
+    "currentMembers": 8,
+    "alreadyEnrolled": true
+  }
+]
+```
+
+| Field            | Type       | Description                                        |
+|------------------|------------|----------------------------------------------------|
+| id               | Long       | Scheme ID (use for enrollment)                     |
+| name             | String     | Scheme name                                        |
+| description      | String     | Scheme description / benefits                      |
+| durationMonths   | Integer    | Total months in the scheme                         |
+| monthlyAmount    | BigDecimal | Monthly installment amount                         |
+| totalAmount      | BigDecimal | Total amount over all months                       |
+| startDate        | LocalDate  | Scheme start date                                  |
+| endDate          | LocalDate  | Scheme end date                                    |
+| bonusMonth       | Boolean    | Whether a bonus month is included                  |
+| status           | String     | Always `ACTIVE` (only active schemes are returned) |
+| storeName        | String     | Store name                                         |
+| storeId          | Long       | Store ID                                           |
+| currentMembers   | Integer    | Number of members currently enrolled               |
+| alreadyEnrolled  | Boolean    | `true` if logged-in customer is already enrolled   |
+
+---
+
+### 7.2 Enroll in Scheme 🔓
+
+Enrolls the logged-in customer into a savings scheme. Creates a membership and returns the full membership detail.
+
+```
+POST /api/customer-app/schemes/enroll
+```
+
+**Headers:**
+```
+Authorization: Bearer <customer_jwt_token>
+```
+
+**Request Body:**
+```json
+{
+  "schemeId": 1
+}
+```
+
+| Field    | Type | Required | Description                 |
+|----------|------|----------|-----------------------------|
+| schemeId | Long | ✅       | The scheme ID to enroll in  |
+
+**Response:** `201 Created`
+```json
+{
+  "schemeId": 1,
+  "schemeName": "Gold Saving Scheme 2026",
+  "description": "Save monthly and get 1 month bonus gold at the end",
+  "durationMonths": 11,
+  "monthlyAmount": 5000.00,
+  "startDate": "2026-01-01",
+  "endDate": "2026-11-30",
+  "bonusMonth": true,
+  "schemeStatus": "ACTIVE",
+  "memberId": 42,
+  "memberName": "Priya Sharma",
+  "joinDate": "2026-03-31",
+  "memberStatus": "ACTIVE",
+  "paidMonths": 0,
+  "totalMonths": 11,
+  "totalPaid": 0.00,
+  "totalDue": 55000.00,
+  "payments": []
+}
+```
+
+**Errors:**
+| Status | Message |
+|--------|---------|
+| 400    | Scheme ID is required |
+| 400    | Scheme not found |
+| 400    | This scheme is not accepting new enrollments |
+| 400    | You are already enrolled in this scheme |
+| 401    | Customer authentication required |
+
+---
+
+### 7.3 My Scheme Memberships 🔓
+
+Returns all schemes the logged-in customer is enrolled in, with payment history.
+
+```
+GET /api/customer-app/schemes
+```
+
+**Headers:**
+```
+Authorization: Bearer <customer_jwt_token>
+```
+
+**Response:** `200 OK`
+```json
+[
+  {
+    "schemeId": 1,
+    "schemeName": "Gold Saving Scheme 2026",
+    "description": "Save monthly and get 1 month bonus gold at the end",
+    "durationMonths": 11,
+    "monthlyAmount": 5000.00,
+    "startDate": "2026-01-01",
+    "endDate": "2026-11-30",
+    "bonusMonth": true,
+    "schemeStatus": "ACTIVE",
+    "memberId": 42,
+    "memberName": "Priya Sharma",
+    "joinDate": "2026-03-15",
+    "memberStatus": "ACTIVE",
+    "paidMonths": 3,
+    "totalMonths": 11,
+    "totalPaid": 15000.00,
+    "totalDue": 40000.00,
+    "payments": [
+      {
+        "id": 101,
+        "monthNumber": 1,
+        "amount": 5000.00,
+        "paymentDate": "2026-01-15",
+        "status": "PAID",
+        "createdAt": "2026-01-15T10:30:00Z"
+      },
+      {
+        "id": 102,
+        "monthNumber": 2,
+        "amount": 5000.00,
+        "paymentDate": "2026-02-15",
+        "status": "PAID",
+        "createdAt": "2026-02-15T11:00:00Z"
+      },
+      {
+        "id": 103,
+        "monthNumber": 3,
+        "amount": 5000.00,
+        "paymentDate": "2026-03-15",
+        "status": "PAID",
+        "createdAt": "2026-03-15T09:45:00Z"
+      }
+    ]
+  }
+]
+```
+
+---
+
+### 7.4 Scheme Membership Detail 🔓
+
+Returns a specific scheme membership's details and payment history.
+
+```
+GET /api/customer-app/schemes/{memberId}
+```
+
+**Path Parameters:**
+| Param    | Type | Description       |
+|----------|------|-------------------|
+| memberId | Long | Scheme member ID  |
+
+**Headers:**
+```
+Authorization: Bearer <customer_jwt_token>
+```
+
+**Response:** `200 OK` — Same structure as a single item in 7.3 response.
+
+**Errors:**
+| Status | Message |
+|--------|---------|
+| 400    | Scheme membership not found or does not belong to you |
+| 401    | Customer authentication required |
+
+---
+
 ## JWT Token Structure
 
 Customer JWT tokens have the following claims:
@@ -759,3 +989,35 @@ curl -X POST http://<ALB_DNS>/api/customer-app/enquiry \
 curl http://<ALB_DNS>/api/customer-app/profile \
   -H "Authorization: Bearer <TOKEN>"
 ```
+
+### Browse Available Schemes (Public)
+```bash
+curl http://<ALB_DNS>/api/customer-app/stores/1/schemes
+```
+
+### Browse Schemes (Logged In — shows alreadyEnrolled flag)
+```bash
+curl http://<ALB_DNS>/api/customer-app/stores/1/schemes \
+  -H "Authorization: Bearer <TOKEN>"
+```
+
+### Enroll in a Scheme
+```bash
+curl -X POST http://<ALB_DNS>/api/customer-app/schemes/enroll \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"schemeId": 1}'
+```
+
+### View My Scheme Memberships
+```bash
+curl http://<ALB_DNS>/api/customer-app/schemes \
+  -H "Authorization: Bearer <TOKEN>"
+```
+
+### View Specific Membership Detail
+```bash
+curl http://<ALB_DNS>/api/customer-app/schemes/42 \
+  -H "Authorization: Bearer <TOKEN>"
+```
+

@@ -180,7 +180,27 @@ public class CustomerAppController {
         return ResponseEntity.ok(customerAppService.updateProfile(customerId, request));
     }
 
-    // ======================== SCHEMES (Authenticated) ========================
+    // ======================== SCHEMES ========================
+
+    /**
+     * GET /api/customer-app/stores/{storeId}/schemes — Browse all ACTIVE schemes for a store.
+     * Public endpoint — if customer is logged in, each scheme shows `alreadyEnrolled` flag.
+     */
+    @GetMapping("/stores/{storeId}/schemes")
+    public ResponseEntity<List<AvailableSchemeResponse>> getAvailableSchemes(
+            @PathVariable Long storeId) {
+        Long customerId = getCustomerIdOrNull();
+        return ResponseEntity.ok(customerAppService.getAvailableSchemes(storeId, customerId));
+    }
+
+    /** POST /api/customer-app/schemes/enroll — Enroll the logged-in customer into a scheme. */
+    @PostMapping("/schemes/enroll")
+    public ResponseEntity<CustomerSchemeResponse> enrollInScheme(
+            @RequestBody SchemeEnrollRequest request) {
+        Long customerId = requireCustomerId();
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(customerAppService.enrollInScheme(customerId, request));
+    }
 
     /** GET /api/customer-app/schemes — List all scheme memberships for the logged-in customer. */
     @GetMapping("/schemes")
