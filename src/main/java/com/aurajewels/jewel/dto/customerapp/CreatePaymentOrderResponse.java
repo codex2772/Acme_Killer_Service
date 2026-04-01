@@ -21,52 +21,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.entity;
+package com.aurajewels.jewel.dto.customerapp;
 
-import jakarta.persistence.*;
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
 
 /**
- * JPA entity representing an installment payment for a scheme member.
+ * Response DTO returned to the Flutter app after creating a Razorpay order. Contains all details
+ * needed by the Razorpay Flutter SDK to open checkout.
  *
- * @author Diksha Mohite
+ * @author Raviraj Bhosale
  */
-@Entity
-@Table(name = "scheme_payments")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Data
 @Builder
-public class SchemePayment extends BaseEntity {
+public class CreatePaymentOrderResponse {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "scheme_member_id", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonIgnore
-    private SchemeMember member;
+    /** Razorpay order ID — pass to Flutter SDK. */
+    private String orderId;
 
-    @Column(name = "month_number", nullable = false)
+    /** Amount in paise (e.g., 500000 = ₹5,000). */
+    private Long amount;
+
+    /** Currency code, always "INR". */
+    private String currency;
+
+    /** Razorpay public key — pass to Flutter SDK. */
+    private String razorpayKeyId;
+
+    /** Customer name — pre-fill in checkout. */
+    private String customerName;
+
+    /** Customer phone — pre-fill in checkout. */
+    private String customerPhone;
+
+    /** Customer email — pre-fill in checkout (nullable). */
+    private String customerEmail;
+
+    /** Scheme name — display in checkout description. */
+    private String schemeName;
+
+    /** Which month number this payment is for. */
     private Integer monthNumber;
 
-    @Column(nullable = false)
-    private java.math.BigDecimal amount;
-
-    @Column(name = "payment_date", nullable = false)
-    private java.time.LocalDate paymentDate;
-
-    @Enumerated(EnumType.STRING)
-    @Column(length = 20)
-    private PaymentStatus status;
-
-    @Column(name = "razorpay_payment_id", length = 50)
-    private String razorpayPaymentId;
-
-    @Column(name = "payment_method", length = 30)
-    private String paymentMethod;
-
-    public enum PaymentStatus {
-        PAID,
-        PENDING,
-        LATE
-    }
+    /** Human-readable description for checkout. */
+    private String description;
 }

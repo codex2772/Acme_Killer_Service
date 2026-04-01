@@ -77,3 +77,9 @@ aws:
     bucket: ${S3_BUCKET_NAME:jewel-erp-images-ap-south-1}
     region: ${S3_REGION:ap-south-1}
 
+# Razorpay Payment Gateway Configuration
+razorpay:
+  key-id: ${RAZORPAY_KEY_ID:rzp_test_placeholder}
+  key-secret: ${RAZORPAY_KEY_SECRET:test_secret_placeholder}
+  webhook-secret: ${RAZORPAY_WEBHOOK_SECRET:webhook_secret_placeholder}
+

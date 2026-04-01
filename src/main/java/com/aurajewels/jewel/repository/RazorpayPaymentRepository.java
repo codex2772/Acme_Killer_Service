@@ -21,52 +21,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.entity;
+package com.aurajewels.jewel.repository;
 
-import jakarta.persistence.*;
-import lombok.*;
+import com.aurajewels.jewel.entity.RazorpayPayment;
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 /**
- * JPA entity representing an installment payment for a scheme member.
+ * Spring Data JPA repository for RazorpayPayment entities.
  *
- * @author Diksha Mohite
+ * @author Raviraj Bhosale
  */
-@Entity
-@Table(name = "scheme_payments")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class SchemePayment extends BaseEntity {
+@Repository
+public interface RazorpayPaymentRepository extends JpaRepository<RazorpayPayment, Long> {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "scheme_member_id", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonIgnore
-    private SchemeMember member;
+    Optional<RazorpayPayment> findByRazorpayOrderId(String razorpayOrderId);
 
-    @Column(name = "month_number", nullable = false)
-    private Integer monthNumber;
+    Optional<RazorpayPayment> findByRazorpayPaymentId(String razorpayPaymentId);
 
-    @Column(nullable = false)
-    private java.math.BigDecimal amount;
+    List<RazorpayPayment> findBySchemeMember_IdOrderByCreatedAtDesc(Long memberId);
 
-    @Column(name = "payment_date", nullable = false)
-    private java.time.LocalDate paymentDate;
-
-    @Enumerated(EnumType.STRING)
-    @Column(length = 20)
-    private PaymentStatus status;
-
-    @Column(name = "razorpay_payment_id", length = 50)
-    private String razorpayPaymentId;
-
-    @Column(name = "payment_method", length = 30)
-    private String paymentMethod;
-
-    public enum PaymentStatus {
-        PAID,
-        PENDING,
-        LATE
-    }
+    /** Find a recent CREATED order for the same member + month (to prevent duplicates). */
+    Optional<RazorpayPayment> findBySchemeMember_IdAndMonthNumberAndStatusAndCreatedAtAfter(
+            Long memberId,
+            Integer monthNumber,
+            RazorpayPayment.RazorpayStatus status,
+            Instant after);
 }

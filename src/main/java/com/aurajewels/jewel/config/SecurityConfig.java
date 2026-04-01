@@ -69,6 +69,7 @@ public class SecurityConfig {
                                                 "/api/customer-app/catalog/**",
                                                 "/api/customer-app/stores",
                                                 "/api/customer-app/stores/**",
+                                                "/api/webhooks/**",
                                                 "/api/hello",
                                                 "/api",
                                                 "/actuator/**")

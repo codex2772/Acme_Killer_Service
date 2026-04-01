@@ -26,6 +26,7 @@ package com.aurajewels.jewel.controller;
 import com.aurajewels.jewel.dto.customerapp.*;
 import com.aurajewels.jewel.security.StoreContext;
 import com.aurajewels.jewel.service.CustomerAppService;
+import com.aurajewels.jewel.service.RazorpayPaymentService;
 import com.aurajewels.jewel.service.S3Service;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 /**
  * REST controller for the customer-facing mobile application. Provides registration, login, catalog
- * browsing, wishlist, enquiry, and profile management.
+ * browsing, wishlist, enquiry, profile management, scheme enrollment, and Razorpay payments.
  *
  * @author Raviraj Bhosale
  */
@@ -47,6 +48,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class CustomerAppController {
 
     private final CustomerAppService customerAppService;
+    private final RazorpayPaymentService razorpayPaymentService;
     private final S3Service s3Service;
 
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -214,6 +216,41 @@ public class CustomerAppController {
     public ResponseEntity<CustomerSchemeResponse> getMySchemeDetail(@PathVariable Long memberId) {
         Long customerId = requireCustomerId();
         return ResponseEntity.ok(customerAppService.getMySchemeDetail(customerId, memberId));
+    }
+
+    // ======================== PAYMENTS (Razorpay) ========================
+
+    /**
+     * POST /api/customer-app/schemes/{memberId}/pay — Create a Razorpay order for the next unpaid
+     * month. Returns order details needed by the Flutter Razorpay SDK.
+     */
+    @PostMapping("/schemes/{memberId}/pay")
+    public ResponseEntity<CreatePaymentOrderResponse> createPaymentOrder(
+            @PathVariable Long memberId) {
+        Long customerId = requireCustomerId();
+        return ResponseEntity.ok(razorpayPaymentService.createOrder(customerId, memberId));
+    }
+
+    /**
+     * POST /api/customer-app/payments/verify — Verify Razorpay payment after Flutter SDK callback.
+     * Validates HMAC signature and creates SchemePayment if valid.
+     */
+    @PostMapping("/payments/verify")
+    public ResponseEntity<PaymentStatusResponse> verifyPayment(
+            @RequestBody VerifyPaymentRequest request) {
+        Long customerId = requireCustomerId();
+        return ResponseEntity.ok(razorpayPaymentService.verifyPayment(customerId, request));
+    }
+
+    /**
+     * GET /api/customer-app/schemes/{memberId}/payments — Payment history for a membership. Shows
+     * both cash (admin-recorded) and online (Razorpay) payments.
+     */
+    @GetMapping("/schemes/{memberId}/payments")
+    public ResponseEntity<List<PaymentStatusResponse>> getPaymentHistory(
+            @PathVariable Long memberId) {
+        Long customerId = requireCustomerId();
+        return ResponseEntity.ok(razorpayPaymentService.getPaymentHistory(customerId, memberId));
     }
 
     // ======================== HELPERS ========================

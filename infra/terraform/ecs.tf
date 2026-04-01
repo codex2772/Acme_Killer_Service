@@ -195,6 +195,18 @@ resource "aws_ecs_task_definition" "main" {
         {
           name      = "JWT_SECRET"
           valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:jwt_secret::"
+        },
+        {
+          name      = "RAZORPAY_KEY_ID"
+          valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:razorpay_key_id::"
+        },
+        {
+          name      = "RAZORPAY_KEY_SECRET"
+          valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:razorpay_key_secret::"
+        },
+        {
+          name      = "RAZORPAY_WEBHOOK_SECRET"
+          valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:razorpay_webhook_secret::"
         }
       ]
 

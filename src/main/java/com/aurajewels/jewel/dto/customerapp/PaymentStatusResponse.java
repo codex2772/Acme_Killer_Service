@@ -21,52 +21,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.entity;
+package com.aurajewels.jewel.dto.customerapp;
 
-import jakarta.persistence.*;
-import lombok.*;
+import java.math.BigDecimal;
+import lombok.Builder;
+import lombok.Data;
 
 /**
- * JPA entity representing an installment payment for a scheme member.
+ * Response DTO for payment verification results and payment history entries.
  *
- * @author Diksha Mohite
+ * @author Raviraj Bhosale
  */
-@Entity
-@Table(name = "scheme_payments")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Data
 @Builder
-public class SchemePayment extends BaseEntity {
+public class PaymentStatusResponse {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "scheme_member_id", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonIgnore
-    private SchemeMember member;
-
-    @Column(name = "month_number", nullable = false)
-    private Integer monthNumber;
-
-    @Column(nullable = false)
-    private java.math.BigDecimal amount;
-
-    @Column(name = "payment_date", nullable = false)
-    private java.time.LocalDate paymentDate;
-
-    @Enumerated(EnumType.STRING)
-    @Column(length = 20)
-    private PaymentStatus status;
-
-    @Column(name = "razorpay_payment_id", length = 50)
+    private boolean success;
+    private String message;
+    private Long schemePaymentId;
     private String razorpayPaymentId;
-
-    @Column(name = "payment_method", length = 30)
+    private String status;
+    private BigDecimal amount;
+    private Integer monthNumber;
     private String paymentMethod;
-
-    public enum PaymentStatus {
-        PAID,
-        PENDING,
-        LATE
-    }
+    private String paymentDate;
+    private String paidVia;
 }

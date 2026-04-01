@@ -27,46 +27,69 @@ import jakarta.persistence.*;
 import lombok.*;
 
 /**
- * JPA entity representing an installment payment for a scheme member.
+ * JPA entity tracking Razorpay payment orders and their status. Links to SchemePayment once payment
+ * is successfully verified.
  *
- * @author Diksha Mohite
+ * @author Raviraj Bhosale
  */
 @Entity
-@Table(name = "scheme_payments")
+@Table(name = "razorpay_payments")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SchemePayment extends BaseEntity {
+public class RazorpayPayment extends BaseEntity {
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "scheme_payment_id")
+    private SchemePayment schemePayment;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "scheme_member_id", nullable = false)
     @com.fasterxml.jackson.annotation.JsonIgnore
-    private SchemeMember member;
+    private SchemeMember schemeMember;
 
-    @Column(name = "month_number", nullable = false)
-    private Integer monthNumber;
-
-    @Column(nullable = false)
-    private java.math.BigDecimal amount;
-
-    @Column(name = "payment_date", nullable = false)
-    private java.time.LocalDate paymentDate;
-
-    @Enumerated(EnumType.STRING)
-    @Column(length = 20)
-    private PaymentStatus status;
+    @Column(name = "razorpay_order_id", nullable = false, unique = true, length = 50)
+    private String razorpayOrderId;
 
     @Column(name = "razorpay_payment_id", length = 50)
     private String razorpayPaymentId;
 
+    @Column(name = "razorpay_signature", length = 255)
+    private String razorpaySignature;
+
+    @Column(name = "amount_paise", nullable = false)
+    private Long amountPaise;
+
+    @Column(name = "currency", length = 5)
+    private String currency;
+
+    @Column(name = "month_number", nullable = false)
+    private Integer monthNumber;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private RazorpayStatus status;
+
+    @Column(name = "failure_reason", length = 500)
+    private String failureReason;
+
+    @Column(name = "customer_id", nullable = false)
+    private Long customerId;
+
+    @Column(name = "store_id", nullable = false)
+    private Long storeId;
+
     @Column(name = "payment_method", length = 30)
     private String paymentMethod;
 
-    public enum PaymentStatus {
+    public enum RazorpayStatus {
+        CREATED,
+        AUTHORIZED,
+        CAPTURED,
         PAID,
-        PENDING,
-        LATE
+        FAILED,
+        REFUNDED
     }
 }

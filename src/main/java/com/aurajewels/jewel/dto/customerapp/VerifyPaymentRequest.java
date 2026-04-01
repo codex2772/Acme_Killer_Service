@@ -21,52 +21,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.entity;
+package com.aurajewels.jewel.dto.customerapp;
 
-import jakarta.persistence.*;
-import lombok.*;
+import lombok.Data;
 
 /**
- * JPA entity representing an installment payment for a scheme member.
+ * Request DTO sent by Flutter after Razorpay checkout success to verify the payment signature.
  *
- * @author Diksha Mohite
+ * @author Raviraj Bhosale
  */
-@Entity
-@Table(name = "scheme_payments")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class SchemePayment extends BaseEntity {
+@Data
+public class VerifyPaymentRequest {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "scheme_member_id", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonIgnore
-    private SchemeMember member;
+    /** Razorpay order ID from the create-order step. */
+    private String razorpayOrderId;
 
-    @Column(name = "month_number", nullable = false)
-    private Integer monthNumber;
-
-    @Column(nullable = false)
-    private java.math.BigDecimal amount;
-
-    @Column(name = "payment_date", nullable = false)
-    private java.time.LocalDate paymentDate;
-
-    @Enumerated(EnumType.STRING)
-    @Column(length = 20)
-    private PaymentStatus status;
-
-    @Column(name = "razorpay_payment_id", length = 50)
+    /** Razorpay payment ID returned in the checkout success callback. */
     private String razorpayPaymentId;
 
-    @Column(name = "payment_method", length = 30)
-    private String paymentMethod;
-
-    public enum PaymentStatus {
-        PAID,
-        PENDING,
-        LATE
-    }
+    /** HMAC signature returned by Razorpay for server-side verification. */
+    private String razorpaySignature;
 }

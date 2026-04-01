@@ -122,6 +122,13 @@
 			<version>${aws.sdk.version}</version>
 		</dependency>
 
+		<!-- Razorpay Java SDK for payment gateway -->
+		<dependency>
+			<groupId>com.razorpay</groupId>
+			<artifactId>razorpay-java</artifactId>
+			<version>1.4.6</version>
+		</dependency>
+
 		<!-- Testing -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

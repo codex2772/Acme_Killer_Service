@@ -21,52 +21,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.entity;
+package com.aurajewels.jewel.config;
 
-import jakarta.persistence.*;
-import lombok.*;
+import com.razorpay.RazorpayClient;
+import com.razorpay.RazorpayException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * JPA entity representing an installment payment for a scheme member.
+ * Configuration class that creates a Razorpay client bean for payment gateway integration.
  *
- * @author Diksha Mohite
+ * @author Raviraj Bhosale
  */
-@Entity
-@Table(name = "scheme_payments")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class SchemePayment extends BaseEntity {
+@Configuration
+public class RazorpayConfig {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "scheme_member_id", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonIgnore
-    private SchemeMember member;
+    @Value("${razorpay.key-id}")
+    private String keyId;
 
-    @Column(name = "month_number", nullable = false)
-    private Integer monthNumber;
+    @Value("${razorpay.key-secret}")
+    private String keySecret;
 
-    @Column(nullable = false)
-    private java.math.BigDecimal amount;
-
-    @Column(name = "payment_date", nullable = false)
-    private java.time.LocalDate paymentDate;
-
-    @Enumerated(EnumType.STRING)
-    @Column(length = 20)
-    private PaymentStatus status;
-
-    @Column(name = "razorpay_payment_id", length = 50)
-    private String razorpayPaymentId;
-
-    @Column(name = "payment_method", length = 30)
-    private String paymentMethod;
-
-    public enum PaymentStatus {
-        PAID,
-        PENDING,
-        LATE
+    @Bean
+    public RazorpayClient razorpayClient() throws RazorpayException {
+        return new RazorpayClient(keyId, keySecret);
     }
 }
