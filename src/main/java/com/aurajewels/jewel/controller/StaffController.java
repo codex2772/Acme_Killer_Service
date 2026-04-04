@@ -26,6 +26,7 @@ package com.aurajewels.jewel.controller;
 import com.aurajewels.jewel.dto.staff.CreateStaffRequest;
 import com.aurajewels.jewel.dto.staff.StaffResponse;
 import com.aurajewels.jewel.dto.staff.UpdateStaffRequest;
+import com.aurajewels.jewel.security.RequiresModule;
 import com.aurajewels.jewel.security.RequiresPermission;
 import com.aurajewels.jewel.service.StaffService;
 import jakarta.validation.Valid;
@@ -49,18 +50,21 @@ public class StaffController {
 
     @GetMapping
     @RequiresPermission("MANAGE_STAFF")
+    @RequiresModule("STAFF")
     public ResponseEntity<List<StaffResponse>> listStaff() {
         return ResponseEntity.ok(staffService.listStaff());
     }
 
     @GetMapping("/{id}")
     @RequiresPermission("MANAGE_STAFF")
+    @RequiresModule("STAFF")
     public ResponseEntity<StaffResponse> getStaff(@PathVariable Long id) {
         return ResponseEntity.ok(staffService.getStaff(id));
     }
 
     @PostMapping
     @RequiresPermission("MANAGE_STAFF")
+    @RequiresModule("STAFF")
     public ResponseEntity<StaffResponse> createStaff(
             @Valid @RequestBody CreateStaffRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(staffService.createStaff(request));
@@ -68,6 +72,7 @@ public class StaffController {
 
     @PutMapping("/{id}")
     @RequiresPermission("MANAGE_STAFF")
+    @RequiresModule("STAFF")
     public ResponseEntity<StaffResponse> updateStaff(
             @PathVariable Long id, @RequestBody UpdateStaffRequest request) {
         return ResponseEntity.ok(staffService.updateStaff(id, request));
@@ -75,6 +80,7 @@ public class StaffController {
 
     @DeleteMapping("/{id}")
     @RequiresPermission("MANAGE_STAFF")
+    @RequiresModule("STAFF")
     public ResponseEntity<Void> deactivateStaff(@PathVariable Long id) {
         staffService.deactivateStaff(id);
         return ResponseEntity.noContent().build();

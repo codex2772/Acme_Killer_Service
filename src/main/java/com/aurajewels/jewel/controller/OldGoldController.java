@@ -48,21 +48,21 @@ public class OldGoldController {
 
     @GetMapping
     @RequiresPermission("MANAGE_OLD_GOLD")
-    @RequiresModule("ACCOUNTS")
+    @RequiresModule("OLD_GOLD")
     public ResponseEntity<List<OldGoldPurchase>> list() {
         return ResponseEntity.ok(oldGoldService.listPurchases());
     }
 
     @GetMapping("/{id}")
     @RequiresPermission("MANAGE_OLD_GOLD")
-    @RequiresModule("ACCOUNTS")
+    @RequiresModule("OLD_GOLD")
     public ResponseEntity<OldGoldPurchase> get(@PathVariable Long id) {
         return ResponseEntity.ok(oldGoldService.getPurchase(id));
     }
 
     @PostMapping
     @RequiresPermission("MANAGE_OLD_GOLD")
-    @RequiresModule("ACCOUNTS")
+    @RequiresModule("OLD_GOLD")
     public ResponseEntity<OldGoldPurchase> create(@RequestBody OldGoldRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(oldGoldService.createPurchase(request));
@@ -70,7 +70,7 @@ public class OldGoldController {
 
     @PutMapping("/{id}")
     @RequiresPermission("MANAGE_OLD_GOLD")
-    @RequiresModule("ACCOUNTS")
+    @RequiresModule("OLD_GOLD")
     public ResponseEntity<OldGoldPurchase> update(
             @PathVariable Long id, @RequestBody OldGoldRequest request) {
         return ResponseEntity.ok(oldGoldService.updatePurchase(id, request));

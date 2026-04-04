@@ -49,7 +49,7 @@ public class EnquiryController {
     /** GET /api/enquiries — List all enquiries for the current store. */
     @GetMapping
     @RequiresPermission("VIEW_CUSTOMERS")
-    @RequiresModule("CUSTOMERS")
+    @RequiresModule("ENQUIRIES")
     public ResponseEntity<List<AdminEnquiryResponse>> list() {
         return ResponseEntity.ok(enquiryService.listEnquiries());
     }
@@ -57,7 +57,7 @@ public class EnquiryController {
     /** GET /api/enquiries/{id} — Get a single enquiry with full details. */
     @GetMapping("/{id}")
     @RequiresPermission("VIEW_CUSTOMERS")
-    @RequiresModule("CUSTOMERS")
+    @RequiresModule("ENQUIRIES")
     public ResponseEntity<AdminEnquiryResponse> get(@PathVariable Long id) {
         return ResponseEntity.ok(enquiryService.getEnquiry(id));
     }
@@ -65,7 +65,7 @@ public class EnquiryController {
     /** PUT /api/enquiries/{id}/respond — Respond to a customer enquiry. */
     @PutMapping("/{id}/respond")
     @RequiresPermission("MANAGE_CUSTOMERS")
-    @RequiresModule("CUSTOMERS")
+    @RequiresModule("ENQUIRIES")
     public ResponseEntity<AdminEnquiryResponse> respond(
             @PathVariable Long id, @RequestBody EnquiryReplyRequest request) {
         return ResponseEntity.ok(enquiryService.respondToEnquiry(id, request));
@@ -74,7 +74,7 @@ public class EnquiryController {
     /** PATCH /api/enquiries/{id}/close — Close an enquiry. */
     @PatchMapping("/{id}/close")
     @RequiresPermission("MANAGE_CUSTOMERS")
-    @RequiresModule("CUSTOMERS")
+    @RequiresModule("ENQUIRIES")
     public ResponseEntity<AdminEnquiryResponse> close(@PathVariable Long id) {
         return ResponseEntity.ok(enquiryService.closeEnquiry(id));
     }
