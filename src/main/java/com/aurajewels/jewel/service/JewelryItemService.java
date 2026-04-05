@@ -84,6 +84,17 @@ public class JewelryItemService {
                         .orElseThrow(() -> new RuntimeException("Store not found"));
         item.setStore(store);
 
+        // Validate HUID uniqueness within the store (if provided)
+        if (item.getHuid() != null && !item.getHuid().isBlank()) {
+            boolean exists =
+                    jewelryItemRepository.existsByHuidAndStoreIdAndActiveTrue(
+                            item.getHuid(), storeId);
+            if (exists) {
+                throw new IllegalArgumentException(
+                        "HUID already exists in this store: " + item.getHuid());
+            }
+        }
+
         // Set back-references on stone details so JPA can persist them via cascade
         if (item.getStoneDetails() != null) {
             item.getStoneDetails().forEach(stone -> stone.setJewelryItem(item));
@@ -99,12 +110,17 @@ public class JewelryItemService {
         existing.setDescription(updated.getDescription());
         existing.setGrossWeight(updated.getGrossWeight());
         existing.setNetWeight(updated.getNetWeight());
+        existing.setStoneWeight(updated.getStoneWeight());
         existing.setMakingCharges(updated.getMakingCharges());
         existing.setStoneCharges(updated.getStoneCharges());
         existing.setOtherCharges(updated.getOtherCharges());
         existing.setQuantity(updated.getQuantity());
         existing.setHsnCode(updated.getHsnCode());
         existing.setBarcode(updated.getBarcode());
+        existing.setHuid(updated.getHuid());
+        existing.setHallmarkCert(updated.getHallmarkCert());
+        existing.setHallmarkDate(updated.getHallmarkDate());
+        existing.setShowcaseLocation(updated.getShowcaseLocation());
         existing.setImageUrl(updated.getImageUrl());
         existing.setStatus(updated.getStatus());
         existing.setCategory(updated.getCategory());

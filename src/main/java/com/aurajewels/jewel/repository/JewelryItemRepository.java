@@ -57,4 +57,8 @@ public interface JewelryItemRepository extends JpaRepository<JewelryItem, Long> 
             JewelryItem.ItemStatus status, Long storeId);
 
     long countByStoreIdAndActiveTrue(Long storeId);
+
+    boolean existsByHuidAndStoreIdAndActiveTrue(String huid, Long storeId);
+
+    Optional<JewelryItem> findByHuidAndStoreIdAndActiveTrue(String huid, Long storeId);
 }

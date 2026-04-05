@@ -26,6 +26,7 @@ package com.aurajewels.jewel.entity;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.*;
@@ -72,6 +73,9 @@ public class JewelryItem extends BaseEntity {
     @Column(name = "net_weight", nullable = false, precision = 10, scale = 3)
     private BigDecimal netWeight;
 
+    @Column(name = "stone_weight", precision = 10, scale = 3)
+    private BigDecimal stoneWeight;
+
     @Column(name = "making_charges", nullable = false, precision = 12, scale = 2)
     private BigDecimal makingCharges = BigDecimal.ZERO;
 
@@ -89,6 +93,18 @@ public class JewelryItem extends BaseEntity {
 
     @Column(name = "barcode", length = 100)
     private String barcode;
+
+    @Column(name = "huid", length = 50)
+    private String huid;
+
+    @Column(name = "hallmark_cert", length = 100)
+    private String hallmarkCert;
+
+    @Column(name = "hallmark_date")
+    private LocalDate hallmarkDate;
+
+    @Column(name = "showcase_location", length = 200)
+    private String showcaseLocation;
 
     @Column(name = "image_url", length = 500)
     private String imageUrl;
