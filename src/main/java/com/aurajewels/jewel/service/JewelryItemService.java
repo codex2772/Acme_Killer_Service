@@ -83,6 +83,12 @@ public class JewelryItemService {
                         .findById(storeId)
                         .orElseThrow(() -> new RuntimeException("Store not found"));
         item.setStore(store);
+
+        // Set back-references on stone details so JPA can persist them via cascade
+        if (item.getStoneDetails() != null) {
+            item.getStoneDetails().forEach(stone -> stone.setJewelryItem(item));
+        }
+
         return jewelryItemRepository.save(item);
     }
 
@@ -105,6 +111,12 @@ public class JewelryItemService {
         existing.setMetalType(updated.getMetalType());
         if (updated.getArEnabled() != null) existing.setArEnabled(updated.getArEnabled());
         if (updated.getArType() != null) existing.setArType(updated.getArType());
+
+        // Replace stone details (orphanRemoval = true auto-deletes removed stones)
+        if (updated.getStoneDetails() != null) {
+            existing.replaceStoneDetails(updated.getStoneDetails());
+        }
+
         return jewelryItemRepository.save(existing);
     }
 

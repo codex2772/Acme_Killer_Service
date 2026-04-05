@@ -23,8 +23,11 @@
  */
 package com.aurajewels.jewel.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.*;
 
 /**
@@ -100,6 +103,26 @@ public class JewelryItem extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "ar_type")
     private ArAsset.ArType arType;
+
+    @OneToMany(
+            mappedBy = "jewelryItem",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.EAGER)
+    @JsonManagedReference
+    @Builder.Default
+    private List<StoneDetail> stoneDetails = new ArrayList<>();
+
+    /** Replace all stone details with a new list (orphanRemoval deletes removed stones). */
+    public void replaceStoneDetails(List<StoneDetail> newStones) {
+        this.stoneDetails.clear();
+        if (newStones != null) {
+            newStones.forEach(stone -> {
+                stone.setJewelryItem(this);
+                this.stoneDetails.add(stone);
+            });
+        }
+    }
 
     public enum ItemStatus {
         IN_STOCK,
