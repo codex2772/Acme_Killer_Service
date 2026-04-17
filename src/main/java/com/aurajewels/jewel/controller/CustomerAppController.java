@@ -253,6 +253,22 @@ public class CustomerAppController {
         return ResponseEntity.ok(razorpayPaymentService.getPaymentHistory(customerId, memberId));
     }
 
+    // ======================== ORDER HISTORY (Authenticated) ========================
+
+    /** GET /api/customer-app/orders — List all invoices/bills for the logged-in customer. */
+    @GetMapping("/orders")
+    public ResponseEntity<List<CustomerOrderResponse>> getOrderHistory() {
+        Long customerId = requireCustomerId();
+        return ResponseEntity.ok(customerAppService.getOrderHistory(customerId));
+    }
+
+    /** GET /api/customer-app/orders/{invoiceId} — Get specific invoice detail. */
+    @GetMapping("/orders/{invoiceId}")
+    public ResponseEntity<CustomerOrderResponse> getOrderDetail(@PathVariable Long invoiceId) {
+        Long customerId = requireCustomerId();
+        return ResponseEntity.ok(customerAppService.getOrderDetail(customerId, invoiceId));
+    }
+
     // ======================== HELPERS ========================
 
     /**

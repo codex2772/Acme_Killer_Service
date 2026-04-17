@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 70">
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#D4AF37"/>
+      <stop offset="50%" style="stop-color:#C5A55A"/>
+      <stop offset="100%" style="stop-color:#B8860B"/>
+    </linearGradient>
+    <linearGradient id="gemGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#F0D060"/>
+      <stop offset="40%" style="stop-color:#D4AF37"/>
+      <stop offset="100%" style="stop-color:#8B6914"/>
+    </linearGradient>
+    <linearGradient id="shineGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFF8DC; stop-opacity:0.9"/>
+      <stop offset="100%" style="stop-color:#D4AF37; stop-opacity:0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Diamond/Gem Icon -->
+  <g transform="translate(10, 8)">
+    <!-- Diamond shape -->
+    <polygon points="25,2 45,20 25,50 5,20" fill="url(#gemGrad)" stroke="#8B6914" stroke-width="1.2"/>
+    <!-- Top facets -->
+    <polygon points="25,2 15,20 25,16 35,20" fill="url(#shineGrad)" opacity="0.7"/>
+    <!-- Left facet -->
+    <polygon points="5,20 15,20 25,50" fill="#B8860B" opacity="0.5"/>
+    <!-- Right facet -->
+    <polygon points="45,20 35,20 25,50" fill="#C5A55A" opacity="0.4"/>
+    <!-- Center facet line -->
+    <line x1="25" y1="16" x2="25" y2="50" stroke="#8B6914" stroke-width="0.5" opacity="0.4"/>
+    <!-- Sparkle dots -->
+    <circle cx="20" cy="12" r="1.5" fill="#FFF8DC" opacity="0.8"/>
+    <circle cx="30" cy="8" r="1" fill="#FFF8DC" opacity="0.6"/>
+  </g>
+
+  <!-- "Sw" in navy -->
+  <text x="62" y="48" font-family="Georgia, 'Times New Roman', serif" font-size="42" font-weight="700" fill="#0A1628" letter-spacing="-1">Sw</text>
+
+  <!-- "arn" in gold gradient -->
+  <text x="120" y="48" font-family="Georgia, 'Times New Roman', serif" font-size="42" font-weight="700" fill="url(#goldGrad)" letter-spacing="-1">arn</text>
+
+  <!-- Decorative underline -->
+  <line x1="62" y1="55" x2="192" y2="55" stroke="url(#goldGrad)" stroke-width="1.5" opacity="0.6"/>
+
+  <!-- Tagline -->
+    <text x="64" y="66" font-family="'Helvetica Neue', Arial, sans-serif" font-size="8.5" fill="#8B6914" letter-spacing="3.5" style="text-transform:uppercase">JEWELLERY SOFTWARE</text>
+</svg>

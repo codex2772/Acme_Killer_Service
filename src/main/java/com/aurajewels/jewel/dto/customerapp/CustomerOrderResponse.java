@@ -1,0 +1,77 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2026 AuraJewels (Raviraj Bhosale)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+package com.aurajewels.jewel.dto.customerapp;
+
+import java.math.BigDecimal;
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+/**
+ * Response DTO for customer order history in the mobile app.
+ *
+ * @author Raviraj Bhosale
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class CustomerOrderResponse {
+    private Long id;
+    private String invoiceNumber;
+    private String date;
+    private String storeName;
+    private Long storeId;
+    private String status;
+    private String paymentStatus;
+    private BigDecimal subtotal;
+    private BigDecimal gstAmount;
+    private BigDecimal discount;
+    private BigDecimal totalAmount;
+    private BigDecimal paidAmount;
+    private String paymentMode;
+    private String notes;
+    private String createdAt;
+    private List<OrderItemDetail> items;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class OrderItemDetail {
+        private Long id;
+        private Long jewelryItemId;
+        private String itemName;
+        private String itemImageUrl;
+        private Integer quantity;
+        private BigDecimal metalRate;
+        private BigDecimal metalValue;
+        private BigDecimal makingCharges;
+        private BigDecimal stoneCharges;
+        private BigDecimal taxableAmount;
+        private BigDecimal totalAmount;
+    }
+}

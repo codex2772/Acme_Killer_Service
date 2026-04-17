@@ -53,6 +53,7 @@ public class CustomerAppService {
     private final SchemeMemberRepository schemeMemberRepository;
     private final SchemePaymentRepository schemePaymentRepository;
     private final SchemeRepository schemeRepository;
+    private final InvoiceRepository invoiceRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
@@ -658,5 +659,82 @@ public class CustomerAppService {
                         () ->
                                 new IllegalArgumentException(
                                         "Scheme membership not found or does not belong to you"));
+    }
+
+    // ======================== ORDER HISTORY ========================
+
+    /** List all confirmed invoices for the logged-in customer. */
+    @Transactional(readOnly = true)
+    public List<CustomerOrderResponse> getOrderHistory(Long customerId) {
+        List<Invoice> invoices =
+                invoiceRepository.findByCustomerIdAndActiveTrueOrderByCreatedAtDesc(customerId);
+        return invoices.stream().map(this::toOrderResponse).toList();
+    }
+
+    /** Get a specific invoice detail for the logged-in customer. */
+    @Transactional(readOnly = true)
+    public CustomerOrderResponse getOrderDetail(Long customerId, Long invoiceId) {
+        Invoice invoice =
+                invoiceRepository
+                        .findByIdAndCustomerIdAndActiveTrue(invoiceId, customerId)
+                        .orElseThrow(
+                                () ->
+                                        new IllegalArgumentException(
+                                                "Invoice not found or does not belong to you"));
+        return toOrderResponse(invoice);
+    }
+
+    private CustomerOrderResponse toOrderResponse(Invoice invoice) {
+        List<CustomerOrderResponse.OrderItemDetail> itemDetails =
+                invoice.getItems().stream()
+                        .map(
+                                item -> {
+                                    JewelryItem ji =
+                                            jewelryItemRepository
+                                                    .findById(item.getJewelryItemId())
+                                                    .orElse(null);
+                                    return CustomerOrderResponse.OrderItemDetail.builder()
+                                            .id(item.getId())
+                                            .jewelryItemId(item.getJewelryItemId())
+                                            .itemName(ji != null ? ji.getName() : "Unknown Item")
+                                            .itemImageUrl(ji != null ? ji.getImageUrl() : null)
+                                            .quantity(item.getQuantity())
+                                            .metalRate(item.getMetalRate())
+                                            .metalValue(item.getMetalValue())
+                                            .makingCharges(item.getMakingCharges())
+                                            .stoneCharges(item.getStoneCharges())
+                                            .taxableAmount(item.getTaxableAmount())
+                                            .totalAmount(item.getTotalAmount())
+                                            .build();
+                                })
+                        .toList();
+
+        return CustomerOrderResponse.builder()
+                .id(invoice.getId())
+                .invoiceNumber(invoice.getInvoiceNumber())
+                .date(
+                        invoice.getInvoiceDate() != null
+                                ? invoice.getInvoiceDate().toString()
+                                : null)
+                .storeName(
+                        invoice.getStore() != null ? invoice.getStore().getName() : "Unknown Store")
+                .storeId(invoice.getStore() != null ? invoice.getStore().getId() : null)
+                .status(invoice.getStatus() != null ? invoice.getStatus().name() : null)
+                .paymentStatus(
+                        invoice.getPaymentStatus() != null
+                                ? invoice.getPaymentStatus().name()
+                                : null)
+                .subtotal(invoice.getSubtotal())
+                .gstAmount(invoice.getGstAmount())
+                .discount(invoice.getDiscount())
+                .totalAmount(invoice.getTotalAmount())
+                .paidAmount(invoice.getPaidAmount())
+                .paymentMode(
+                        invoice.getPaymentMode() != null ? invoice.getPaymentMode().name() : null)
+                .notes(invoice.getNotes())
+                .createdAt(
+                        invoice.getCreatedAt() != null ? invoice.getCreatedAt().toString() : null)
+                .items(itemDetails)
+                .build();
     }
 }

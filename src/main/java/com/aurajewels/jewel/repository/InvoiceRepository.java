@@ -74,4 +74,8 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
 
     long countByStoreIdAndPaymentStatusAndActiveTrue(
             Long storeId, Invoice.PaymentStatus paymentStatus);
+
+    List<Invoice> findByCustomerIdAndActiveTrueOrderByCreatedAtDesc(Long customerId);
+
+    Optional<Invoice> findByIdAndCustomerIdAndActiveTrue(Long id, Long customerId);
 }
