@@ -88,8 +88,8 @@ jobs:
       - name: Create tfvars file
         run: |
           # Quoted delimiter: prevents the shell expanding $, backticks, or
-          # backslashes inside secret values. GitHub substitutes ${{ }} before
-          # the shell runs, so those still resolve.
+          # backslashes inside secret values. Actions expressions are
+          # substituted before the shell runs, so they still resolve.
           cat > terraform.tfvars << 'EOF'
           aws_region  = "${{ env.AWS_REGION }}"
           environment = "${{ github.event.inputs.environment || 'prod' }}"
