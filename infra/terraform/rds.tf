@@ -103,7 +103,11 @@ resource "aws_db_instance" "main" {
   skip_final_snapshot       = false
   final_snapshot_identifier = "${var.app_name}-${var.environment}-final-snapshot"
 
-  backup_retention_period = 30
+  # Capped at 1 by the account's Free Plan, which rejects anything higher with
+  # FreeTierRestrictionError. This is a plan limit, not a durability decision:
+  # 1 day is a 24-hour recovery window on GST and invoice records. Raise this
+  # to 30 once the account is upgraded to a Paid plan.
+  backup_retention_period = 1
   backup_window           = "03:00-04:00"
   maintenance_window      = "sun:04:00-sun:05:00"
 
