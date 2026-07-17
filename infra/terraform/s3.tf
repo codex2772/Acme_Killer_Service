@@ -2,7 +2,9 @@
 # S3 Bucket for image uploads
 # ================================
 resource "aws_s3_bucket" "images" {
-  bucket = "${var.app_name}-images-${var.aws_region}"
+  # S3 bucket names are globally unique across all AWS accounts. The account-ID
+  # suffix guarantees this name can never collide with another account's.
+  bucket = "${var.app_name}-images-${var.environment}-${data.aws_caller_identity.current.account_id}"
 
   tags = {
     Name = "${var.app_name}-images"

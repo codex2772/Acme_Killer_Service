@@ -96,5 +96,31 @@ variable "jwt_secret" {
   description = "JWT signing secret key (min 32 chars)"
   type        = string
   sensitive   = true
+
+  validation {
+    condition     = length(var.jwt_secret) >= 32
+    error_message = "jwt_secret must be at least 32 characters: JwtUtil uses HS256, which rejects keys under 256 bits with a WeakKeyException at startup."
+  }
+}
+
+# ================================
+# Razorpay
+# ================================
+variable "razorpay_key_id" {
+  description = "Razorpay API key ID (from Razorpay Dashboard > Settings > API Keys)"
+  type        = string
+  sensitive   = true
+}
+
+variable "razorpay_key_secret" {
+  description = "Razorpay API key secret (shown only once at generation)"
+  type        = string
+  sensitive   = true
+}
+
+variable "razorpay_webhook_secret" {
+  description = "Razorpay webhook signing secret (self-chosen; must match the Razorpay Dashboard webhook config)"
+  type        = string
+  sensitive   = true
 }
 

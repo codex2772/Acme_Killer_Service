@@ -7,7 +7,8 @@
 set -e
 
 AWS_REGION="ap-south-1"
-BUCKET_NAME="jewel-erp-terraform-state"
+# Must match the backend bucket literal in main.tf
+BUCKET_NAME="jewel-erp-tfstate-950639281869"
 DYNAMODB_TABLE="terraform-locks"
 
 echo "🔧 Creating S3 bucket for Terraform state..."

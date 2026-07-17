@@ -21,6 +21,14 @@ db_name           = "jewelerpdb"
 db_username       = "jeweladmin"
 db_password       = "CHANGE_ME_STRONG_PASSWORD"
 
-# JWT
+# JWT — generate with: openssl rand -hex 32
+# Use hex, not base64: RDS rejects / @ " and space in passwords, and the CI
+# heredoc is shell-expanded, so $ in a value silently truncates it.
 jwt_secret = "CHANGE_ME_MIN_32_CHARS_STRONG_SECRET"
+
+# Razorpay — Dashboard > Settings > API Keys.
+# webhook_secret is self-chosen and must match Dashboard > Settings > Webhooks.
+razorpay_key_id         = "rzp_test_CHANGE_ME"
+razorpay_key_secret     = "CHANGE_ME"
+razorpay_webhook_secret = "CHANGE_ME"
 

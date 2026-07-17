@@ -25,6 +25,8 @@ env:
   TF_VERSION: '1.7.0'
   AWS_REGION: ${{ vars.AWS_REGION || 'ap-south-1' }}
   TF_WORKING_DIR: infra/terraform
+  # Must match the backend bucket literal in infra/terraform/main.tf
+  TF_STATE_BUCKET: jewel-erp-tfstate-950639281869
 
 jobs:
   terraform:
@@ -61,14 +63,14 @@ jobs:
         run: |
           # Create S3 bucket for state (skip if exists)
           aws s3api create-bucket \
-            --bucket jewel-erp-terraform-state \
+            --bucket ${{ env.TF_STATE_BUCKET }} \
             --region ${{ env.AWS_REGION }} \
             --create-bucket-configuration LocationConstraint=${{ env.AWS_REGION }} 2>/dev/null || true
           aws s3api put-bucket-versioning \
-            --bucket jewel-erp-terraform-state \
+            --bucket ${{ env.TF_STATE_BUCKET }} \
             --versioning-configuration Status=Enabled
           aws s3api put-public-access-block \
-            --bucket jewel-erp-terraform-state \
+            --bucket ${{ env.TF_STATE_BUCKET }} \
             --public-access-block-configuration \
               BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
           # Create DynamoDB table for locking (skip if exists)
@@ -85,7 +87,10 @@ jobs:
 
       - name: Create tfvars file
         run: |
-          cat > terraform.tfvars << EOF
+          # Quoted delimiter: prevents the shell expanding $, backticks, or
+          # backslashes inside secret values. GitHub substitutes ${{ }} before
+          # the shell runs, so those still resolve.
+          cat > terraform.tfvars << 'EOF'
           aws_region  = "${{ env.AWS_REGION }}"
           environment = "${{ github.event.inputs.environment || 'prod' }}"
           app_name    = "jewel-erp"
@@ -108,6 +113,11 @@ jobs:
 
           # JWT
           jwt_secret = "${{ secrets.JWT_SECRET }}"
+
+          # Razorpay — consumed by the ECS task definition's secrets block
+          razorpay_key_id         = "${{ secrets.RAZORPAY_KEY_ID }}"
+          razorpay_key_secret     = "${{ secrets.RAZORPAY_KEY_SECRET }}"
+          razorpay_webhook_secret = "${{ secrets.RAZORPAY_WEBHOOK_SECRET }}"
           EOF
 
       - name: Terraform Validate

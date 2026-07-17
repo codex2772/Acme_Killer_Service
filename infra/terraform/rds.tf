@@ -44,7 +44,7 @@ resource "aws_db_subnet_group" "main" {
 resource "aws_secretsmanager_secret" "db_credentials" {
   name                    = "${var.app_name}/${var.environment}/db-credentials"
   description             = "RDS MySQL credentials for ${var.app_name}"
-  recovery_window_in_days = 0  # Immediate delete — no 7-day wait (safe for dev/staging)
+  recovery_window_in_days = 0 # Immediate delete — no 7-day wait (safe for dev/staging)
 
   tags = {
     Name = "${var.app_name}-db-credentials"
@@ -53,14 +53,20 @@ resource "aws_secretsmanager_secret" "db_credentials" {
 
 resource "aws_secretsmanager_secret_version" "db_credentials" {
   secret_id = aws_secretsmanager_secret.db_credentials.id
+  # Every key here is referenced by the ECS task definition's `secrets` block.
+  # A missing key makes Fargate fail task startup with ResourceInitializationError
+  # before the application logs anything.
   secret_string = jsonencode({
-    username   = var.db_username
-    password   = var.db_password
-    host       = aws_db_instance.main.address
-    port       = 3306
-    dbname     = var.db_name
-    url        = "jdbc:mysql://${aws_db_instance.main.address}:3306/${var.db_name}?useSSL=true&requireSSL=true"
-    jwt_secret = var.jwt_secret
+    username                = var.db_username
+    password                = var.db_password
+    host                    = aws_db_instance.main.address
+    port                    = 3306
+    dbname                  = var.db_name
+    url                     = "jdbc:mysql://${aws_db_instance.main.address}:3306/${var.db_name}?useSSL=true&requireSSL=true"
+    jwt_secret              = var.jwt_secret
+    razorpay_key_id         = var.razorpay_key_id
+    razorpay_key_secret     = var.razorpay_key_secret
+    razorpay_webhook_secret = var.razorpay_webhook_secret
   })
 
   lifecycle {
@@ -92,9 +98,12 @@ resource "aws_db_instance" "main" {
 
   multi_az            = false
   publicly_accessible = false
-  skip_final_snapshot = true
 
-  backup_retention_period = 1
+  # Take a final snapshot on destroy. Required companion to skip_final_snapshot = false.
+  skip_final_snapshot       = false
+  final_snapshot_identifier = "${var.app_name}-${var.environment}-final-snapshot"
+
+  backup_retention_period = 30
   backup_window           = "03:00-04:00"
   maintenance_window      = "sun:04:00-sun:05:00"
 
