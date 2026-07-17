@@ -56,6 +56,10 @@ resource "aws_secretsmanager_secret_version" "db_credentials" {
   # Every key here is referenced by the ECS task definition's `secrets` block.
   # A missing key makes Fargate fail task startup with ResourceInitializationError
   # before the application logs anything.
+  #
+  # Do not add ignore_changes on secret_string. db_password also feeds
+  # aws_db_instance.main directly, so ignoring it here lets Terraform rotate the
+  # real RDS password while leaving the stale one in Secrets Manager.
   secret_string = jsonencode({
     username                = var.db_username
     password                = var.db_password
@@ -68,10 +72,6 @@ resource "aws_secretsmanager_secret_version" "db_credentials" {
     razorpay_key_secret     = var.razorpay_key_secret
     razorpay_webhook_secret = var.razorpay_webhook_secret
   })
-
-  lifecycle {
-    ignore_changes = [secret_string]
-  }
 }
 
 # ================================
