@@ -56,11 +56,44 @@ public class MetaCloudWhatsAppProvider implements WhatsAppProvider {
     private final RestClient metaRestClient;
     private final WabaTokenStore tokenStore;
 
+    private static final String FALLBACK_LANGUAGE = "en_US";
+
     @Override
     public SendResult sendTemplate(StoreWaba waba, WhatsAppTemplateSend send) {
+        final String token;
         try {
-            String token = tokenStore.resolve(waba.getAccessTokenRef());
-            Map<String, Object> payload = buildTemplatePayload(send);
+            token = tokenStore.resolve(waba.getAccessTokenRef());
+        } catch (Exception e) {
+            log.error("Failed to resolve WhatsApp access token: {}", e.getMessage(), e);
+            return SendResult.fail("Access token unavailable: " + e.getMessage());
+        }
+
+        String language =
+                send.languageCode() != null && !send.languageCode().isBlank()
+                        ? send.languageCode()
+                        : "en";
+
+        SendResult result = post(waba, send, token, language);
+
+        // Many templates are approved under en_US rather than en — retry once on a
+        // language/translation-not-found error before giving up.
+        if (!result.ok()
+                && !FALLBACK_LANGUAGE.equalsIgnoreCase(language)
+                && isLanguageMismatch(result.error())) {
+            log.info(
+                    "Template '{}' not found in language '{}'; retrying as {}",
+                    send.metaTemplateName(),
+                    language,
+                    FALLBACK_LANGUAGE);
+            result = post(waba, send, token, FALLBACK_LANGUAGE);
+        }
+        return result;
+    }
+
+    private SendResult post(
+            StoreWaba waba, WhatsAppTemplateSend send, String token, String languageCode) {
+        try {
+            Map<String, Object> payload = buildTemplatePayload(send, languageCode);
 
             JsonNode response =
                     metaRestClient
@@ -95,12 +128,24 @@ public class MetaCloudWhatsAppProvider implements WhatsAppProvider {
         }
     }
 
-    private Map<String, Object> buildTemplatePayload(WhatsAppTemplateSend send) {
+    /** True when a send error indicates the template is not available in the requested language. */
+    static boolean isLanguageMismatch(String error) {
+        if (error == null) {
+            return false;
+        }
+        String lower = error.toLowerCase();
+        return lower.contains("132001")
+                || (lower.contains("does not exist")
+                        && (lower.contains("translation")
+                                || lower.contains("language")
+                                || lower.contains("locale")));
+    }
+
+    private Map<String, Object> buildTemplatePayload(
+            WhatsAppTemplateSend send, String languageCode) {
         Map<String, Object> template = new LinkedHashMap<>();
         template.put("name", send.metaTemplateName());
-        template.put(
-                "language",
-                Map.of("code", send.languageCode() != null ? send.languageCode() : "en"));
+        template.put("language", Map.of("code", languageCode));
 
         List<Map<String, Object>> components = new ArrayList<>();
 

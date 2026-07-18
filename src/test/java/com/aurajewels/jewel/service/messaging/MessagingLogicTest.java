@@ -68,6 +68,24 @@ class MessagingLogicTest {
     }
 
     @Test
+    void detectsLanguageMismatchErrorsForEnUsFallback() {
+        // Meta 132001 / translation-not-found → should trigger the en_US retry
+        assertThat(
+                        MetaCloudWhatsAppProvider.isLanguageMismatch(
+                                "(#132001) Template name does not exist in the translation en"))
+                .isTrue();
+        assertThat(
+                        MetaCloudWhatsAppProvider.isLanguageMismatch(
+                                "Template does not exist in the locale en"))
+                .isTrue();
+        // Unrelated errors must NOT trigger a retry
+        assertThat(MetaCloudWhatsAppProvider.isLanguageMismatch("Recipient not in allowed list"))
+                .isFalse();
+        assertThat(MetaCloudWhatsAppProvider.isLanguageMismatch("Session has expired")).isFalse();
+        assertThat(MetaCloudWhatsAppProvider.isLanguageMismatch(null)).isFalse();
+    }
+
+    @Test
     void encryptsAndResolvesTokenWithoutStoringPlaintext() {
         WhatsAppProperties props = new WhatsAppProperties();
         props.setTokenEncryptionKey("unit-test-key");

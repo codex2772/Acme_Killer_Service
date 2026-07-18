@@ -32,3 +32,13 @@ razorpay_key_id         = "rzp_test_CHANGE_ME"
 razorpay_key_secret     = "CHANGE_ME"
 razorpay_webhook_secret = "CHANGE_ME"
 
+# Meta WhatsApp — App Settings > Basic (app secret); verify token is self-chosen and
+# must match the value entered in the Meta webhook config. Leave blank until go-live.
+meta_app_secret           = ""
+meta_webhook_verify_token = ""
+
+# Per-store WhatsApp token storage. Keep "local" until you are ready to migrate;
+# switching to "secrets-manager" requires reconnecting every store (POST /api/waba/connect).
+waba_token_store   = "local"
+waba_secret_prefix = "jewel-erp/prod/waba"
+

@@ -124,3 +124,37 @@ variable "razorpay_webhook_secret" {
   sensitive   = true
 }
 
+# ================================
+# Meta WhatsApp
+# ================================
+variable "meta_app_secret" {
+  description = "Meta app secret (App Settings > Basic); verifies WhatsApp webhook signatures. Blank = signature verification skipped."
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "meta_webhook_verify_token" {
+  description = "Self-chosen token echoed during the Meta webhook verification handshake"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "waba_token_store" {
+  description = "Per-store WhatsApp token storage: 'local' (AES-encrypted in DB) or 'secrets-manager'"
+  type        = string
+  default     = "local"
+
+  validation {
+    condition     = contains(["local", "secrets-manager"], var.waba_token_store)
+    error_message = "waba_token_store must be 'local' or 'secrets-manager'."
+  }
+}
+
+variable "waba_secret_prefix" {
+  description = "Secrets Manager name prefix for per-store WhatsApp tokens (used when waba_token_store = secrets-manager)"
+  type        = string
+  default     = "jewel-erp/prod/waba"
+}
+

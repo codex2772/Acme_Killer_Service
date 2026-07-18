@@ -123,6 +123,28 @@ resource "aws_iam_role" "ecs_task_role" {
   assume_role_policy = data.aws_iam_policy_document.ecs_task_assume_role.json
 }
 
+# Runtime access for the secrets-manager WhatsApp token store. Scoped to the
+# per-store WABA secret prefix; harmless when waba_token_store = "local".
+resource "aws_iam_role_policy" "ecs_task_waba_secrets" {
+  name = "${var.app_name}-ecs-waba-secrets-policy"
+  role = aws_iam_role.ecs_task_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:CreateSecret",
+          "secretsmanager:PutSecretValue",
+          "secretsmanager:GetSecretValue"
+        ]
+        Resource = "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:${var.waba_secret_prefix}/*"
+      }
+    ]
+  })
+}
+
 # ================================
 # ECS Task Definition
 # ================================
@@ -164,6 +186,21 @@ resource "aws_ecs_task_definition" "main" {
         {
           name  = "S3_REGION"
           value = var.aws_region
+        },
+        {
+          # WhatsApp messaging master switch (per-store entitlement is the WHATSAPP feature module)
+          name  = "WHATSAPP_ENABLED"
+          value = "true"
+        },
+        {
+          # Per-store token storage: 'local' (AES in DB) or 'secrets-manager'.
+          # Switching to secrets-manager requires reconnecting every store.
+          name  = "WABA_TOKEN_STORE"
+          value = var.waba_token_store
+        },
+        {
+          name  = "WABA_SECRET_PREFIX"
+          value = var.waba_secret_prefix
         }
       ]
 
@@ -207,6 +244,14 @@ resource "aws_ecs_task_definition" "main" {
         {
           name      = "RAZORPAY_WEBHOOK_SECRET"
           valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:razorpay_webhook_secret::"
+        },
+        {
+          name      = "META_APP_SECRET"
+          valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:meta_app_secret::"
+        },
+        {
+          name      = "META_WEBHOOK_VERIFY_TOKEN"
+          valueFrom = "${aws_secretsmanager_secret.db_credentials.arn}:meta_webhook_verify_token::"
         }
       ]
 

@@ -61,16 +61,18 @@ resource "aws_secretsmanager_secret_version" "db_credentials" {
   # aws_db_instance.main directly, so ignoring it here lets Terraform rotate the
   # real RDS password while leaving the stale one in Secrets Manager.
   secret_string = jsonencode({
-    username                = var.db_username
-    password                = var.db_password
-    host                    = aws_db_instance.main.address
-    port                    = 3306
-    dbname                  = var.db_name
-    url                     = "jdbc:mysql://${aws_db_instance.main.address}:3306/${var.db_name}?useSSL=true&requireSSL=true"
-    jwt_secret              = var.jwt_secret
-    razorpay_key_id         = var.razorpay_key_id
-    razorpay_key_secret     = var.razorpay_key_secret
-    razorpay_webhook_secret = var.razorpay_webhook_secret
+    username                  = var.db_username
+    password                  = var.db_password
+    host                      = aws_db_instance.main.address
+    port                      = 3306
+    dbname                    = var.db_name
+    url                       = "jdbc:mysql://${aws_db_instance.main.address}:3306/${var.db_name}?useSSL=true&requireSSL=true"
+    jwt_secret                = var.jwt_secret
+    razorpay_key_id           = var.razorpay_key_id
+    razorpay_key_secret       = var.razorpay_key_secret
+    razorpay_webhook_secret   = var.razorpay_webhook_secret
+    meta_app_secret           = var.meta_app_secret
+    meta_webhook_verify_token = var.meta_webhook_verify_token
   })
 }
 

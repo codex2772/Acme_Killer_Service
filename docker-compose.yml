@@ -16,6 +16,8 @@ services:
       - DB_URL=jdbc:mysql://mysql:3306/jewelerpdb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       - DB_USERNAME=jeweladmin
       - DB_PASSWORD=jewelpass
+      # WhatsApp messaging master switch (per-store entitlement is the WHATSAPP feature module)
+      - WHATSAPP_ENABLED=true
     depends_on:
       mysql:
         condition: service_healthy
