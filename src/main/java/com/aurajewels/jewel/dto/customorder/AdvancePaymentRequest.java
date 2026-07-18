@@ -21,26 +21,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.dto.billing;
+package com.aurajewels.jewel.dto.customorder;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
 import lombok.Data;
 
 /**
- * DTO for a single invoice line item.
+ * DTO for recording an advance or balance payment against a custom order.
  *
  * @author Raviraj Bhosale
  */
 @Data
-public class InvoiceItemRequest {
-    private Long jewelryItemId;
-    private String name;
-    private BigDecimal weight;
-    private String purity;
-    private BigDecimal rate;
-    private BigDecimal makingCharge;
-    private String makingChargeType;
-    private BigDecimal wastage;
-    private BigDecimal stoneCharges;
+public class AdvancePaymentRequest {
+    private String mode;
+
+    @NotNull(message = "amount is required")
+    @Positive(message = "amount must be positive")
     private BigDecimal amount;
+
+    private String reference;
 }

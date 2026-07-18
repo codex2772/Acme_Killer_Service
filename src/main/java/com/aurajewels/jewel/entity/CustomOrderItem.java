@@ -31,27 +31,29 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 /**
- * JPA entity representing a line item in an invoice with metal value and tax breakdown.
+ * JPA entity representing a line item in a custom order.
+ *
+ * <p>{@code jewelryItemId} is optional because a bespoke piece may not exist in the catalog yet.
  *
  * @author Raviraj Bhosale
  */
 @Entity
-@Table(name = "invoice_items")
+@Table(name = "custom_order_items")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class InvoiceItem {
+public class CustomOrderItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "invoice_id", nullable = false)
+    @JoinColumn(name = "custom_order_id", nullable = false)
     @JsonIgnore
-    private Invoice invoice;
+    private CustomOrder customOrder;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id", nullable = false)
@@ -61,46 +63,40 @@ public class InvoiceItem {
     @Column(name = "jewelry_item_id")
     private Long jewelryItemId;
 
-    @Column(name = "quantity")
-    private Integer quantity = 1;
+    @Column(name = "name", nullable = false, length = 200)
+    private String name;
 
-    @Column(name = "metal_rate", precision = 12, scale = 2)
-    private BigDecimal metalRate = BigDecimal.ZERO;
+    @Column(name = "weight", precision = 10, scale = 3)
+    private BigDecimal weight;
 
-    @Column(name = "metal_value", precision = 14, scale = 2)
-    private BigDecimal metalValue = BigDecimal.ZERO;
+    @Column(name = "purity", length = 20)
+    private String purity;
 
-    @Column(name = "making_charges", precision = 12, scale = 2)
-    private BigDecimal makingCharges = BigDecimal.ZERO;
+    @Column(name = "rate", precision = 12, scale = 2)
+    private BigDecimal rate = BigDecimal.ZERO;
+
+    @Column(name = "making_charge", precision = 12, scale = 2)
+    private BigDecimal makingCharge = BigDecimal.ZERO;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "making_charge_type")
+    private MakingChargeType makingChargeType = MakingChargeType.PERCENTAGE;
+
+    @Column(name = "wastage", precision = 5, scale = 2)
+    private BigDecimal wastage = BigDecimal.ZERO;
 
     @Column(name = "stone_charges", precision = 12, scale = 2)
     private BigDecimal stoneCharges = BigDecimal.ZERO;
 
-    @Column(name = "other_charges", precision = 12, scale = 2)
-    private BigDecimal otherCharges = BigDecimal.ZERO;
-
-    @Column(name = "discount", precision = 12, scale = 2)
-    private BigDecimal discount = BigDecimal.ZERO;
-
-    @Column(name = "taxable_amount", precision = 14, scale = 2)
-    private BigDecimal taxableAmount = BigDecimal.ZERO;
-
-    @Column(name = "cgst_percent", precision = 5, scale = 2)
-    private BigDecimal cgstPercent = new BigDecimal("1.50");
-
-    @Column(name = "sgst_percent", precision = 5, scale = 2)
-    private BigDecimal sgstPercent = new BigDecimal("1.50");
-
-    @Column(name = "cgst_amount", precision = 12, scale = 2)
-    private BigDecimal cgstAmount = BigDecimal.ZERO;
-
-    @Column(name = "sgst_amount", precision = 12, scale = 2)
-    private BigDecimal sgstAmount = BigDecimal.ZERO;
-
-    @Column(name = "total_amount", precision = 14, scale = 2)
-    private BigDecimal totalAmount = BigDecimal.ZERO;
+    @Column(name = "amount", precision = 14, scale = 2)
+    private BigDecimal amount = BigDecimal.ZERO;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;
+
+    public enum MakingChargeType {
+        PERCENTAGE,
+        FLAT
+    }
 }

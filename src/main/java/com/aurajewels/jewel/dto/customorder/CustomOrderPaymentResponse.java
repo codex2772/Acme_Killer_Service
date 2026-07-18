@@ -21,26 +21,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.dto.billing;
+package com.aurajewels.jewel.dto.customorder;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import lombok.Builder;
 import lombok.Data;
 
 /**
- * DTO for a single invoice line item.
+ * DTO representing an advance/balance payment against a custom order in responses.
  *
  * @author Raviraj Bhosale
  */
 @Data
-public class InvoiceItemRequest {
-    private Long jewelryItemId;
-    private String name;
-    private BigDecimal weight;
-    private String purity;
-    private BigDecimal rate;
-    private BigDecimal makingCharge;
-    private String makingChargeType;
-    private BigDecimal wastage;
-    private BigDecimal stoneCharges;
+@Builder
+public class CustomOrderPaymentResponse {
+    private Long id;
+    private String kind;
+    private String mode;
     private BigDecimal amount;
+    private String reference;
+    private LocalDate date;
 }

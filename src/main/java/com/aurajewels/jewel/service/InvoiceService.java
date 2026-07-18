@@ -183,7 +183,10 @@ public class InvoiceService {
                                         itemReq.getMakingCharge() != null
                                                 ? itemReq.getMakingCharge()
                                                 : BigDecimal.ZERO)
-                                .stoneCharges(BigDecimal.ZERO)
+                                .stoneCharges(
+                                        itemReq.getStoneCharges() != null
+                                                ? itemReq.getStoneCharges()
+                                                : BigDecimal.ZERO)
                                 .otherCharges(BigDecimal.ZERO)
                                 .discount(BigDecimal.ZERO)
                                 .taxableAmount(
@@ -396,10 +399,12 @@ public class InvoiceService {
                         .map(
                                 item -> {
                                     String itemName =
-                                            jewelryItemRepository
-                                                    .findById(item.getJewelryItemId())
-                                                    .map(JewelryItem::getName)
-                                                    .orElse(null);
+                                            item.getJewelryItemId() != null
+                                                    ? jewelryItemRepository
+                                                            .findById(item.getJewelryItemId())
+                                                            .map(JewelryItem::getName)
+                                                            .orElse(null)
+                                                    : null;
                                     return InvoiceItemResponse.builder()
                                             .id(item.getId())
                                             .jewelryItemId(item.getJewelryItemId())

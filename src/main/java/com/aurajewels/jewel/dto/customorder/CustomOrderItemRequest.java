@@ -21,26 +21,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.dto.billing;
+package com.aurajewels.jewel.dto.customorder;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 import lombok.Data;
 
 /**
- * DTO for a single invoice line item.
+ * DTO for a single custom order line item.
  *
  * @author Raviraj Bhosale
  */
 @Data
-public class InvoiceItemRequest {
+public class CustomOrderItemRequest {
     private Long jewelryItemId;
+
+    @NotBlank(message = "Item name is required")
     private String name;
+
+    @PositiveOrZero(message = "weight cannot be negative")
     private BigDecimal weight;
+
     private String purity;
+
+    @PositiveOrZero(message = "rate cannot be negative")
     private BigDecimal rate;
+
+    @PositiveOrZero(message = "makingCharge cannot be negative")
     private BigDecimal makingCharge;
+
     private String makingChargeType;
+
+    @PositiveOrZero(message = "wastage cannot be negative")
     private BigDecimal wastage;
+
+    @PositiveOrZero(message = "stoneCharges cannot be negative")
     private BigDecimal stoneCharges;
+
+    @PositiveOrZero(message = "amount cannot be negative")
     private BigDecimal amount;
 }

@@ -21,18 +21,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.dto.billing;
+package com.aurajewels.jewel.dto.customorder;
 
 import java.math.BigDecimal;
+import lombok.Builder;
 import lombok.Data;
 
 /**
- * DTO for a single invoice line item.
+ * DTO representing a custom order line item in responses.
  *
  * @author Raviraj Bhosale
  */
 @Data
-public class InvoiceItemRequest {
+@Builder
+public class CustomOrderItemResponse {
+    private Long id;
     private Long jewelryItemId;
     private String name;
     private BigDecimal weight;

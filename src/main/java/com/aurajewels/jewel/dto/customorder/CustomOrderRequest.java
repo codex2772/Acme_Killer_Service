@@ -21,26 +21,50 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.dto.billing;
+package com.aurajewels.jewel.dto.customorder;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
 import lombok.Data;
 
 /**
- * DTO for a single invoice line item.
+ * DTO for creating or updating a bespoke custom order.
  *
  * @author Raviraj Bhosale
  */
 @Data
-public class InvoiceItemRequest {
-    private Long jewelryItemId;
-    private String name;
-    private BigDecimal weight;
-    private String purity;
-    private BigDecimal rate;
-    private BigDecimal makingCharge;
-    private String makingChargeType;
-    private BigDecimal wastage;
-    private BigDecimal stoneCharges;
-    private BigDecimal amount;
+public class CustomOrderRequest {
+
+    @NotNull(message = "customerId is required")
+    private Long customerId;
+
+    private LocalDate date;
+
+    @Valid private List<CustomOrderItemRequest> items;
+
+    // subtotal, gstAmount and total are recomputed server-side from the items and are ignored here.
+    private BigDecimal subtotal;
+
+    @PositiveOrZero(message = "gstRate cannot be negative")
+    private BigDecimal gstRate;
+
+    private BigDecimal gstAmount;
+
+    @PositiveOrZero(message = "discount cannot be negative")
+    private BigDecimal discount;
+
+    private BigDecimal roundOff;
+    private BigDecimal total;
+    private LocalDate expectedDeliveryDate;
+    private String goldsmithName;
+    private Long assignedTo;
+    private String designNotes;
+    private String referenceImageUrl;
+    private String notes;
+    private String digitalSignature;
+    private String status;
 }

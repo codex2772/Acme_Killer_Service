@@ -27,80 +27,60 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 /**
- * JPA entity representing a line item in an invoice with metal value and tax breakdown.
+ * JPA entity representing an advance or balance payment against a custom order.
  *
  * @author Raviraj Bhosale
  */
 @Entity
-@Table(name = "invoice_items")
+@Table(name = "custom_order_payments")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class InvoiceItem {
+public class CustomOrderPayment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "invoice_id", nullable = false)
+    @JoinColumn(name = "custom_order_id", nullable = false)
     @JsonIgnore
-    private Invoice invoice;
+    private CustomOrder customOrder;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id", nullable = false)
     @JsonIgnore
     private Store store;
 
-    @Column(name = "jewelry_item_id")
-    private Long jewelryItemId;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "kind", nullable = false)
+    private PaymentKind kind = PaymentKind.ADVANCE;
 
-    @Column(name = "quantity")
-    private Integer quantity = 1;
+    @Column(name = "mode", nullable = false, length = 30)
+    private String mode;
 
-    @Column(name = "metal_rate", precision = 12, scale = 2)
-    private BigDecimal metalRate = BigDecimal.ZERO;
+    @Column(name = "amount", precision = 14, scale = 2, nullable = false)
+    private BigDecimal amount;
 
-    @Column(name = "metal_value", precision = 14, scale = 2)
-    private BigDecimal metalValue = BigDecimal.ZERO;
+    @Column(name = "reference", length = 100)
+    private String reference;
 
-    @Column(name = "making_charges", precision = 12, scale = 2)
-    private BigDecimal makingCharges = BigDecimal.ZERO;
-
-    @Column(name = "stone_charges", precision = 12, scale = 2)
-    private BigDecimal stoneCharges = BigDecimal.ZERO;
-
-    @Column(name = "other_charges", precision = 12, scale = 2)
-    private BigDecimal otherCharges = BigDecimal.ZERO;
-
-    @Column(name = "discount", precision = 12, scale = 2)
-    private BigDecimal discount = BigDecimal.ZERO;
-
-    @Column(name = "taxable_amount", precision = 14, scale = 2)
-    private BigDecimal taxableAmount = BigDecimal.ZERO;
-
-    @Column(name = "cgst_percent", precision = 5, scale = 2)
-    private BigDecimal cgstPercent = new BigDecimal("1.50");
-
-    @Column(name = "sgst_percent", precision = 5, scale = 2)
-    private BigDecimal sgstPercent = new BigDecimal("1.50");
-
-    @Column(name = "cgst_amount", precision = 12, scale = 2)
-    private BigDecimal cgstAmount = BigDecimal.ZERO;
-
-    @Column(name = "sgst_amount", precision = 12, scale = 2)
-    private BigDecimal sgstAmount = BigDecimal.ZERO;
-
-    @Column(name = "total_amount", precision = 14, scale = 2)
-    private BigDecimal totalAmount = BigDecimal.ZERO;
+    @Column(name = "payment_date", nullable = false)
+    private LocalDate paymentDate;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;
+
+    public enum PaymentKind {
+        ADVANCE,
+        BALANCE
+    }
 }
