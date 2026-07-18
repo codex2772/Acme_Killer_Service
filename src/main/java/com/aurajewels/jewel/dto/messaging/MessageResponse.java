@@ -21,33 +21,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.repository;
+package com.aurajewels.jewel.dto.messaging;
 
-import com.aurajewels.jewel.entity.SchemeMember;
-import java.util.List;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * Spring Data JPA repository for SchemeMember entities.
+ * Result of a message send attempt returned to the caller.
  *
- * @author Diksha Mohite
+ * @author Raviraj Bhosale
  */
-@Repository
-public interface SchemeMemberRepository extends JpaRepository<SchemeMember, Long> {
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class MessageResponse {
 
-    List<SchemeMember> findByScheme_Id(Long schemeId);
+    private Long messageLogId;
 
-    Optional<SchemeMember> findByIdAndScheme_Id(Long id, Long schemeId);
+    /** Final status: SENT, FAILED, or one of the SKIPPED_* reasons. */
+    private String status;
 
-    List<SchemeMember> findByCustomer_Id(Long customerId);
-
-    List<SchemeMember> findByCustomer_IdAndStatus(
-            Long customerId, SchemeMember.MemberStatus status);
-
-    boolean existsByScheme_IdAndCustomer_Id(Long schemeId, Long customerId);
-
-    List<SchemeMember> findByScheme_Store_IdAndStatus(
-            Long storeId, SchemeMember.MemberStatus status);
+    /** Provider message id (Meta wamid) when accepted. */
+    private String providerMessageId;
 }

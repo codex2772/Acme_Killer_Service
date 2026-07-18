@@ -23,31 +23,32 @@
  */
 package com.aurajewels.jewel.repository;
 
-import com.aurajewels.jewel.entity.SchemeMember;
+import com.aurajewels.jewel.entity.MessageTemplate;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
- * Spring Data JPA repository for SchemeMember entities.
+ * Spring Data JPA repository for message templates. A store-scoped template overrides a
+ * platform-default template (store is null) sharing the same code.
  *
- * @author Diksha Mohite
+ * @author Raviraj Bhosale
  */
 @Repository
-public interface SchemeMemberRepository extends JpaRepository<SchemeMember, Long> {
+public interface MessageTemplateRepository extends JpaRepository<MessageTemplate, Long> {
 
-    List<SchemeMember> findByScheme_Id(Long schemeId);
+    Optional<MessageTemplate> findByStore_IdAndCode(Long storeId, String code);
 
-    Optional<SchemeMember> findByIdAndScheme_Id(Long id, Long schemeId);
+    /** Platform-default template for a code (store is null). */
+    Optional<MessageTemplate> findByStoreIsNullAndCode(String code);
 
-    List<SchemeMember> findByCustomer_Id(Long customerId);
+    List<MessageTemplate> findByStore_Id(Long storeId);
 
-    List<SchemeMember> findByCustomer_IdAndStatus(
-            Long customerId, SchemeMember.MemberStatus status);
-
-    boolean existsByScheme_IdAndCustomer_Id(Long schemeId, Long customerId);
-
-    List<SchemeMember> findByScheme_Store_IdAndStatus(
-            Long storeId, SchemeMember.MemberStatus status);
+    /** Templates visible to a store: its own overrides plus the platform defaults. */
+    @Query(
+            "select t from MessageTemplate t where t.active = true"
+                    + " and (t.store is null or t.store.id = :storeId)")
+    List<MessageTemplate> findVisibleToStore(Long storeId);
 }

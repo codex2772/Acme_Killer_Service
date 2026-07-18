@@ -25,6 +25,7 @@ package com.aurajewels.jewel.service;
 
 import com.aurajewels.jewel.dto.billing.*;
 import com.aurajewels.jewel.entity.*;
+import com.aurajewels.jewel.event.InvoiceCreatedEvent;
 import com.aurajewels.jewel.repository.*;
 import com.aurajewels.jewel.security.StoreContext;
 import java.math.BigDecimal;
@@ -32,6 +33,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,6 +52,7 @@ public class InvoiceService {
     private final JewelryItemRepository jewelryItemRepository;
     private final LedgerEntryRepository ledgerEntryRepository;
     private final ActivityLogService activityLogService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional(readOnly = true)
     public List<InvoiceResponse> listInvoices(
@@ -279,6 +282,19 @@ public class InvoiceService {
                 "Billing",
                 "INVOICE",
                 invoice.getId());
+
+        // Fire-and-forget WhatsApp confirmation (sent after commit, off the request thread).
+        eventPublisher.publishEvent(
+                new InvoiceCreatedEvent(
+                        storeId,
+                        customer.getId(),
+                        invoice.getId(),
+                        invoiceNumber,
+                        invoice.getTotalAmount() != null
+                                ? invoice.getTotalAmount().toPlainString()
+                                : "0",
+                        store.getName(),
+                        customerName));
 
         return toResponse(invoice);
     }

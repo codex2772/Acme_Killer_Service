@@ -21,33 +21,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.repository;
+package com.aurajewels.jewel.dto.messaging;
 
-import com.aurajewels.jewel.entity.SchemeMember;
 import java.util.List;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import java.util.Map;
+import lombok.Data;
 
 /**
- * Spring Data JPA repository for SchemeMember entities.
+ * Request to run a bulk campaign to a resolved audience.
  *
- * @author Diksha Mohite
+ * @author Raviraj Bhosale
  */
-@Repository
-public interface SchemeMemberRepository extends JpaRepository<SchemeMember, Long> {
+@Data
+public class BulkMessageRequest {
 
-    List<SchemeMember> findByScheme_Id(Long schemeId);
+    private String name;
+    private String templateCode;
 
-    Optional<SchemeMember> findByIdAndScheme_Id(Long id, Long schemeId);
+    /** ALL_CUSTOMERS, SCHEME_MEMBERS, or CUSTOM_LIST (date-based audiences not yet supported). */
+    private String audienceType;
 
-    List<SchemeMember> findByCustomer_Id(Long customerId);
+    /** Explicit recipient ids for CUSTOM_LIST audiences. */
+    private List<Long> customerIds;
 
-    List<SchemeMember> findByCustomer_IdAndStatus(
-            Long customerId, SchemeMember.MemberStatus status);
-
-    boolean existsByScheme_IdAndCustomer_Id(Long schemeId, Long customerId);
-
-    List<SchemeMember> findByScheme_Store_IdAndStatus(
-            Long storeId, SchemeMember.MemberStatus status);
+    private Map<String, Object> variables;
+    private String mediaUrl;
 }

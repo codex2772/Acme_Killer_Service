@@ -23,31 +23,19 @@
  */
 package com.aurajewels.jewel.repository;
 
-import com.aurajewels.jewel.entity.SchemeMember;
-import java.util.List;
-import java.util.Optional;
+import com.aurajewels.jewel.entity.MessageCampaign;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 /**
- * Spring Data JPA repository for SchemeMember entities.
+ * Spring Data JPA repository for bulk message campaigns.
  *
- * @author Diksha Mohite
+ * @author Raviraj Bhosale
  */
 @Repository
-public interface SchemeMemberRepository extends JpaRepository<SchemeMember, Long> {
+public interface MessageCampaignRepository extends JpaRepository<MessageCampaign, Long> {
 
-    List<SchemeMember> findByScheme_Id(Long schemeId);
-
-    Optional<SchemeMember> findByIdAndScheme_Id(Long id, Long schemeId);
-
-    List<SchemeMember> findByCustomer_Id(Long customerId);
-
-    List<SchemeMember> findByCustomer_IdAndStatus(
-            Long customerId, SchemeMember.MemberStatus status);
-
-    boolean existsByScheme_IdAndCustomer_Id(Long schemeId, Long customerId);
-
-    List<SchemeMember> findByScheme_Store_IdAndStatus(
-            Long storeId, SchemeMember.MemberStatus status);
+    Page<MessageCampaign> findByStore_IdOrderByCreatedAtDesc(Long storeId, Pageable pageable);
 }

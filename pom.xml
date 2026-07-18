@@ -26,6 +26,7 @@
 		<java.version>21</java.version>
 		<jjwt.version>0.12.6</jjwt.version>
 		<aws.sdk.version>2.25.16</aws.sdk.version>
+		<aws.secretsmanager.version>2.25.60</aws.secretsmanager.version>
 	</properties>
 
 	<dependencies>
@@ -120,6 +121,15 @@
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>s3</artifactId>
 			<version>${aws.sdk.version}</version>
+		</dependency>
+
+		<!-- AWS Secrets Manager SDK for per-store WhatsApp access tokens.
+		     Shared AWS core artifacts are mediated to ${aws.sdk.version} (s3 is
+		     declared first), so only the secretsmanager client differs. -->
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>secretsmanager</artifactId>
+			<version>${aws.secretsmanager.version}</version>
 		</dependency>
 
 		<!-- Razorpay Java SDK for payment gateway -->

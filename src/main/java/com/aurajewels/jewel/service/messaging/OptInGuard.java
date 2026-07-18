@@ -21,33 +21,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.repository;
+package com.aurajewels.jewel.service.messaging;
 
-import com.aurajewels.jewel.entity.SchemeMember;
-import java.util.List;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import com.aurajewels.jewel.entity.Customer;
+import com.aurajewels.jewel.entity.MessageTemplate;
+import org.springframework.stereotype.Component;
 
 /**
- * Spring Data JPA repository for SchemeMember entities.
+ * Enforces WhatsApp opt-in rules: marketing messages require explicit consent; utility and
+ * authentication messages do not.
  *
- * @author Diksha Mohite
+ * @author Raviraj Bhosale
  */
-@Repository
-public interface SchemeMemberRepository extends JpaRepository<SchemeMember, Long> {
+@Component
+public class OptInGuard {
 
-    List<SchemeMember> findByScheme_Id(Long schemeId);
-
-    Optional<SchemeMember> findByIdAndScheme_Id(Long id, Long schemeId);
-
-    List<SchemeMember> findByCustomer_Id(Long customerId);
-
-    List<SchemeMember> findByCustomer_IdAndStatus(
-            Long customerId, SchemeMember.MemberStatus status);
-
-    boolean existsByScheme_IdAndCustomer_Id(Long schemeId, Long customerId);
-
-    List<SchemeMember> findByScheme_Store_IdAndStatus(
-            Long storeId, SchemeMember.MemberStatus status);
+    public boolean allowed(Customer customer, MessageTemplate.TemplateCategory category) {
+        if (category == MessageTemplate.TemplateCategory.MARKETING) {
+            return Boolean.TRUE.equals(customer.getWhatsappOptIn());
+        }
+        return true;
+    }
 }

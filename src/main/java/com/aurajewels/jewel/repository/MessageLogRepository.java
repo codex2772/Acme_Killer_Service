@@ -23,31 +23,33 @@
  */
 package com.aurajewels.jewel.repository;
 
-import com.aurajewels.jewel.entity.SchemeMember;
-import java.util.List;
+import com.aurajewels.jewel.entity.MessageLog;
+import java.time.Instant;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 /**
- * Spring Data JPA repository for SchemeMember entities.
+ * Spring Data JPA repository for message logs (audit + delivery tracking).
  *
- * @author Diksha Mohite
+ * @author Raviraj Bhosale
  */
 @Repository
-public interface SchemeMemberRepository extends JpaRepository<SchemeMember, Long> {
+public interface MessageLogRepository extends JpaRepository<MessageLog, Long> {
 
-    List<SchemeMember> findByScheme_Id(Long schemeId);
+    /** Match a delivery-status webhook back to its log row. */
+    Optional<MessageLog> findByProviderMessageId(String providerMessageId);
 
-    Optional<SchemeMember> findByIdAndScheme_Id(Long id, Long schemeId);
+    /** Idempotency guard for auto-triggered sends (e.g. INVOICE + invoice id). */
+    boolean existsByStoreIdAndCustomerIdAndRefTypeAndRefId(
+            Long storeId, Long customerId, String refType, Long refId);
 
-    List<SchemeMember> findByCustomer_Id(Long customerId);
+    Page<MessageLog> findByStoreIdOrderByCreatedAtDesc(Long storeId, Pageable pageable);
 
-    List<SchemeMember> findByCustomer_IdAndStatus(
-            Long customerId, SchemeMember.MemberStatus status);
+    long countByStoreIdAndCreatedAtAfter(Long storeId, Instant since);
 
-    boolean existsByScheme_IdAndCustomer_Id(Long schemeId, Long customerId);
-
-    List<SchemeMember> findByScheme_Store_IdAndStatus(
-            Long storeId, SchemeMember.MemberStatus status);
+    long countByStoreIdAndStatusAndCreatedAtAfter(
+            Long storeId, MessageLog.MessageStatus status, Instant since);
 }

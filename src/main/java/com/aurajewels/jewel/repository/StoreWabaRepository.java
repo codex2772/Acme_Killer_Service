@@ -23,31 +23,24 @@
  */
 package com.aurajewels.jewel.repository;
 
-import com.aurajewels.jewel.entity.SchemeMember;
+import com.aurajewels.jewel.entity.StoreWaba;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 /**
- * Spring Data JPA repository for SchemeMember entities.
+ * Spring Data JPA repository for per-store WhatsApp Business Account connections.
  *
- * @author Diksha Mohite
+ * @author Raviraj Bhosale
  */
 @Repository
-public interface SchemeMemberRepository extends JpaRepository<SchemeMember, Long> {
+public interface StoreWabaRepository extends JpaRepository<StoreWaba, Long> {
 
-    List<SchemeMember> findByScheme_Id(Long schemeId);
+    Optional<StoreWaba> findByStore_Id(Long storeId);
 
-    Optional<SchemeMember> findByIdAndScheme_Id(Long id, Long schemeId);
+    /** Used to route inbound/status webhooks back to the owning store. */
+    Optional<StoreWaba> findByPhoneNumberId(String phoneNumberId);
 
-    List<SchemeMember> findByCustomer_Id(Long customerId);
-
-    List<SchemeMember> findByCustomer_IdAndStatus(
-            Long customerId, SchemeMember.MemberStatus status);
-
-    boolean existsByScheme_IdAndCustomer_Id(Long schemeId, Long customerId);
-
-    List<SchemeMember> findByScheme_Store_IdAndStatus(
-            Long storeId, SchemeMember.MemberStatus status);
+    List<StoreWaba> findByStatus(StoreWaba.WabaStatus status);
 }

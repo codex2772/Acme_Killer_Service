@@ -21,33 +21,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.repository;
+package com.aurajewels.jewel.dto.messaging;
 
-import com.aurajewels.jewel.entity.SchemeMember;
-import java.util.List;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import java.util.Map;
+import lombok.Data;
 
 /**
- * Spring Data JPA repository for SchemeMember entities.
+ * Request to send a single templated WhatsApp message to a customer.
  *
- * @author Diksha Mohite
+ * @author Raviraj Bhosale
  */
-@Repository
-public interface SchemeMemberRepository extends JpaRepository<SchemeMember, Long> {
+@Data
+public class SendMessageRequest {
 
-    List<SchemeMember> findByScheme_Id(Long schemeId);
+    private Long customerId;
 
-    Optional<SchemeMember> findByIdAndScheme_Id(Long id, Long schemeId);
+    /** Template code to send, e.g. HELLO_WORLD or INVOICE_CONFIRMATION. */
+    private String templateCode;
 
-    List<SchemeMember> findByCustomer_Id(Long customerId);
+    /** Values for the template's named variables. */
+    private Map<String, Object> variables;
 
-    List<SchemeMember> findByCustomer_IdAndStatus(
-            Long customerId, SchemeMember.MemberStatus status);
-
-    boolean existsByScheme_IdAndCustomer_Id(Long schemeId, Long customerId);
-
-    List<SchemeMember> findByScheme_Store_IdAndStatus(
-            Long storeId, SchemeMember.MemberStatus status);
+    /** Optional media (image/document) link for templates with a media header. */
+    private String mediaUrl;
 }

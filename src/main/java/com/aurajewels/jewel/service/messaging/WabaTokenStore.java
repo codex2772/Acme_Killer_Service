@@ -21,33 +21,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.repository;
-
-import com.aurajewels.jewel.entity.SchemeMember;
-import java.util.List;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+package com.aurajewels.jewel.service.messaging;
 
 /**
- * Spring Data JPA repository for SchemeMember entities.
+ * Secure storage for per-store WhatsApp access tokens. Tokens never live in the application
+ * database — only the opaque reference returned by {@link #store} is persisted (on {@code
+ * store_waba.access_token_ref}).
  *
- * @author Diksha Mohite
+ * @author Raviraj Bhosale
  */
-@Repository
-public interface SchemeMemberRepository extends JpaRepository<SchemeMember, Long> {
+public interface WabaTokenStore {
 
-    List<SchemeMember> findByScheme_Id(Long schemeId);
+    /**
+     * Persist a store's access token and return the reference used to resolve it later.
+     *
+     * @param storeId owning store
+     * @param accessToken the raw provider access token
+     * @return an opaque reference to persist on the WABA record
+     */
+    String store(Long storeId, String accessToken);
 
-    Optional<SchemeMember> findByIdAndScheme_Id(Long id, Long schemeId);
-
-    List<SchemeMember> findByCustomer_Id(Long customerId);
-
-    List<SchemeMember> findByCustomer_IdAndStatus(
-            Long customerId, SchemeMember.MemberStatus status);
-
-    boolean existsByScheme_IdAndCustomer_Id(Long schemeId, Long customerId);
-
-    List<SchemeMember> findByScheme_Store_IdAndStatus(
-            Long storeId, SchemeMember.MemberStatus status);
+    /**
+     * Resolve the raw access token for a stored reference.
+     *
+     * @param tokenRef the reference previously returned by {@link #store}
+     * @return the raw access token
+     */
+    String resolve(String tokenRef);
 }

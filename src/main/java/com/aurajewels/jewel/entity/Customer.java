@@ -24,6 +24,7 @@
 package com.aurajewels.jewel.entity;
 
 import jakarta.persistence.*;
+import java.time.Instant;
 import lombok.*;
 
 /**
@@ -81,4 +82,21 @@ public class Customer extends BaseEntity {
 
     @Column(name = "pan", length = 15)
     private String pan;
+
+    // ── WhatsApp messaging opt-in (V13) ──────────────────────────────
+
+    /** Whether the customer has consented to receive WhatsApp marketing messages. */
+    @Column(name = "whatsapp_opt_in")
+    private Boolean whatsappOptIn;
+
+    /** How consent was captured (e.g. BILLING_CHECKBOX, INBOUND_MESSAGE). */
+    @Column(name = "whatsapp_opt_in_source", length = 60)
+    private String whatsappOptInSource;
+
+    @Column(name = "whatsapp_opt_in_at")
+    private Instant whatsappOptInAt;
+
+    /** Learned over time from send results; null until known. */
+    @Column(name = "has_whatsapp")
+    private Boolean hasWhatsapp;
 }

@@ -21,33 +21,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.repository;
+package com.aurajewels.jewel.dto.messaging;
 
-import com.aurajewels.jewel.entity.SchemeMember;
-import java.util.List;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import java.time.Instant;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * Spring Data JPA repository for SchemeMember entities.
+ * Campaign summary with live counters.
  *
- * @author Diksha Mohite
+ * @author Raviraj Bhosale
  */
-@Repository
-public interface SchemeMemberRepository extends JpaRepository<SchemeMember, Long> {
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class CampaignResponse {
 
-    List<SchemeMember> findByScheme_Id(Long schemeId);
-
-    Optional<SchemeMember> findByIdAndScheme_Id(Long id, Long schemeId);
-
-    List<SchemeMember> findByCustomer_Id(Long customerId);
-
-    List<SchemeMember> findByCustomer_IdAndStatus(
-            Long customerId, SchemeMember.MemberStatus status);
-
-    boolean existsByScheme_IdAndCustomer_Id(Long schemeId, Long customerId);
-
-    List<SchemeMember> findByScheme_Store_IdAndStatus(
-            Long storeId, SchemeMember.MemberStatus status);
+    private Long campaignId;
+    private String name;
+    private String audienceType;
+    private String status;
+    private Integer totalRecipients;
+    private Integer sentCount;
+    private Integer deliveredCount;
+    private Integer readCount;
+    private Integer failedCount;
+    private Instant completedAt;
 }

@@ -21,33 +21,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.repository;
+package com.aurajewels.jewel.service.messaging;
 
-import com.aurajewels.jewel.entity.SchemeMember;
+import com.aurajewels.jewel.entity.MessageTemplate;
 import java.util.List;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 /**
- * Spring Data JPA repository for SchemeMember entities.
+ * Provider-agnostic description of a template message to dispatch.
  *
- * @author Diksha Mohite
+ * @param toPhone recipient in E.164 digits (no +), e.g. 919999999999
+ * @param metaTemplateName template name as registered/approved with the provider
+ * @param languageCode template language code, e.g. en / en_US
+ * @param headerType header format, drives whether {@code mediaUrl} is attached
+ * @param mediaUrl link to header image/document (used only for IMAGE/DOCUMENT headers)
+ * @param bodyParams ordered values substituted into the template body placeholders
+ * @author Raviraj Bhosale
  */
-@Repository
-public interface SchemeMemberRepository extends JpaRepository<SchemeMember, Long> {
-
-    List<SchemeMember> findByScheme_Id(Long schemeId);
-
-    Optional<SchemeMember> findByIdAndScheme_Id(Long id, Long schemeId);
-
-    List<SchemeMember> findByCustomer_Id(Long customerId);
-
-    List<SchemeMember> findByCustomer_IdAndStatus(
-            Long customerId, SchemeMember.MemberStatus status);
-
-    boolean existsByScheme_IdAndCustomer_Id(Long schemeId, Long customerId);
-
-    List<SchemeMember> findByScheme_Store_IdAndStatus(
-            Long storeId, SchemeMember.MemberStatus status);
-}
+public record WhatsAppTemplateSend(
+        String toPhone,
+        String metaTemplateName,
+        String languageCode,
+        MessageTemplate.HeaderType headerType,
+        String mediaUrl,
+        List<String> bodyParams) {}

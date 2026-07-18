@@ -21,33 +21,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.repository;
+package com.aurajewels.jewel.service.messaging;
 
-import com.aurajewels.jewel.entity.SchemeMember;
-import java.util.List;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import com.aurajewels.jewel.entity.StoreWaba;
 
 /**
- * Spring Data JPA repository for SchemeMember entities.
+ * Abstraction over a WhatsApp Business API provider. The only implementation today is {@link
+ * MetaCloudWhatsAppProvider} (Meta Cloud API direct); a future MSG91-backed implementation can be
+ * dropped in behind this interface with no change to the calling services.
  *
- * @author Diksha Mohite
+ * @author Raviraj Bhosale
  */
-@Repository
-public interface SchemeMemberRepository extends JpaRepository<SchemeMember, Long> {
+public interface WhatsAppProvider {
 
-    List<SchemeMember> findByScheme_Id(Long schemeId);
-
-    Optional<SchemeMember> findByIdAndScheme_Id(Long id, Long schemeId);
-
-    List<SchemeMember> findByCustomer_Id(Long customerId);
-
-    List<SchemeMember> findByCustomer_IdAndStatus(
-            Long customerId, SchemeMember.MemberStatus status);
-
-    boolean existsByScheme_IdAndCustomer_Id(Long schemeId, Long customerId);
-
-    List<SchemeMember> findByScheme_Store_IdAndStatus(
-            Long storeId, SchemeMember.MemberStatus status);
+    /**
+     * Send a pre-approved template message from the given store's WhatsApp number.
+     *
+     * @param waba the sending store's connected WhatsApp Business Account
+     * @param send the resolved template payload
+     * @return the send outcome (never throws for expected provider errors)
+     */
+    SendResult sendTemplate(StoreWaba waba, WhatsAppTemplateSend send);
 }

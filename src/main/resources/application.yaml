@@ -83,3 +83,24 @@ razorpay:
   key-secret: ${RAZORPAY_KEY_SECRET:test_secret_placeholder}
   webhook-secret: ${RAZORPAY_WEBHOOK_SECRET:webhook_secret_placeholder}
 
+# WhatsApp Messaging (Meta Cloud API direct; MSG91 provider is a future drop-in)
+whatsapp:
+  enabled: ${WHATSAPP_ENABLED:false}          # global kill-switch
+  provider: ${WHATSAPP_PROVIDER:meta}         # meta | msg91 (future)
+  default-channel: WHATSAPP
+  # Per-store token storage: 'local' (AES-encrypted in DB) or 'secrets-manager' (AWS, prod)
+  token-store: ${WABA_TOKEN_STORE:local}
+  # Encrypts per-store access tokens at rest (local store only)
+  token-encryption-key: ${WABA_TOKEN_ENCRYPTION_KEY:change-me-waba-token-encryption-key}
+  # Secrets Manager name prefix, full name is <prefix>/<storeId> (secrets-manager store only)
+  token-secret-prefix: ${WABA_SECRET_PREFIX:jewel-erp/local/waba}
+  meta:
+    graph-base-url: ${META_GRAPH_URL:https://graph.facebook.com/v21.0}
+    app-id: ${META_APP_ID:placeholder}
+    app-secret: ${META_APP_SECRET:placeholder}
+    webhook-verify-token: ${META_WEBHOOK_VERIFY_TOKEN:placeholder}
+
+# Messaging dispatch
+messaging:
+  async-pool-size: ${MESSAGING_ASYNC_POOL:4}
+
