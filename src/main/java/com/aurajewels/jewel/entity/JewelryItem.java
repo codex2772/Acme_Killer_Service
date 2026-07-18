@@ -133,10 +133,11 @@ public class JewelryItem extends BaseEntity {
     public void replaceStoneDetails(List<StoneDetail> newStones) {
         this.stoneDetails.clear();
         if (newStones != null) {
-            newStones.forEach(stone -> {
-                stone.setJewelryItem(this);
-                this.stoneDetails.add(stone);
-            });
+            newStones.forEach(
+                    stone -> {
+                        stone.setJewelryItem(this);
+                        this.stoneDetails.add(stone);
+                    });
         }
     }
 

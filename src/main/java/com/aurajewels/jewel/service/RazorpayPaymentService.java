@@ -286,8 +286,7 @@ public class RazorpayPaymentService {
         if (webhookSecret == null
                 || webhookSecret.isBlank()
                 || "webhook_secret_placeholder".equals(webhookSecret)) {
-            log.warn(
-                    "Razorpay webhook secret not configured — skipping webhook processing");
+            log.warn("Razorpay webhook secret not configured — skipping webhook processing");
             return;
         }
 

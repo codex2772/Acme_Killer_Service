@@ -712,10 +712,7 @@ public class CustomerAppService {
         return CustomerOrderResponse.builder()
                 .id(invoice.getId())
                 .invoiceNumber(invoice.getInvoiceNumber())
-                .date(
-                        invoice.getInvoiceDate() != null
-                                ? invoice.getInvoiceDate().toString()
-                                : null)
+                .date(invoice.getInvoiceDate() != null ? invoice.getInvoiceDate().toString() : null)
                 .storeName(
                         invoice.getStore() != null ? invoice.getStore().getName() : "Unknown Store")
                 .storeId(invoice.getStore() != null ? invoice.getStore().getId() : null)
