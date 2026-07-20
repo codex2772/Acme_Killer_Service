@@ -1,0 +1,72 @@
+# GitLab CI — parity port of .github/workflows/ci-cd.yml (the merge gate).
+#
+# Scope: the BUILD & TEST gate only. The GitHub deploy.yml / infrastructure.yml
+# workflows are manual (workflow_dispatch) ops pipelines that never blocked a
+# merge, so they are intentionally not reproduced here. The GitHub workflows are
+# left untouched for when the GitHub appeal resolves.
+#
+# The gate needs NO CI/CD variables: tests run against in-memory H2 using the
+# committed src/test/resources/application-test.yaml (no service containers, no
+# Testcontainers, no Docker). See the design notes for the migration rationale.
+
+stages:
+  - verify
+
+default:
+  # Match GitHub's setup-java (Java 21 Temurin). Maven itself comes from the
+  # repo's ./mvnw wrapper (pinned to 3.9.12) for exact Maven-version parity.
+  image: eclipse-temurin:21-jdk
+  # The wrapper is distributionType=only-script, so it fetches the Maven
+  # distribution with curl/wget + unzip — none ship in the base JDK image.
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends curl unzip
+    - chmod +x mvnw
+  # Equivalent of actions/setup-java `cache: maven` — cache the local repo,
+  # keyed on pom.xml so it invalidates when dependencies change.
+  cache:
+    key:
+      files:
+        - pom.xml
+    paths:
+      - .m2/repository/
+
+variables:
+  # Keep the Maven local repo inside the project dir so `cache:` can persist it.
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+  MAVEN_CLI_OPTS: "-B -ntp"
+
+# Trigger parity with ci-cd.yml:
+#   push  → main, develop, feature/**, feature-*, release/**, hotfix/**
+#   PR    → main, develop
+# Plus the standard rule to avoid running a duplicate branch pipeline when the
+# branch already has an open merge request.
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^(main|develop)$/'
+    - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never
+    - if: '$CI_COMMIT_BRANCH =~ /^(main|develop|feature\/.+|feature-.+|release\/.+|hotfix\/.+)$/'
+
+# Advisory only — mirrors the `continue-on-error: true` Spotless step. Spotless
+# has no <execution> binding in pom.xml, so `mvn verify` does NOT enforce it;
+# this surfaces formatting drift without blocking the merge.
+spotless:
+  stage: verify
+  script:
+    - ./mvnw $MAVEN_CLI_OPTS spotless:check
+  allow_failure: true
+  interruptible: true
+
+# THE GATE — compile + run tests. Fails the pipeline if tests fail, exactly like
+# `./mvnw clean verify -B` on GitHub. Publishes the built jar (retention 3 days,
+# matching the GitHub upload-artifact retention-days: 3).
+build-test:
+  stage: verify
+  script:
+    - ./mvnw $MAVEN_CLI_OPTS clean verify
+  artifacts:
+    paths:
+      - target/*.jar
+    expire_in: 3 days
+    when: on_success
+  interruptible: true
