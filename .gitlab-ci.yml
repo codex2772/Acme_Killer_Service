@@ -1,28 +1,46 @@
-# GitLab CI — parity port of .github/workflows/ci-cd.yml (the merge gate).
+# GitLab CI — port of the GitHub Actions pipelines (GitHub suspended).
 #
-# Scope: the BUILD & TEST gate only. The GitHub deploy.yml / infrastructure.yml
-# workflows are manual (workflow_dispatch) ops pipelines that never blocked a
-# merge, so they are intentionally not reproduced here. The GitHub workflows are
-# left untouched for when the GitHub appeal resolves.
+#   verify   → parity of ci-cd.yml            (auto: the MERGE GATE)
+#   package  → port of deploy.yml's docker job (manual: build+push image to ECR)
+#   deploy   → port of deploy.yml's deploy job (auto after package: ECS rollout)
+#   infra    → port of infrastructure.yml      (manual: terraform plan/apply/destroy)
 #
-# The gate needs NO CI/CD variables: tests run against in-memory H2 using the
-# committed src/test/resources/application-test.yaml (no service containers, no
-# Testcontainers, no Docker). See the design notes for the migration rationale.
+# .github/workflows/ is left intact for when the GitHub appeal resolves.
+#
+# The GATE needs no secrets (H2 in-memory tests). The package/deploy/infra jobs
+# DO need CI/CD variables re-added in GitLab (Settings > CI/CD > Variables):
+#   AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY   (masked, protected)
+#   plus for infra: DB_PASSWORD, JWT_SECRET, RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET,
+#   RAZORPAY_WEBHOOK_SECRET, and optionally META_APP_SECRET, META_WEBHOOK_VERIFY_TOKEN.
+# These jobs cannot be dry-run from here — validate them on the first manual run.
 
 stages:
   - verify
+  - package
+  - deploy
+  - infra
 
+variables:
+  # ---- Maven / gate ----
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+  MAVEN_CLI_OPTS: "-B -ntp"
+  # ---- AWS / deploy (mirrors deploy.yml env) ----
+  AWS_REGION: "ap-south-1"
+  ECR_REPOSITORY: "jewel-erp"
+  ECS_CLUSTER: "jewel-erp-cluster"
+  ECS_SERVICE: "jewel-erp-service"
+  CONTAINER_NAME: "jewel-erp"
+  # ---- Terraform / infra (mirrors infrastructure.yml env) ----
+  TF_ROOT: "infra/terraform"
+  TF_STATE_BUCKET: "jewel-erp-tfstate-950639281869"
+
+# Defaults apply to the JDK-based verify jobs. AWS/Terraform jobs override
+# image + before_script + cache below.
 default:
-  # Match GitHub's setup-java (Java 21 Temurin). Maven itself comes from the
-  # repo's ./mvnw wrapper (pinned to 3.9.12) for exact Maven-version parity.
   image: eclipse-temurin:21-jdk
-  # The wrapper is distributionType=only-script, so it fetches the Maven
-  # distribution with curl/wget + unzip — none ship in the base JDK image.
   before_script:
     - apt-get update -qq && apt-get install -y -qq --no-install-recommends curl unzip
     - chmod +x mvnw
-  # Equivalent of actions/setup-java `cache: maven` — cache the local repo,
-  # keyed on pom.xml so it invalidates when dependencies change.
   cache:
     key:
       files:
@@ -30,16 +48,9 @@ default:
     paths:
       - .m2/repository/
 
-variables:
-  # Keep the Maven local repo inside the project dir so `cache:` can persist it.
-  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
-  MAVEN_CLI_OPTS: "-B -ntp"
-
-# Trigger parity with ci-cd.yml:
-#   push  → main, develop, feature/**, feature-*, release/**, hotfix/**
-#   PR    → main, develop
-# Plus the standard rule to avoid running a duplicate branch pipeline when the
-# branch already has an open merge request.
+# Pipeline runs for: pushes to main/develop/feature*/release/hotfix, and MRs to
+# main/develop (dedup so a branch with an open MR doesn't run twice). package/
+# deploy/infra live inside these pipelines as manual jobs.
 workflow:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^(main|develop)$/'
@@ -47,9 +58,9 @@ workflow:
       when: never
     - if: '$CI_COMMIT_BRANCH =~ /^(main|develop|feature\/.+|feature-.+|release\/.+|hotfix\/.+)$/'
 
-# Advisory only — mirrors the `continue-on-error: true` Spotless step. Spotless
-# has no <execution> binding in pom.xml, so `mvn verify` does NOT enforce it;
-# this surfaces formatting drift without blocking the merge.
+# ============================================================
+# verify — the merge gate (parity with ci-cd.yml)
+# ============================================================
 spotless:
   stage: verify
   script:
@@ -57,9 +68,6 @@ spotless:
   allow_failure: true
   interruptible: true
 
-# THE GATE — compile + run tests. Fails the pipeline if tests fail, exactly like
-# `./mvnw clean verify -B` on GitHub. Publishes the built jar (retention 3 days,
-# matching the GitHub upload-artifact retention-days: 3).
 build-test:
   stage: verify
   script:
@@ -70,3 +78,175 @@ build-test:
     expire_in: 3 days
     when: on_success
   interruptible: true
+
+# ============================================================
+# package — build image + push to ECR (deploy.yml docker job)
+# ============================================================
+build-image:
+  stage: package
+  image: docker:27-cli
+  services:
+    - docker:27-dind
+  needs: ["build-test"] # don't ship untested code (mirrors deploy.yml build->docker)
+  rules:
+    - if: '$CI_COMMIT_BRANCH'
+      when: manual
+  variables:
+    DOCKER_HOST: "tcp://docker:2376"
+    DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_TLS_VERIFY: "1"
+    DOCKER_CERT_PATH: "/certs/client"
+  cache: []
+  before_script:
+    - apk add --no-cache aws-cli
+  script:
+    - AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+    - ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+    - aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY"
+    - docker build -t "$ECR_REGISTRY/$ECR_REPOSITORY:$CI_COMMIT_SHA" -t "$ECR_REGISTRY/$ECR_REPOSITORY:latest" .
+    - docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$CI_COMMIT_SHA"
+    - docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
+    - echo "IMAGE=$ECR_REGISTRY/$ECR_REPOSITORY:$CI_COMMIT_SHA" >> deploy.env
+  artifacts:
+    reports:
+      dotenv: deploy.env # passes $IMAGE to deploy-ecs
+  interruptible: false
+
+# ============================================================
+# deploy — roll the new image onto ECS (deploy.yml deploy job)
+# Runs automatically after build-image (which is manual), so one click on
+# build-image cascades to the deployment — like the single deploy.yml dispatch.
+# ============================================================
+deploy-ecs:
+  stage: deploy
+  image: alpine:3.20
+  needs: ["build-image"] # inherits $IMAGE via dotenv
+  rules:
+    - if: '$CI_COMMIT_BRANCH'
+      when: on_success
+  environment:
+    name: prod
+  cache: []
+  before_script:
+    - apk add --no-cache aws-cli jq
+  script:
+    # Fetch the live task def, swap the image, strip read-only fields that
+    # register-task-definition rejects (the amazon-ecs-*-task-definition actions
+    # did this internally), register a new revision, roll it out, wait for stable.
+    - aws ecs describe-task-definition --task-definition "$CONTAINER_NAME" --query taskDefinition > td.json
+    - |
+      jq --arg IMG "$IMAGE" '
+        .containerDefinitions[0].image = $IMG
+        | {family, taskRoleArn, executionRoleArn, networkMode, containerDefinitions,
+           volumes, placementConstraints, requiresCompatibilities, cpu, memory,
+           runtimePlatform, ephemeralStorage}
+        | with_entries(select(.value != null))
+      ' td.json > td-new.json
+    - NEW_TD=$(aws ecs register-task-definition --cli-input-json file://td-new.json --query 'taskDefinition.taskDefinitionArn' --output text)
+    - echo "Registered $NEW_TD"
+    - aws ecs update-service --cluster "$ECS_CLUSTER" --service "$ECS_SERVICE" --task-definition "$NEW_TD"
+    - aws ecs wait services-stable --cluster "$ECS_CLUSTER" --services "$ECS_SERVICE"
+    - echo "Deployment stable."
+  interruptible: false
+
+# ============================================================
+# infra — terraform (infrastructure.yml)
+# ============================================================
+.terraform:
+  image:
+    name: hashicorp/terraform:1.7.0
+    entrypoint: [""]
+  cache: []
+  before_script:
+    - apk add --no-cache aws-cli bash
+    # Secrets → TF_VAR_* env (safe with special chars; no heredoc expansion).
+    - export TF_VAR_db_password="$DB_PASSWORD"
+    - export TF_VAR_jwt_secret="$JWT_SECRET"
+    - export TF_VAR_razorpay_key_id="$RAZORPAY_KEY_ID"
+    - export TF_VAR_razorpay_key_secret="$RAZORPAY_KEY_SECRET"
+    - export TF_VAR_razorpay_webhook_secret="$RAZORPAY_WEBHOOK_SECRET"
+    - export TF_VAR_meta_app_secret="${META_APP_SECRET:-}"
+    - export TF_VAR_meta_webhook_verify_token="${META_WEBHOOK_VERIFY_TOKEN:-}"
+    - cd "$TF_ROOT"
+    # Non-secret vars as a tfvars file (mirrors infrastructure.yml values).
+    - |
+      cat > terraform.tfvars <<EOF
+      aws_region  = "$AWS_REGION"
+      environment = "prod"
+      app_name    = "jewel-erp"
+      vpc_cidr           = "10.0.0.0/16"
+      availability_zones = ["${AWS_REGION}a", "${AWS_REGION}b"]
+      container_port   = 8080
+      container_cpu    = 512
+      container_memory = 1024
+      desired_count    = 1
+      db_instance_class = "db.t3.micro"
+      db_name           = "jewelerpdb"
+      db_username       = "jeweladmin"
+      EOF
+    # Bootstrap the remote-state backend (idempotent), then init.
+    - |
+      if ! aws s3api head-bucket --bucket "$TF_STATE_BUCKET" 2>/dev/null; then
+        aws s3api create-bucket --bucket "$TF_STATE_BUCKET" --region "$AWS_REGION" \
+          --create-bucket-configuration LocationConstraint="$AWS_REGION"
+      fi
+      aws s3api put-bucket-versioning --bucket "$TF_STATE_BUCKET" \
+        --versioning-configuration Status=Enabled
+      aws s3api put-public-access-block --bucket "$TF_STATE_BUCKET" \
+        --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
+      if ! aws dynamodb describe-table --table-name terraform-locks --region "$AWS_REGION" >/dev/null 2>&1; then
+        aws dynamodb create-table --table-name terraform-locks \
+          --attribute-definitions AttributeName=LockID,AttributeType=S \
+          --key-schema AttributeName=LockID,KeyType=HASH \
+          --billing-mode PAY_PER_REQUEST --region "$AWS_REGION"
+      fi
+    - terraform init -input=false
+
+# Force-delete a db-credentials secret stuck in 'scheduled for deletion'
+# (mirrors infrastructure.yml's cleanup step; only for apply/destroy).
+.tf-secret-cleanup: &tf_secret_cleanup |
+  STATUS=$(aws secretsmanager describe-secret --secret-id jewel-erp/prod/db-credentials \
+    --query 'DeletedDate' --output text --region "$AWS_REGION" 2>/dev/null || echo "NOT_FOUND")
+  if [ "$STATUS" != "None" ] && [ "$STATUS" != "NOT_FOUND" ]; then
+    aws secretsmanager delete-secret --secret-id jewel-erp/prod/db-credentials \
+      --force-delete-without-recovery --region "$AWS_REGION" 2>/dev/null || true
+  fi
+
+tf-plan:
+  extends: .terraform
+  stage: infra
+  needs: []
+  rules:
+    - if: '$CI_COMMIT_BRANCH'
+      when: manual
+  script:
+    - terraform fmt -check -recursive || true # advisory, mirrors continue-on-error
+    - terraform validate
+    - terraform plan -input=false
+  interruptible: false
+
+tf-apply:
+  extends: .terraform
+  stage: infra
+  needs: []
+  rules:
+    - if: '$CI_COMMIT_BRANCH'
+      when: manual
+  script:
+    - *tf_secret_cleanup
+    - terraform validate
+    - terraform plan -out=tfplan -input=false
+    - terraform apply -input=false -auto-approve tfplan
+  interruptible: false
+
+tf-destroy:
+  extends: .terraform
+  stage: infra
+  needs: []
+  rules:
+    - if: '$CI_COMMIT_BRANCH'
+      when: manual
+  script:
+    - *tf_secret_cleanup
+    - terraform destroy -input=false -auto-approve
+  interruptible: false
