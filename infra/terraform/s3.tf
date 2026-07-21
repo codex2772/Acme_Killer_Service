@@ -50,6 +50,26 @@ resource "aws_s3_bucket_cors_configuration" "images" {
   }
 }
 
+# Invoice PDFs are hosted publicly only so Meta can fetch them for WhatsApp
+# document delivery. Meta caches the file at send time, so the object is
+# short-lived — expire it after 1 day to limit exposure of customer bills.
+resource "aws_s3_bucket_lifecycle_configuration" "images" {
+  bucket = aws_s3_bucket.images.id
+
+  rule {
+    id     = "expire-invoice-pdfs"
+    status = "Enabled"
+
+    filter {
+      prefix = "invoices/"
+    }
+
+    expiration {
+      days = 1
+    }
+  }
+}
+
 # ================================
 # IAM Policy — ECS task role can upload to S3
 # ================================

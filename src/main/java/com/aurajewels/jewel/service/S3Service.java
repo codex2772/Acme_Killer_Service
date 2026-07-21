@@ -60,6 +60,30 @@ public class S3Service {
      * @param folder the S3 folder/prefix (e.g. "jewelry-items", "stores")
      * @return the public URL of the uploaded file
      */
+    /**
+     * Upload raw bytes to S3 and return the public URL. Used for server-generated files (e.g. the
+     * invoice PDF hosted for WhatsApp document delivery).
+     *
+     * @param bytes file content
+     * @param contentType MIME type, e.g. "application/pdf"
+     * @param folder S3 folder/prefix
+     * @param extension file extension including the dot, e.g. ".pdf"
+     * @return the public URL of the uploaded object
+     */
+    public String uploadBytes(byte[] bytes, String contentType, String folder, String extension) {
+        String key = folder + "/" + UUID.randomUUID() + extension;
+        PutObjectRequest request =
+                PutObjectRequest.builder()
+                        .bucket(bucketName)
+                        .key(key)
+                        .contentType(contentType)
+                        .build();
+        s3Client.putObject(request, RequestBody.fromBytes(bytes));
+        String url = String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, key);
+        log.info("Uploaded {} to S3: {}", contentType, url);
+        return url;
+    }
+
     public String uploadFile(MultipartFile file, String folder) {
         String originalFilename = file.getOriginalFilename();
         String extension = "";

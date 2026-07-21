@@ -24,6 +24,7 @@
 package com.aurajewels.jewel.service.messaging;
 
 import com.aurajewels.jewel.event.InvoiceCreatedEvent;
+import com.aurajewels.jewel.service.InvoicePdfService;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,30 +46,56 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class MessagingEventListener {
 
     private final MessagingService messagingService;
+    private final InvoicePdfService invoicePdfService;
 
     @Async("messagingExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onInvoiceCreated(InvoiceCreatedEvent event) {
+        Map<String, Object> vars =
+                Map.of(
+                        "customerName", event.customerName(),
+                        "invoiceNo", event.invoiceNumber(),
+                        "amount", event.amount(),
+                        "storeName", event.storeName());
         try {
+            // Preferred path: attach the invoice PDF as the template's DOCUMENT header.
+            // A send failure (unreachable URL / unapproved template) is recorded on the
+            // message log's failureReason by MessagingService — no exception is thrown here.
+            String pdfUrl = invoicePdfService.generateAndUploadPdf(event.invoiceId());
             messagingService.sendTemplated(
                     event.storeId(),
                     event.customerId(),
-                    "INVOICE_CONFIRMATION",
-                    Map.of(
-                            "customerName", event.customerName(),
-                            "invoiceNo", event.invoiceNumber(),
-                            "amount", event.amount(),
-                            "storeName", event.storeName()),
-                    null,
+                    "INVOICE_DOCUMENT",
+                    vars,
+                    pdfUrl,
                     "INVOICE",
                     event.invoiceId(),
                     null);
-        } catch (Exception e) {
+        } catch (Exception pdfEx) {
+            // PDF generation/upload itself failed — degrade gracefully to the text
+            // confirmation so the customer is still notified.
             log.error(
-                    "Failed to send invoice WhatsApp for invoice {}: {}",
+                    "Invoice PDF unavailable for invoice {} ({}); sending text confirmation instead",
                     event.invoiceId(),
-                    e.getMessage(),
-                    e);
+                    pdfEx.getMessage(),
+                    pdfEx);
+            try {
+                messagingService.sendTemplated(
+                        event.storeId(),
+                        event.customerId(),
+                        "INVOICE_CONFIRMATION",
+                        vars,
+                        null,
+                        "INVOICE",
+                        event.invoiceId(),
+                        null);
+            } catch (Exception e) {
+                log.error(
+                        "Failed to send fallback invoice WhatsApp for invoice {}: {}",
+                        event.invoiceId(),
+                        e.getMessage(),
+                        e);
+            }
         }
     }
 }
