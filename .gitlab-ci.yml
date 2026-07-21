@@ -84,7 +84,9 @@ build-test:
 # ============================================================
 build-image:
   stage: package
-  image: docker:27-cli
+  # Fresh Alpine base + docker-cli & aws-cli from the SAME repo, so libexpat and
+  # aws-cli agree. (docker:*-cli images bake a stale expat that breaks aws-cli.)
+  image: alpine:3.21
   services:
     - docker:27-dind
   needs: ["build-test"] # don't ship untested code (mirrors deploy.yml build->docker)
@@ -98,7 +100,7 @@ build-image:
     DOCKER_CERT_PATH: "/certs/client"
   cache: []
   before_script:
-    - apk add --no-cache aws-cli
+    - apk add --no-cache docker-cli aws-cli
   script:
     - AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
     - ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
@@ -119,7 +121,7 @@ build-image:
 # ============================================================
 deploy-ecs:
   stage: deploy
-  image: alpine:3.20
+  image: alpine:3.21
   needs: ["build-image"] # inherits $IMAGE via dotenv
   rules:
     - if: '$CI_COMMIT_BRANCH'
@@ -153,12 +155,15 @@ deploy-ecs:
 # infra — terraform (infrastructure.yml)
 # ============================================================
 .terraform:
-  image:
-    name: hashicorp/terraform:1.7.0
-    entrypoint: [""]
+  # Fresh Alpine + aws-cli from one repo (avoids the stale-expat break), plus the
+  # pinned Terraform 1.7.0 binary pulled directly for exact version parity.
+  image: alpine:3.21
   cache: []
   before_script:
-    - apk add --no-cache aws-cli bash
+    - apk add --no-cache aws-cli bash curl unzip
+    - curl -fsSL -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/1.7.0/terraform_1.7.0_linux_amd64.zip
+    - unzip -o /tmp/terraform.zip -d /usr/local/bin/
+    - terraform version
     # Secrets → TF_VAR_* env (safe with special chars; no heredoc expansion).
     - export TF_VAR_db_password="$DB_PASSWORD"
     - export TF_VAR_jwt_secret="$JWT_SECRET"
