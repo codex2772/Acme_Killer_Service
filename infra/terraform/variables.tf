@@ -46,13 +46,15 @@ variable "container_port" {
 variable "container_cpu" {
   description = "Container CPU units"
   type        = number
-  default     = 512
+  default     = 1024
 }
 
 variable "container_memory" {
+  # 2 GB: headless Chromium (branded invoice PDF render) alongside the JVM does
+  # not fit in 1 GB and will OOM the Fargate task.
   description = "Container memory in MB"
   type        = number
-  default     = 1024
+  default     = 2048
 }
 
 variable "desired_count" {

@@ -1,0 +1,365 @@
+<!--
+  ============================================================================
+  JewelERP — INVOICE PDF DESIGN SPEC (for backend HTML→PDF generation)
+  ============================================================================
+  This is the exact design the desktop frontend prints (billing.js printInvoice
+  + styles.css .print-inv-* rules), extracted as a single self-contained file.
+
+  GOAL: the PDF attached to the WhatsApp `invoice_document` template should look
+  like THIS, not the current plain black-and-white text PDF.
+
+  PLACEHOLDERS use Mustache-style tokens:
+    {{ token }}              → substitute a value
+    {{# section }}...{{/}}   → render block only if the condition/list is truthy
+    {{# items }}...{{/items}}→ repeat block per array element
+  Swap for your own templating (Jinja/Handlebars/Thymeleaf/etc.) as needed.
+
+  RENDERING NOTES (important — this is why the current PDF looks bare):
+   • Backgrounds & gradients MUST print. Engine-specific:
+       - Puppeteer/Chrome headless:  page.pdf({ printBackground: true, format:'A4' })
+       - WeasyPrint:                 backgrounds print by default (no flag needed)
+       - wkhtmltopdf:                add  --print-media-type  (and it renders bg)
+     The `-webkit-print-color-adjust: exact` rule below is already set for Chrome.
+   • Fonts: headings use 'Playfair Display' (serif), body uses a Segoe/Helvetica
+     stack. If those fonts are NOT installed on the render host, EMBED them
+     (bundle the .woff2 and add an @font-face) or the serif look silently
+     falls back. Safe server fallback chain is already in the CSS.
+   • Page: A4, 8mm margin (see @page).
+   • Currency: pre-format all money as Indian-grouped strings (e.g. ₹1,23,456)
+     on the backend before injecting — the template does not do number math.
+   • "Fine Jewellery Since 1985" tagline is currently hard-coded; make it a
+     store setting if it varies per store.
+  ============================================================================
+-->
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  /* ---- Page ---- */
+  @page { size: A4; margin: 8mm; }
+
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; color-adjust: exact; }
+
+  body { margin: 0; }
+
+  .invoice-page {
+    width: 210mm;
+    min-height: 297mm;
+    background: #fff;
+    color: #1a1a2e;
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 11px;
+    line-height: 1.5;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ---- Dark navy header band with gold accents ---- */
+  .inv-header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #2d2b55 100%);
+    padding: 28px 36px 22px;
+    position: relative;
+    overflow: hidden;
+  }
+  .inv-header::after {                    /* gold underline shimmer band */
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, transparent, #d4af37, #f5e6a3, #d4af37, transparent);
+  }
+  .inv-header-content { display: flex; justify-content: space-between; align-items: flex-start; }
+
+  .inv-brand { flex: 1; }
+  .inv-brand h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 26px; font-weight: 700; color: #d4af37;
+    margin: 0 0 4px 0; letter-spacing: 1px;
+  }
+  .inv-brand .tagline {
+    font-size: 9px; color: #b8962e; letter-spacing: 3px;
+    text-transform: uppercase; margin: 0 0 8px 0;
+  }
+  .inv-brand-details { font-size: 9.5px; color: #a0a0c0; line-height: 1.6; }
+  .inv-brand-details span { display: inline-block; margin-right: 12px; }
+
+  .inv-title-block { text-align: right; }
+  .inv-type {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 22px; font-weight: 700; color: #fff;
+    margin: 0 0 6px 0; letter-spacing: 0.5px;
+  }
+  .inv-number { font-size: 13px; color: #d4af37; font-weight: 700; margin: 0 0 4px 0; }
+  .inv-date-block { font-size: 9.5px; color: #a0a0c0; line-height: 1.7; }
+
+  /* ---- Body ---- */
+  .inv-body { padding: 24px 36px 20px; }
+
+  /* Bill-To + Invoice-details cards */
+  .inv-parties { display: flex; justify-content: space-between; gap: 30px; margin-bottom: 24px; }
+  .inv-party {
+    flex: 1; background: #f8f7f2; border-radius: 8px;
+    padding: 16px 18px; border-left: 3px solid #d4af37;
+  }
+  .inv-party-label {
+    font-size: 8px; text-transform: uppercase; letter-spacing: 2px;
+    color: #999; margin: 0 0 6px 0; font-weight: 600;
+  }
+  .inv-party-name { font-size: 14px; font-weight: 700; color: #1a1a2e; margin: 0 0 4px 0; }
+  .inv-party-details { font-size: 9.5px; color: #555; line-height: 1.6; }
+
+  /* Items table */
+  .inv-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 10.5px; }
+  .inv-table thead th {
+    background: linear-gradient(135deg, #1a1a2e, #2d2b55);
+    color: #d4af37; padding: 10px 12px; text-align: left;
+    font-weight: 600; font-size: 8.5px; text-transform: uppercase;
+    letter-spacing: 1px; border: none;
+  }
+  .inv-table thead th:first-child { border-radius: 6px 0 0 0; }
+  .inv-table thead th:last-child { border-radius: 0 6px 0 0; text-align: right; }
+  .inv-table tbody td { padding: 10px 12px; border-bottom: 1px solid #eee; color: #333; vertical-align: middle; }
+  .inv-table tbody tr:nth-child(even) { background: #fafaf6; }
+  .inv-table tbody tr:last-child td { border-bottom: 2px solid #d4af37; }
+  .inv-table .td-right { text-align: right; font-variant-numeric: tabular-nums; }
+  .inv-table .td-center { text-align: center; }
+  .inv-table .item-name { font-weight: 600; color: #1a1a2e; }
+
+  /* Payment + summary */
+  .inv-bottom { display: flex; justify-content: space-between; gap: 30px; margin-top: 8px; }
+  .inv-payment-info { flex: 1; }
+  .inv-payment-box { background: #f8f7f2; border-radius: 8px; padding: 14px 16px; margin-bottom: 12px; }
+  .inv-payment-box h4 { font-size: 8px; text-transform: uppercase; letter-spacing: 2px; color: #999; margin: 0 0 8px 0; }
+  .inv-payment-row { display: flex; justify-content: space-between; font-size: 10px; color: #555; margin-bottom: 3px; }
+  .inv-payment-row small { color: #888; }
+  .inv-notes { margin-top: 14px; font-size: 9px; color: #777; line-height: 1.6; }
+  .inv-notes strong { color: #555; }
+
+  .inv-summary { width: 240px; flex-shrink: 0; }
+  .inv-summary-row {
+    display: flex; justify-content: space-between; padding: 5px 0;
+    font-size: 10.5px; color: #555; border-bottom: 1px dashed #e5e5e5;
+  }
+  .inv-summary-row span:last-child { font-variant-numeric: tabular-nums; font-weight: 500; }
+  .inv-summary-oldgold { font-size: 0.85em; color: #666; }
+  .inv-summary-oldgold span:first-child { padding-left: 8px; }
+  .inv-summary-total {
+    margin-top: 6px; padding: 10px 14px;
+    background: linear-gradient(135deg, #1a1a2e, #2d2b55);
+    border-radius: 8px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .inv-summary-total span:first-child {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #d4af37; font-weight: 600;
+  }
+  .inv-summary-total span:last-child { font-size: 16px; font-weight: 700; color: #fff; }
+  .inv-paid-row { margin-top: 6px; padding-top: 6px; border-top: 1px solid #ddd; }
+  .inv-paid-row span:first-child { font-weight: 600; }
+  .inv-paid-row span:last-child { color: #16a34a; font-weight: 600; }
+  .inv-due-row span:first-child { font-weight: 700; font-size: 1.05em; }
+  .inv-due-row span:last-child { font-weight: 700; font-size: 1.05em; }
+  .inv-due-row.unpaid span:last-child { color: #dc2626; }
+  .inv-due-row.paid span:last-child { color: #16a34a; }
+
+  /* Amount in words */
+  .inv-words {
+    margin-top: 16px; padding: 10px 14px; background: #f8f7f2;
+    border-radius: 6px; font-size: 9.5px; color: #555; border-left: 3px solid #d4af37;
+  }
+  .inv-words strong { color: #1a1a2e; }
+
+  /* Terms */
+  .inv-terms { margin-top: 12px; padding: 12px 36px; background: #fafaf6; border-top: 1px dashed #ddd; }
+  .inv-terms h4 { font-size: 8px; text-transform: uppercase; letter-spacing: 2px; color: #999; margin: 0 0 6px 0; }
+  .inv-terms ol { margin: 0; padding-left: 16px; font-size: 8px; color: #999; line-height: 1.7; }
+
+  /* Footer */
+  .inv-footer { margin-top: 30px; padding: 18px 36px; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: flex-end; }
+  .inv-signature { text-align: center; }
+  .inv-signature-line { width: 160px; height: 1px; background: #999; margin: 0 auto 6px; }
+  .inv-signature-label { font-size: 8.5px; color: #999; text-transform: uppercase; letter-spacing: 1px; }
+  .inv-footer-brand { text-align: center; flex: 1; }
+  .inv-footer-brand p { font-size: 8px; color: #bbb; margin: 0; letter-spacing: 0.5px; }
+  .inv-footer-brand .thanks-brand { color: #d4af37; font-weight: 600; margin-top: 4px; }
+
+  /* Cancelled watermark */
+  .inv-watermark {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%) rotate(-35deg);
+    font-size: 80px; font-weight: 900; color: rgba(248,113,113,0.12);
+    letter-spacing: 10px; text-transform: uppercase; pointer-events: none; z-index: 1;
+  }
+
+  /* Gold corner ornaments */
+  .inv-ornament-tl, .inv-ornament-br { position: absolute; width: 60px; height: 60px; opacity: 0.08; }
+  .inv-ornament-tl { top: 90px; left: 10px; border-top: 3px solid #d4af37; border-left: 3px solid #d4af37; }
+  .inv-ornament-br { bottom: 10px; right: 10px; border-bottom: 3px solid #d4af37; border-right: 3px solid #d4af37; }
+</style>
+</head>
+<body>
+  <div class="invoice-page">
+
+    {{# isCancelled }}<div class="inv-watermark">CANCELLED</div>{{/ isCancelled }}
+    <div class="inv-ornament-tl"></div>
+    <div class="inv-ornament-br"></div>
+
+    <!-- ============ HEADER ============ -->
+    <div class="inv-header">
+      <div class="inv-header-content">
+        <div class="inv-brand">
+          <h1>{{ businessName }}</h1>
+          <p class="tagline">{{ tagline }}</p>              <!-- e.g. "Fine Jewellery Since 1985" -->
+          <div class="inv-brand-details">
+            <span>📞 {{ storePhone }}</span>
+            <span>✉ {{ storeEmail }}</span>
+            <span>🌐 {{ storeWebsite }}</span><br/>
+            <span>GSTIN: {{ storeGstin }}</span>
+          </div>
+        </div>
+        <div class="inv-title-block">
+          <h2 class="inv-type">{{ typeLabel }}</h2>       <!-- Tax Invoice | Credit Note | Estimate -->
+          <p class="inv-number">{{ invoiceId }}</p>
+          <div class="inv-date-block">
+            <div>Date: <strong>{{ date }}</strong></div>
+            {{# dueDate }}<div>Due: <strong>{{ dueDate }}</strong></div>{{/ dueDate }}
+            <div>Store: <strong>{{ storeName }}</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ BODY ============ -->
+    <div class="inv-body">
+
+      <!-- Parties -->
+      <div class="inv-parties">
+        <div class="inv-party">
+          <p class="inv-party-label">Bill To</p>
+          <p class="inv-party-name">{{ customerName }}</p>   <!-- fallback: "Walk-in Customer" -->
+          <div class="inv-party-details">
+            {{# customerPhone }}📞 {{ customerPhone }}<br/>{{/ customerPhone }}
+            {{# customerEmail }}✉ {{ customerEmail }}<br/>{{/ customerEmail }}
+            {{# customerAddress }}📍 {{ customerAddress }}{{/ customerAddress }}{{# customerCity }}, {{ customerCity }}{{/ customerCity }}
+            {{# customerGstin }}<br/>GSTIN: {{ customerGstin }}{{/ customerGstin }}
+            {{# customerPan }}<br/>PAN: {{ customerPan }}{{/ customerPan }}
+          </div>
+        </div>
+        <div class="inv-party">
+          <p class="inv-party-label">Invoice Details</p>
+          <div class="inv-party-details" style="font-size:10px;line-height:2">
+            <strong>Status:</strong> {{ status }}<br/>
+            <strong>Payment:</strong> {{ paymentMode }}<br/>
+            {{# authorizedBy }}<strong>Authorized by:</strong> {{ authorizedBy }}<br/>{{/ authorizedBy }}
+            <strong>Items:</strong> {{ itemCount }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Items table -->
+      <table class="inv-table">
+        <thead>
+          <tr>
+            <th style="width:30px">#</th>
+            <th>Description</th>
+            <th style="width:50px">Purity</th>
+            <th style="width:50px">HSN</th>
+            <th style="width:70px">Weight</th>
+            <th style="width:80px">Rate</th>
+            <th style="width:90px;text-align:right">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{# items }}
+          <tr>
+            <td class="td-center">{{ index }}</td>
+            <td class="item-name">{{ name }}</td>
+            <td class="td-center">{{ purity }}</td>          <!-- default: — -->
+            <td class="td-center">{{ hsn }}</td>             <!-- default: 7113 -->
+            <td class="td-right">{{ weight }}g</td>          <!-- 3 decimals -->
+            <td class="td-right">{{ rate }}/g</td>           <!-- ₹-formatted -->
+            <td class="td-right">{{ amount }}</td>           <!-- ₹-formatted -->
+          </tr>
+          {{/ items }}
+          {{^ items }}<tr><td colspan="7" style="text-align:center;color:#999;padding:20px">No items</td></tr>{{/ items }}
+        </tbody>
+      </table>
+
+      <!-- Payment + summary -->
+      <div class="inv-bottom">
+        <div class="inv-payment-info">
+          <div class="inv-payment-box">
+            <h4>Payment Details</h4>
+            {{# payments }}
+            <div class="inv-payment-row">
+              <span>{{ mode }}{{# reference }} <small>({{ reference }})</small>{{/ reference }}</span>
+              <span>{{ amount }}</span>
+            </div>
+            {{/ payments }}
+          </div>
+          {{# notes }}<div class="inv-notes"><strong>Notes:</strong> {{ notes }}</div>{{/ notes }}
+        </div>
+
+        <div class="inv-summary">
+          <div class="inv-summary-row"><span>Subtotal</span><span>{{ subtotal }}</span></div>
+          <div class="inv-summary-row"><span>CGST ({{ cgstRate }}%)</span><span>{{ cgstAmount }}</span></div>
+          <div class="inv-summary-row"><span>SGST ({{ sgstRate }}%)</span><span>{{ sgstAmount }}</span></div>
+          {{# discount }}<div class="inv-summary-row"><span>Discount</span><span>- {{ discount }}</span></div>{{/ discount }}
+          {{# oldGoldAdj }}<div class="inv-summary-row"><span>Old Gold Adj.</span><span>- {{ oldGoldAdj }}</span></div>{{/ oldGoldAdj }}
+          {{# oldGoldItems }}
+          <div class="inv-summary-row inv-summary-oldgold">
+            <span>{{ metal }} {{ purity }} — {{ weight }}g × {{ rate }}/g</span><span>- {{ value }}</span>
+          </div>
+          {{/ oldGoldItems }}
+          {{# roundOff }}<div class="inv-summary-row"><span>Round Off</span><span>{{ roundOff }}</span></div>{{/ roundOff }}
+
+          <div class="inv-summary-total">
+            <span>Grand Total</span>
+            <span>{{ grandTotal }}</span>
+          </div>
+
+          <div class="inv-summary-row inv-paid-row">
+            <span>Amount Paid</span>
+            <span>{{ amountPaid }}</span>
+          </div>
+          <div class="inv-summary-row inv-due-row {{# balanceDueIsZero }}paid{{/ balanceDueIsZero }}{{^ balanceDueIsZero }}unpaid{{/ balanceDueIsZero }}">
+            <span>Balance Due</span>
+            <span>{{ balanceDueLabel }}</span>              <!-- e.g. "₹12,300"  or  "₹0 — Paid" -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Amount in words -->
+      <div class="inv-words">
+        <strong>Amount in Words:</strong> {{ amountInWords }}
+      </div>
+    </div>
+
+    <!-- ============ TERMS ============ -->
+    <div class="inv-terms">
+      <h4>Terms &amp; Conditions</h4>
+      <ol>
+        <li>Goods once sold cannot be returned. Exchange only within 7 days with original bill.</li>
+        <li>Making charges and stone charges are non-refundable.</li>
+        <li>Gold rate applicable at the time of exchange will be current day's rate.</li>
+        <li>Hallmark certification as per BIS standards.</li>
+        <li>This is a computer-generated invoice. E&amp;OE.</li>
+      </ol>
+    </div>
+
+    <!-- ============ FOOTER ============ -->
+    <div class="inv-footer">
+      <div class="inv-signature">
+        <div class="inv-signature-line"></div>
+        <div class="inv-signature-label">Customer Signature</div>
+      </div>
+      <div class="inv-footer-brand">
+        <p>Thank you for your purchase! Visit us again.</p>
+        <p class="thanks-brand">{{ businessName }} — {{ storePhone }}</p>
+      </div>
+      <div class="inv-signature">
+        <div class="inv-signature-line"></div>
+        <div class="inv-signature-label">Authorized Signatory</div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

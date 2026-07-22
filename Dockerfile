@@ -26,6 +26,21 @@ RUN java -Djarmode=layertools -jar target/*.jar extract
 # Stage 2: Runtime
 FROM eclipse-temurin:21-jre-alpine AS runtime
 
+# Headless Chromium + fonts for the branded invoice HTML→PDF render.
+#  - chromium: the render engine (same as the desktop print)
+#  - font-liberation: Arial-compatible sans for the body (Segoe UI fallback)
+#  - font-noto / font-noto-emoji: broad coverage + the 📞 ✉ 🌐 📍 icon glyphs
+#  - Playfair Display (headings) isn't packaged — download the OFL variable TTF
+RUN apk add --no-cache \
+        chromium \
+        nss freetype harfbuzz fontconfig ca-certificates curl \
+        font-liberation font-noto font-noto-emoji \
+    && mkdir -p /usr/share/fonts/truetype/playfair \
+    && curl -fsSL -o /usr/share/fonts/truetype/playfair/PlayfairDisplay.ttf \
+        "https://raw.githubusercontent.com/google/fonts/main/ofl/playfairdisplay/PlayfairDisplay%5Bwght%5D.ttf" \
+    && fc-cache -f
+ENV PDF_CHROMIUM_BINARY=/usr/bin/chromium-browser
+
 # Security: Run as non-root user
 RUN addgroup -g 1001 -S appgroup && \
     adduser -u 1001 -S appuser -G appgroup

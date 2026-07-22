@@ -182,8 +182,8 @@ deploy-ecs:
       vpc_cidr           = "10.0.0.0/16"
       availability_zones = ["${AWS_REGION}a", "${AWS_REGION}b"]
       container_port   = 8080
-      container_cpu    = 512
-      container_memory = 1024
+      container_cpu    = 1024
+      container_memory = 2048
       desired_count    = 1
       db_instance_class = "db.t3.micro"
       db_name           = "jewelerpdb"

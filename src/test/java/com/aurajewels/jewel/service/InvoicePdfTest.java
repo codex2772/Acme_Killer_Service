@@ -92,9 +92,14 @@ class InvoicePdfTest {
         InvoiceRepository invoiceRepository = Mockito.mock(InvoiceRepository.class);
         JewelryItemRepository jewelryItemRepository = Mockito.mock(JewelryItemRepository.class);
         S3Service s3Service = Mockito.mock(S3Service.class);
+        HtmlToPdfRenderer htmlRenderer = Mockito.mock(HtmlToPdfRenderer.class);
         InvoicePdfService service =
                 new InvoicePdfService(
-                        invoiceRepository, jewelryItemRepository, generator, s3Service);
+                        invoiceRepository,
+                        jewelryItemRepository,
+                        generator,
+                        s3Service,
+                        htmlRenderer);
 
         Store store = Store.builder().name("PNG Jewellers").gstin("27ABCDE1234F1Z5").build();
         Customer customer = Customer.builder().firstName("Raviraj").phone("9876543210").build();
@@ -119,10 +124,28 @@ class InvoicePdfTest {
         String url = "https://bucket.s3.ap-south-1.amazonaws.com/invoices/uuid.pdf";
         when(s3Service.uploadBytes(any(), eq("application/pdf"), eq("invoices"), eq(".pdf")))
                 .thenReturn(url);
+        // Chromium is mocked; the real template load + data model + Mustache render still run.
+        try {
+            when(htmlRenderer.render(any())).thenReturn("%PDF-1.4 branded".getBytes());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
 
         String result = service.generateAndUploadPdf(1L);
 
         assertThat(result).isEqualTo(url);
+        // The branded HTML that reached the renderer must carry the real, formatted data.
+        ArgumentCaptor<String> htmlCaptor = ArgumentCaptor.forClass(String.class);
+        try {
+            Mockito.verify(htmlRenderer).render(htmlCaptor.capture());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        String html = htmlCaptor.getValue();
+        assertThat(html)
+                .contains("PNG Jewellers") // businessName
+                .contains("₹1,11,240.00") // Indian-grouped grand total
+                .contains("Grand Total");
         ArgumentCaptor<byte[]> pdfCaptor = ArgumentCaptor.forClass(byte[].class);
         Mockito.verify(s3Service)
                 .uploadBytes(
