@@ -34,6 +34,8 @@ import java.util.List;
  * @param languageCode template language code, e.g. en / en_US
  * @param headerType header format, drives whether {@code mediaUrl} is attached
  * @param mediaUrl link to header image/document (used only for IMAGE/DOCUMENT headers)
+ * @param documentFilename filename shown to the recipient for a DOCUMENT header (e.g.
+ *     Invoice-15.pdf); null for non-document headers
  * @param bodyParams ordered values substituted into the template body placeholders
  * @author Raviraj Bhosale
  */
@@ -43,4 +45,5 @@ public record WhatsAppTemplateSend(
         String languageCode,
         MessageTemplate.HeaderType headerType,
         String mediaUrl,
+        String documentFilename,
         List<String> bodyParams) {}

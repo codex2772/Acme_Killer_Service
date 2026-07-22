@@ -212,6 +212,7 @@ public class MessagingService {
                         template.getMetaLanguage(),
                         template.getHeaderType(),
                         mediaUrl,
+                        documentFilename(template.getHeaderType(), refType, refId),
                         rendered.params());
 
         SendResult result = whatsAppProvider.sendTemplate(waba, send);
@@ -263,6 +264,21 @@ public class MessagingService {
         logRow = messageLogRepository.save(logRow);
         log.info("Message skipped store={} customer={} status={}", storeId, customerId, status);
         return MessageResponse.builder().messageLogId(logRow.getId()).status(status.name()).build();
+    }
+
+    /**
+     * Friendly filename for a DOCUMENT header, derived from the source entity (e.g.
+     * Invoice-15.pdf).
+     */
+    private String documentFilename(
+            MessageTemplate.HeaderType headerType, String refType, Long refId) {
+        if (headerType != MessageTemplate.HeaderType.DOCUMENT) {
+            return null;
+        }
+        if ("INVOICE".equals(refType) && refId != null) {
+            return "Invoice-" + refId + ".pdf";
+        }
+        return "document.pdf";
     }
 
     private String fullName(Customer c) {

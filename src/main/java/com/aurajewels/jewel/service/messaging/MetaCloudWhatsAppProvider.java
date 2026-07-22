@@ -156,9 +156,14 @@ public class MetaCloudWhatsAppProvider implements WhatsAppProvider {
         if (hasMediaHeader) {
             String mediaType =
                     send.headerType() == MessageTemplate.HeaderType.IMAGE ? "image" : "document";
+            Map<String, Object> media = new LinkedHashMap<>();
+            media.put("link", send.mediaUrl());
+            if ("document".equals(mediaType) && send.documentFilename() != null) {
+                media.put("filename", send.documentFilename());
+            }
             Map<String, Object> mediaParam = new LinkedHashMap<>();
             mediaParam.put("type", mediaType);
-            mediaParam.put(mediaType, Map.of("link", send.mediaUrl()));
+            mediaParam.put(mediaType, media);
             components.add(Map.of("type", "header", "parameters", List.of(mediaParam)));
         }
 
