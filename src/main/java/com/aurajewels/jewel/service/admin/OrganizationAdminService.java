@@ -28,6 +28,7 @@ import com.aurajewels.jewel.dto.admin.OnboardOrgResponse;
 import com.aurajewels.jewel.entity.*;
 import com.aurajewels.jewel.repository.*;
 import com.aurajewels.jewel.security.StoreContext;
+import com.aurajewels.jewel.service.MetalTypeService;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -55,6 +56,7 @@ public class OrganizationAdminService {
     private final StoreFeatureModuleRepository storeFeatureModuleRepository;
     private final OrgSubscriptionRepository orgSubscriptionRepository;
     private final PlatformAuditLogRepository auditLogRepository;
+    private final MetalTypeService metalTypeService;
     private final PasswordEncoder passwordEncoder;
 
     public List<Organization> listOrganizations() {
@@ -94,7 +96,11 @@ public class OrganizationAdminService {
                             .gstin(storeInfo.getGstin())
                             .status("ACTIVE")
                             .build();
-            stores.add(storeRepository.save(store));
+            Store savedStore = storeRepository.save(store);
+            // Provision the standard metal-type set so items can always be linked to a
+            // correct in-store metal type (prevents the empty-list → 24K fallback bug).
+            metalTypeService.provisionDefaults(savedStore);
+            stores.add(savedStore);
         }
 
         // 3. Create owner user

@@ -23,9 +23,13 @@
  */
 package com.aurajewels.jewel.service;
 
+import com.aurajewels.jewel.entity.Category;
 import com.aurajewels.jewel.entity.JewelryItem;
+import com.aurajewels.jewel.entity.MetalType;
 import com.aurajewels.jewel.entity.Store;
+import com.aurajewels.jewel.repository.CategoryRepository;
 import com.aurajewels.jewel.repository.JewelryItemRepository;
+import com.aurajewels.jewel.repository.MetalTypeRepository;
 import com.aurajewels.jewel.repository.StoreRepository;
 import com.aurajewels.jewel.security.StoreContext;
 import java.util.List;
@@ -45,6 +49,8 @@ public class JewelryItemService {
 
     private final JewelryItemRepository jewelryItemRepository;
     private final StoreRepository storeRepository;
+    private final MetalTypeRepository metalTypeRepository;
+    private final CategoryRepository categoryRepository;
 
     public List<JewelryItem> findAll() {
         Long storeId = StoreContext.getCurrentStoreId();
@@ -84,6 +90,11 @@ public class JewelryItemService {
                         .orElseThrow(() -> new RuntimeException("Store not found"));
         item.setStore(store);
 
+        // Reject cross-store linkage: the metal type and category must belong to this store,
+        // otherwise an item can end up billing off another store's rate/purity.
+        item.setMetalType(resolveMetalType(item.getMetalType(), storeId));
+        item.setCategory(resolveCategory(item.getCategory(), storeId));
+
         // Validate HUID uniqueness within the store (if provided)
         if (item.getHuid() != null && !item.getHuid().isBlank()) {
             boolean exists =
@@ -106,6 +117,7 @@ public class JewelryItemService {
     @Transactional
     public JewelryItem update(Long id, JewelryItem updated) {
         JewelryItem existing = findById(id);
+        Long storeId = existing.getStore().getId();
         existing.setName(updated.getName());
         existing.setDescription(updated.getDescription());
         existing.setGrossWeight(updated.getGrossWeight());
@@ -123,8 +135,8 @@ public class JewelryItemService {
         existing.setShowcaseLocation(updated.getShowcaseLocation());
         existing.setImageUrl(updated.getImageUrl());
         existing.setStatus(updated.getStatus());
-        existing.setCategory(updated.getCategory());
-        existing.setMetalType(updated.getMetalType());
+        existing.setCategory(resolveCategory(updated.getCategory(), storeId));
+        existing.setMetalType(resolveMetalType(updated.getMetalType(), storeId));
         if (updated.getArEnabled() != null) existing.setArEnabled(updated.getArEnabled());
         if (updated.getArType() != null) existing.setArType(updated.getArType());
 
@@ -141,5 +153,41 @@ public class JewelryItemService {
         JewelryItem existing = findById(id);
         existing.setActive(false);
         jewelryItemRepository.save(existing);
+    }
+
+    /**
+     * Resolve the incoming metal type to a managed entity that belongs to {@code storeId}, rejecting
+     * any reference to another store's metal type (the root cause of 22K stock billing at the 24K
+     * rate of a different store).
+     */
+    private MetalType resolveMetalType(MetalType incoming, Long storeId) {
+        if (incoming == null || incoming.getId() == null) {
+            throw new IllegalArgumentException("Metal type is required");
+        }
+        return metalTypeRepository
+                .findByIdAndStoreId(incoming.getId(), storeId)
+                .orElseThrow(
+                        () ->
+                                new IllegalArgumentException(
+                                        "Metal type "
+                                                + incoming.getId()
+                                                + " does not belong to store "
+                                                + storeId));
+    }
+
+    /** Resolve the incoming category to a managed entity that belongs to {@code storeId}. */
+    private Category resolveCategory(Category incoming, Long storeId) {
+        if (incoming == null || incoming.getId() == null) {
+            throw new IllegalArgumentException("Category is required");
+        }
+        return categoryRepository
+                .findByIdAndStoreId(incoming.getId(), storeId)
+                .orElseThrow(
+                        () ->
+                                new IllegalArgumentException(
+                                        "Category "
+                                                + incoming.getId()
+                                                + " does not belong to store "
+                                                + storeId));
     }
 }
