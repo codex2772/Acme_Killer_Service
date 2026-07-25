@@ -28,6 +28,7 @@ import com.aurajewels.jewel.dto.admin.OnboardOrgResponse;
 import com.aurajewels.jewel.entity.*;
 import com.aurajewels.jewel.repository.*;
 import com.aurajewels.jewel.security.StoreContext;
+import com.aurajewels.jewel.service.CategoryService;
 import com.aurajewels.jewel.service.MetalTypeService;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -57,6 +58,7 @@ public class OrganizationAdminService {
     private final OrgSubscriptionRepository orgSubscriptionRepository;
     private final PlatformAuditLogRepository auditLogRepository;
     private final MetalTypeService metalTypeService;
+    private final CategoryService categoryService;
     private final PasswordEncoder passwordEncoder;
 
     public List<Organization> listOrganizations() {
@@ -97,9 +99,10 @@ public class OrganizationAdminService {
                             .status("ACTIVE")
                             .build();
             Store savedStore = storeRepository.save(store);
-            // Provision the standard metal-type set so items can always be linked to a
-            // correct in-store metal type (prevents the empty-list → 24K fallback bug).
+            // Provision the standard metal-type and category sets so items can always be linked
+            // to correct in-store records (prevents the empty-list → cross-store fallback bug).
             metalTypeService.provisionDefaults(savedStore);
+            categoryService.provisionDefaults(savedStore);
             stores.add(savedStore);
         }
 

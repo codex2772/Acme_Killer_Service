@@ -46,6 +46,24 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final StoreRepository storeRepository;
 
+    /** Single source of truth for the category set every store is provisioned with. */
+    public record DefaultCategory(String name, String description) {}
+
+    /**
+     * Standard categories seeded for every new store (mirrors the Store 1 demo seed in V1). Names
+     * are chosen so the desktop Add-Inventory dropdown resolves them by name match. Kept in sync
+     * with the V17 seed migration.
+     */
+    public static final List<DefaultCategory> DEFAULT_CATEGORIES =
+            List.of(
+                    new DefaultCategory("Rings", "All types of rings"),
+                    new DefaultCategory("Necklaces", "Chains and necklaces"),
+                    new DefaultCategory("Earrings", "Studs, drops, and hoops"),
+                    new DefaultCategory("Bangles", "Bangles and bracelets"),
+                    new DefaultCategory("Pendants", "Pendants and lockets"),
+                    new DefaultCategory("Chains", "Gold and silver chains"),
+                    new DefaultCategory("Anklets", "Anklets and payal"));
+
     public List<Category> findAll() {
         Long storeId = StoreContext.getCurrentStoreId();
         return categoryRepository.findByStoreIdAndActiveTrue(storeId);
@@ -56,6 +74,25 @@ public class CategoryService {
         return categoryRepository
                 .findByIdAndStoreId(id, storeId)
                 .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
+    }
+
+    /**
+     * Provision the standard category set for a freshly created store so items can always be linked
+     * to an in-store category. Skips any name that already exists, so it is safe to call repeatedly.
+     */
+    @Transactional
+    public void provisionDefaults(Store store) {
+        for (DefaultCategory def : DEFAULT_CATEGORIES) {
+            if (categoryRepository.findByNameAndStoreId(def.name(), store.getId()).isPresent()) {
+                continue;
+            }
+            categoryRepository.save(
+                    Category.builder()
+                            .store(store)
+                            .name(def.name())
+                            .description(def.description())
+                            .build());
+        }
     }
 
     @Transactional
