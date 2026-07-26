@@ -23,9 +23,11 @@
  */
 package com.aurajewels.jewel.controller;
 
+import com.aurajewels.jewel.dto.scheme.InstallmentResponse;
+import com.aurajewels.jewel.dto.scheme.RecordPaymentRequest;
+import com.aurajewels.jewel.dto.scheme.SchemeMemberResponse;
 import com.aurajewels.jewel.entity.Scheme;
 import com.aurajewels.jewel.entity.SchemeMember;
-import com.aurajewels.jewel.entity.SchemePayment;
 import com.aurajewels.jewel.security.RequiresModule;
 import com.aurajewels.jewel.security.RequiresPermission;
 import com.aurajewels.jewel.service.SchemeService;
@@ -88,7 +90,7 @@ public class SchemeController {
     @GetMapping("/{id}/members")
     @RequiresPermission("MANAGE_SCHEMES")
     @RequiresModule("SCHEMES")
-    public ResponseEntity<List<SchemeMember>> getMembers(@PathVariable Long id) {
+    public ResponseEntity<List<SchemeMemberResponse>> getMembers(@PathVariable Long id) {
         return ResponseEntity.ok(schemeService.findMembers(id));
     }
 
@@ -106,19 +108,22 @@ public class SchemeController {
     @PostMapping("/{id}/members/{memberId}/payments")
     @RequiresPermission("MANAGE_SCHEMES")
     @RequiresModule("SCHEMES")
-    public ResponseEntity<SchemePayment> recordPayment(
-            @PathVariable Long memberId, @RequestBody SchemePayment payment) {
+    public ResponseEntity<List<InstallmentResponse>> recordPayment(
+            @PathVariable Long id,
+            @PathVariable Long memberId,
+            @RequestBody RecordPaymentRequest payment) {
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(schemeService.recordPayment(memberId, payment));
+                .body(schemeService.recordPayment(id, memberId, payment));
     }
 
-    /** GET /api/schemes/{id}/members/{memberId}/payments Get payment history */
+    /** GET /api/schemes/{id}/members/{memberId}/payments Get installment schedule */
     @GetMapping("/{id}/members/{memberId}/payments")
     @RequiresPermission("MANAGE_SCHEMES")
     @RequiresModule("SCHEMES")
-    public ResponseEntity<List<SchemePayment>> getPayments(@PathVariable Long memberId) {
+    public ResponseEntity<List<InstallmentResponse>> getPayments(
+            @PathVariable Long id, @PathVariable Long memberId) {
 
-        return ResponseEntity.ok(schemeService.findPayments(memberId));
+        return ResponseEntity.ok(schemeService.findPayments(id, memberId));
     }
 }

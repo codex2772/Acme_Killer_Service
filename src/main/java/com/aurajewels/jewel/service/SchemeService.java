@@ -23,6 +23,9 @@
  */
 package com.aurajewels.jewel.service;
 
+import com.aurajewels.jewel.dto.scheme.InstallmentResponse;
+import com.aurajewels.jewel.dto.scheme.RecordPaymentRequest;
+import com.aurajewels.jewel.dto.scheme.SchemeMemberResponse;
 import com.aurajewels.jewel.entity.Scheme;
 import com.aurajewels.jewel.entity.SchemeMember;
 import com.aurajewels.jewel.entity.SchemePayment;
@@ -32,7 +35,12 @@ import com.aurajewels.jewel.repository.SchemePaymentRepository;
 import com.aurajewels.jewel.repository.SchemeRepository;
 import com.aurajewels.jewel.repository.StoreRepository;
 import com.aurajewels.jewel.security.StoreContext;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -105,12 +113,40 @@ public class SchemeService {
         return saved;
     }
 
-    /** Get members of a scheme. */
+    /** Get members of a scheme, enriched with derived totalPaid / paid-month counts. */
     @Transactional(readOnly = true)
-    public List<SchemeMember> findMembers(Long schemeId) {
-        // Validate scheme belongs to current store
-        findById(schemeId);
-        return schemeMemberRepository.findByScheme_Id(schemeId);
+    public List<SchemeMemberResponse> findMembers(Long schemeId) {
+        Scheme scheme = findById(schemeId); // validates scheme belongs to current store
+        List<SchemeMember> members = schemeMemberRepository.findByScheme_Id(schemeId);
+        List<SchemeMemberResponse> result = new ArrayList<>(members.size());
+        for (SchemeMember member : members) {
+            List<SchemePayment> payments =
+                    schemePaymentRepository.findByMember_IdOrderByMonthNumberAsc(member.getId());
+            BigDecimal totalPaid = BigDecimal.ZERO;
+            int paidMonths = 0;
+            BigDecimal monthly = scheme.getMonthlyAmount();
+            for (SchemePayment p : payments) {
+                totalPaid = totalPaid.add(p.getAmount());
+                if (monthly != null
+                        && monthly.signum() > 0
+                        && p.getAmount().compareTo(monthly) >= 0) {
+                    paidMonths++;
+                }
+            }
+            result.add(
+                    SchemeMemberResponse.builder()
+                            .id(member.getId())
+                            .name(member.getName())
+                            .phone(member.getPhone())
+                            .joinDate(member.getJoinDate())
+                            .status(member.getStatus() != null ? member.getStatus().name() : null)
+                            .active(member.getActive())
+                            .totalPaid(totalPaid)
+                            .paidMonths(paidMonths)
+                            .durationMonths(scheme.getDurationMonths())
+                            .build());
+        }
+        return result;
     }
 
     /** Add member to scheme. */
@@ -131,30 +167,148 @@ public class SchemeService {
         return saved;
     }
 
-    /** Record monthly payment. */
+    /**
+     * Record an installment payment for a member and return the recomputed schedule.
+     *
+     * <p>One row is kept per (member, month); a payment toward an already-started month tops up the
+     * existing row (basic partial-payment support) and flips it to PAID once the cumulative amount
+     * reaches the scheme's monthly amount. Fully paid months are rejected to prevent overpayment.
+     */
     @Transactional
-    public SchemePayment recordPayment(Long memberId, SchemePayment payment) {
+    public List<InstallmentResponse> recordPayment(
+            Long schemeId, Long memberId, RecordPaymentRequest request) {
+        Scheme scheme = findById(schemeId); // validates scheme belongs to current store
+        SchemeMember member = loadMember(schemeId, memberId);
 
-        SchemeMember member =
-                schemeMemberRepository
-                        .findById(memberId)
-                        .orElseThrow(() -> new IllegalArgumentException("Scheme member not found"));
+        if (request.getMonth() == null
+                || request.getMonth() < 1
+                || request.getMonth() > scheme.getDurationMonths()) {
+            throw new IllegalArgumentException(
+                    "Invalid installment month: " + request.getMonth());
+        }
+        if (request.getAmount() == null || request.getAmount().signum() <= 0) {
+            throw new IllegalArgumentException("Payment amount must be greater than zero");
+        }
 
-        payment.setMember(member);
+        BigDecimal monthly = scheme.getMonthlyAmount();
+        SchemePayment row =
+                schemePaymentRepository
+                        .findByMember_IdAndMonthNumber(memberId, request.getMonth())
+                        .orElse(null);
 
-        SchemePayment saved = schemePaymentRepository.save(payment);
+        if (row != null && monthly != null && row.getAmount().compareTo(monthly) >= 0) {
+            throw new IllegalArgumentException(
+                    "Month " + request.getMonth() + " is already fully paid");
+        }
+
+        BigDecimal cumulative =
+                (row != null ? row.getAmount() : BigDecimal.ZERO).add(request.getAmount());
+        LocalDate paymentDate = request.getDate() != null ? request.getDate() : LocalDate.now();
+        boolean fullyPaid = monthly != null && cumulative.compareTo(monthly) >= 0;
+
+        if (row == null) {
+            row =
+                    SchemePayment.builder()
+                            .member(member)
+                            .monthNumber(request.getMonth())
+                            .build();
+        }
+        row.setAmount(cumulative);
+        row.setPaymentDate(paymentDate);
+        row.setStatus(
+                fullyPaid ? SchemePayment.PaymentStatus.PAID : SchemePayment.PaymentStatus.PENDING);
+        schemePaymentRepository.save(row);
+
         activityLogService.log(
                 "Recorded Scheme Payment",
-                "Payment for member: " + member.getName() + " Month: " + saved.getMonthNumber(),
+                "Payment for member: " + member.getName() + " Month: " + request.getMonth(),
                 "Schemes",
                 "SCHEME_PAYMENT",
-                saved.getId());
-        return saved;
+                row.getId());
+
+        return buildSchedule(scheme, member);
     }
 
-    /** Get payment history of a member. */
+    /** Get the installment schedule for a member (PAID / DUE / UPCOMING per month). */
     @Transactional(readOnly = true)
-    public List<SchemePayment> findPayments(Long memberId) {
-        return schemePaymentRepository.findByMember_Id(memberId);
+    public List<InstallmentResponse> findPayments(Long schemeId, Long memberId) {
+        Scheme scheme = findById(schemeId); // validates scheme belongs to current store
+        SchemeMember member = loadMember(schemeId, memberId);
+        return buildSchedule(scheme, member);
+    }
+
+    private SchemeMember loadMember(Long schemeId, Long memberId) {
+        return schemeMemberRepository
+                .findByIdAndScheme_Id(memberId, schemeId)
+                .orElseThrow(() -> new IllegalArgumentException("Scheme member not found"));
+    }
+
+    /**
+     * Derive the full installment schedule from the scheme term and the member's recorded payments.
+     *
+     * <p>A month is PAID once its cumulative recorded amount reaches the monthly amount. The first
+     * not-yet-fully-paid month whose due date has arrived is DUE; every later month is UPCOMING.
+     * This yields exactly one DUE installment at a time and advances automatically as payments land,
+     * so no schedule rows need to be persisted up front.
+     */
+    private List<InstallmentResponse> buildSchedule(Scheme scheme, SchemeMember member) {
+        int months = scheme.getDurationMonths() != null ? scheme.getDurationMonths() : 0;
+        BigDecimal monthly =
+                scheme.getMonthlyAmount() != null ? scheme.getMonthlyAmount() : BigDecimal.ZERO;
+        LocalDate start = scheme.getStartDate();
+        LocalDate today = LocalDate.now();
+        // Once the scheme has started, the next unpaid installment is the collection target (DUE);
+        // before it starts, nothing is due yet.
+        boolean schemeStarted = start == null || !start.isAfter(today);
+
+        Map<Integer, SchemePayment> paidByMonth = new HashMap<>();
+        for (SchemePayment p : schemePaymentRepository.findByMember_IdOrderByMonthNumberAsc(
+                member.getId())) {
+            paidByMonth.put(p.getMonthNumber(), p);
+        }
+
+        // First month not yet fully paid — the sequential collection target.
+        int firstUnpaid = Integer.MAX_VALUE;
+        for (int i = 1; i <= months; i++) {
+            SchemePayment p = paidByMonth.get(i);
+            boolean fullyPaid = p != null && monthly.signum() > 0 && p.getAmount().compareTo(monthly) >= 0;
+            if (!fullyPaid) {
+                firstUnpaid = i;
+                break;
+            }
+        }
+
+        List<InstallmentResponse> schedule = new ArrayList<>(months);
+        for (int i = 1; i <= months; i++) {
+            LocalDate dueDate = start != null ? start.plusMonths(i - 1L) : today;
+            SchemePayment p = paidByMonth.get(i);
+            boolean fullyPaid =
+                    p != null && monthly.signum() > 0 && p.getAmount().compareTo(monthly) >= 0;
+
+            String status;
+            BigDecimal amount;
+            LocalDate date;
+            if (fullyPaid) {
+                status = "PAID";
+                amount = p.getAmount();
+                date = p.getPaymentDate();
+            } else if (i == firstUnpaid && schemeStarted) {
+                status = "DUE";
+                amount = monthly;
+                date = dueDate;
+            } else {
+                status = "UPCOMING";
+                amount = monthly;
+                date = dueDate;
+            }
+            schedule.add(
+                    InstallmentResponse.builder()
+                            .month(i)
+                            .amount(amount)
+                            .date(date)
+                            .status(status)
+                            .build());
+        }
+        return schedule;
     }
 }

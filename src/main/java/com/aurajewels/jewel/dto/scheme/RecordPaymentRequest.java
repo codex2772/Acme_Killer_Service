@@ -21,25 +21,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.repository;
+package com.aurajewels.jewel.dto.scheme;
 
-import com.aurajewels.jewel.entity.SchemePayment;
-import java.util.List;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import lombok.Data;
 
 /**
- * Spring Data JPA repository for SchemePayment entities.
+ * Request body for recording a scheme installment payment.
  *
- * @author Diksha Mohite
+ * <p>Matches the desktop client contract: {@code { month: <1-based index>, amount, date:
+ * "YYYY-MM-DD" }}.
+ *
+ * @author Raviraj Bhosale
  */
-@Repository
-public interface SchemePaymentRepository extends JpaRepository<SchemePayment, Long> {
+@Data
+public class RecordPaymentRequest {
 
-    List<SchemePayment> findByMember_Id(Long memberId);
+    /** 1-based installment index being paid. */
+    private Integer month;
 
-    List<SchemePayment> findByMember_IdOrderByMonthNumberAsc(Long memberId);
+    /** Amount being paid (may be a partial top-up toward the monthly amount). */
+    private BigDecimal amount;
 
-    Optional<SchemePayment> findByMember_IdAndMonthNumber(Long memberId, Integer monthNumber);
+    /** Date of payment; defaults to today when omitted. */
+    private LocalDate date;
 }

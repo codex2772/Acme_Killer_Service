@@ -21,25 +21,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.repository;
+package com.aurajewels.jewel.dto.scheme;
 
-import com.aurajewels.jewel.entity.SchemePayment;
-import java.util.List;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * Spring Data JPA repository for SchemePayment entities.
+ * Scheme member view enriched with a derived {@code totalPaid} (kept for the desktop members list,
+ * which displays it). Mirrors the member entity's serialized fields plus the payment summary.
  *
- * @author Diksha Mohite
+ * @author Raviraj Bhosale
  */
-@Repository
-public interface SchemePaymentRepository extends JpaRepository<SchemePayment, Long> {
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class SchemeMemberResponse {
 
-    List<SchemePayment> findByMember_Id(Long memberId);
+    private Long id;
+    private String name;
+    private String phone;
+    private LocalDate joinDate;
+    private String status;
+    private Boolean active;
 
-    List<SchemePayment> findByMember_IdOrderByMonthNumberAsc(Long memberId);
+    /** Sum of all recorded installment amounts for this member. */
+    private BigDecimal totalPaid;
 
-    Optional<SchemePayment> findByMember_IdAndMonthNumber(Long memberId, Integer monthNumber);
+    /** Number of fully paid months. */
+    private Integer paidMonths;
+
+    /** Total months in the scheme (installment count). */
+    private Integer durationMonths;
 }

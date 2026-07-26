@@ -21,25 +21,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.repository;
+package com.aurajewels.jewel.dto.scheme;
 
-import com.aurajewels.jewel.entity.SchemePayment;
-import java.util.List;
-import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * Spring Data JPA repository for SchemePayment entities.
+ * One row of a scheme member's installment schedule.
  *
- * @author Diksha Mohite
+ * <p>Field names match the desktop client contract: {@code month}, {@code amount}, {@code date},
+ * {@code status} where status ∈ {PAID, DUE, UPCOMING}.
+ *
+ * @author Raviraj Bhosale
  */
-@Repository
-public interface SchemePaymentRepository extends JpaRepository<SchemePayment, Long> {
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class InstallmentResponse {
 
-    List<SchemePayment> findByMember_Id(Long memberId);
+    /** 1-based installment index (1..durationMonths). */
+    private Integer month;
 
-    List<SchemePayment> findByMember_IdOrderByMonthNumberAsc(Long memberId);
+    /** Installment amount (paid amount for PAID rows, monthly amount otherwise). */
+    private BigDecimal amount;
 
-    Optional<SchemePayment> findByMember_IdAndMonthNumber(Long memberId, Integer monthNumber);
+    /** Payment date for PAID rows; due date for DUE/UPCOMING rows. */
+    private LocalDate date;
+
+    /** PAID, DUE, or UPCOMING. */
+    private String status;
 }
