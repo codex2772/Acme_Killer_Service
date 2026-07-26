@@ -63,6 +63,7 @@ class SchemeServiceTest {
     private static final Long SCHEME_ID = 1L;
     private static final Long MEMBER_ID = 10L;
 
+    private SchemeRepository schemeRepository;
     private SchemePaymentRepository paymentRepository;
     private SchemeMemberRepository memberRepository;
     private CustomerRepository customerRepository;
@@ -75,7 +76,7 @@ class SchemeServiceTest {
 
     @BeforeEach
     void setUp() {
-        SchemeRepository schemeRepository = Mockito.mock(SchemeRepository.class);
+        schemeRepository = Mockito.mock(SchemeRepository.class);
         memberRepository = Mockito.mock(SchemeMemberRepository.class);
         paymentRepository = Mockito.mock(SchemePaymentRepository.class);
         StoreRepository storeRepository = Mockito.mock(StoreRepository.class);
@@ -262,6 +263,23 @@ class SchemeServiceTest {
         assertThat(saved.getCustomer()).isSameAs(customer);
         assertThat(saved.getName()).isEqualTo("Rushi");
         assertThat(saved.getStatus()).isEqualTo(SchemeMember.MemberStatus.ACTIVE);
+    }
+
+    @Test
+    void findAllPopulatesMemberCountPerScheme() {
+        Scheme other = Scheme.builder().name("Gold 10k").durationMonths(11).build();
+        other.setId(2L);
+        when(schemeRepository.findByStore_IdAndActiveTrue(STORE_ID))
+                .thenReturn(List.of(scheme, other));
+        // scheme 1 -> 2 members; scheme 2 has no row (should default to 0).
+        when(memberRepository.countBySchemeIdIn(List.of(SCHEME_ID, 2L)))
+                .thenReturn(java.util.Collections.singletonList(new Object[] {SCHEME_ID, 2L}));
+
+        List<Scheme> result = service.findAll();
+
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0).getMemberCount()).isEqualTo(2L);
+        assertThat(result.get(1).getMemberCount()).isEqualTo(0L);
     }
 
     @Test

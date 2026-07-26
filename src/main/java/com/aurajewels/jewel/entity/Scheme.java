@@ -72,6 +72,9 @@ public class Scheme extends BaseEntity {
 
     @Column private Boolean active;
 
+    /** Derived count of enrolled members; populated on list reads, not persisted. */
+    @Transient @Builder.Default private Long memberCount = 0L;
+
     public enum SchemeStatus {
         ACTIVE,
         CLOSED,

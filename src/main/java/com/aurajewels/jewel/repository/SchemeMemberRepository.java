@@ -27,6 +27,8 @@ import com.aurajewels.jewel.entity.SchemeMember;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -50,4 +52,10 @@ public interface SchemeMemberRepository extends JpaRepository<SchemeMember, Long
 
     List<SchemeMember> findByScheme_Store_IdAndStatus(
             Long storeId, SchemeMember.MemberStatus status);
+
+    /** Member counts per scheme for the given scheme ids (one aggregate query, no N+1). */
+    @Query(
+            "SELECT m.scheme.id, COUNT(m) FROM SchemeMember m "
+                    + "WHERE m.scheme.id IN :ids GROUP BY m.scheme.id")
+    List<Object[]> countBySchemeIdIn(@Param("ids") List<Long> ids);
 }

@@ -65,11 +65,23 @@ public class SchemeService {
     private final CustomerRepository customerRepository;
     private final ActivityLogService activityLogService;
 
-    /** Get all active schemes for current store. */
+    /** Get all active schemes for current store, each with its enrolled-member count. */
     @Transactional(readOnly = true)
     public List<Scheme> findAll() {
         Long storeId = StoreContext.getCurrentStoreId();
-        return schemeRepository.findByStore_IdAndActiveTrue(storeId);
+        List<Scheme> schemes = schemeRepository.findByStore_IdAndActiveTrue(storeId);
+        if (schemes.isEmpty()) {
+            return schemes;
+        }
+        List<Long> ids = schemes.stream().map(Scheme::getId).toList();
+        Map<Long, Long> counts = new HashMap<>();
+        for (Object[] row : schemeMemberRepository.countBySchemeIdIn(ids)) {
+            counts.put((Long) row[0], (Long) row[1]);
+        }
+        for (Scheme scheme : schemes) {
+            scheme.setMemberCount(counts.getOrDefault(scheme.getId(), 0L));
+        }
+        return schemes;
     }
 
     /** Get scheme by id (scoped to current store). */
