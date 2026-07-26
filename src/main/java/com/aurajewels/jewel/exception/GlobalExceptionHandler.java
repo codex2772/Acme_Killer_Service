@@ -94,6 +94,16 @@ public class GlobalExceptionHandler {
                                 Instant.now()));
     }
 
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<Map<String, Object>> handleConflict(ConflictException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(
+                        Map.of(
+                                "error", "Conflict",
+                                "message", ex.getMessage(),
+                                "timestamp", Instant.now()));
+    }
+
     @ExceptionHandler(ModuleNotEnabledException.class)
     public ResponseEntity<Map<String, Object>> handleModuleNotEnabled(
             ModuleNotEnabledException ex) {

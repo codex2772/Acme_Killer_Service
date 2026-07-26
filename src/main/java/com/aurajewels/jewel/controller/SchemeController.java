@@ -23,6 +23,7 @@
  */
 package com.aurajewels.jewel.controller;
 
+import com.aurajewels.jewel.dto.scheme.AddMemberRequest;
 import com.aurajewels.jewel.dto.scheme.InstallmentResponse;
 import com.aurajewels.jewel.dto.scheme.RecordPaymentRequest;
 import com.aurajewels.jewel.dto.scheme.SchemeMemberResponse;
@@ -99,7 +100,7 @@ public class SchemeController {
     @RequiresPermission("MANAGE_SCHEMES")
     @RequiresModule("SCHEMES")
     public ResponseEntity<SchemeMember> addMember(
-            @PathVariable Long id, @RequestBody SchemeMember member) {
+            @PathVariable Long id, @RequestBody AddMemberRequest member) {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(schemeService.addMember(id, member));
     }

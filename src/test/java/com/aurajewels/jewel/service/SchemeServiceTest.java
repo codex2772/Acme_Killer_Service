@@ -30,12 +30,16 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
+import com.aurajewels.jewel.dto.scheme.AddMemberRequest;
 import com.aurajewels.jewel.dto.scheme.InstallmentResponse;
 import com.aurajewels.jewel.dto.scheme.RecordPaymentRequest;
 import com.aurajewels.jewel.dto.scheme.SchemeMemberResponse;
+import com.aurajewels.jewel.entity.Customer;
 import com.aurajewels.jewel.entity.Scheme;
 import com.aurajewels.jewel.entity.SchemeMember;
 import com.aurajewels.jewel.entity.SchemePayment;
+import com.aurajewels.jewel.exception.ConflictException;
+import com.aurajewels.jewel.repository.CustomerRepository;
 import com.aurajewels.jewel.repository.SchemeMemberRepository;
 import com.aurajewels.jewel.repository.SchemePaymentRepository;
 import com.aurajewels.jewel.repository.SchemeRepository;
@@ -60,6 +64,8 @@ class SchemeServiceTest {
     private static final Long MEMBER_ID = 10L;
 
     private SchemePaymentRepository paymentRepository;
+    private SchemeMemberRepository memberRepository;
+    private CustomerRepository customerRepository;
     private SchemeService service;
     private Scheme scheme;
     private SchemeMember member;
@@ -70,9 +76,10 @@ class SchemeServiceTest {
     @BeforeEach
     void setUp() {
         SchemeRepository schemeRepository = Mockito.mock(SchemeRepository.class);
-        SchemeMemberRepository memberRepository = Mockito.mock(SchemeMemberRepository.class);
+        memberRepository = Mockito.mock(SchemeMemberRepository.class);
         paymentRepository = Mockito.mock(SchemePaymentRepository.class);
         StoreRepository storeRepository = Mockito.mock(StoreRepository.class);
+        customerRepository = Mockito.mock(CustomerRepository.class);
         ActivityLogService activityLogService = Mockito.mock(ActivityLogService.class);
 
         service =
@@ -81,6 +88,7 @@ class SchemeServiceTest {
                         memberRepository,
                         paymentRepository,
                         storeRepository,
+                        customerRepository,
                         activityLogService);
 
         // Gold Monthly Plus: ₹1,000 × 11 months, starting today so month 1 is the current period.
@@ -215,5 +223,58 @@ class SchemeServiceTest {
         assertThatThrownBy(() -> service.recordPayment(SCHEME_ID, MEMBER_ID, req))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Invalid installment month");
+    }
+
+    @Test
+    void enrollingAnAlreadyEnrolledCustomerIsRejected() {
+        when(memberRepository.existsByScheme_IdAndCustomer_Id(SCHEME_ID, 55L)).thenReturn(true);
+
+        AddMemberRequest req = new AddMemberRequest();
+        req.setCustomerId(55L);
+        req.setName("Rushi");
+
+        assertThatThrownBy(() -> service.addMember(SCHEME_ID, req))
+                .isInstanceOf(ConflictException.class)
+                .hasMessageContaining("already a member of this scheme");
+    }
+
+    @Test
+    void enrollingANewCustomerSucceeds() {
+        when(memberRepository.existsByScheme_IdAndCustomer_Id(SCHEME_ID, 77L)).thenReturn(false);
+        Customer customer = new Customer();
+        customer.setId(77L);
+        customer.setFirstName("Rushi");
+        customer.setPhone("9998887777");
+        when(customerRepository.findByIdAndStoreId(77L, STORE_ID))
+                .thenReturn(java.util.Optional.of(customer));
+        when(memberRepository.save(any()))
+                .thenAnswer(
+                        inv -> {
+                            SchemeMember m = inv.getArgument(0);
+                            m.setId(99L);
+                            return m;
+                        });
+
+        AddMemberRequest req = new AddMemberRequest();
+        req.setCustomerId(77L);
+
+        SchemeMember saved = service.addMember(SCHEME_ID, req);
+        assertThat(saved.getCustomer()).isSameAs(customer);
+        assertThat(saved.getName()).isEqualTo("Rushi");
+        assertThat(saved.getStatus()).isEqualTo(SchemeMember.MemberStatus.ACTIVE);
+    }
+
+    @Test
+    void manualMemberWithDuplicatePhoneIsRejected() {
+        SchemeMember existing = SchemeMember.builder().name("Walk-in").phone("+91 99988-87777").build();
+        when(memberRepository.findByScheme_Id(SCHEME_ID)).thenReturn(List.of(existing));
+
+        AddMemberRequest req = new AddMemberRequest();
+        req.setName("Same Person");
+        req.setPhone("9998887777"); // same 10 digits, different formatting
+
+        assertThatThrownBy(() -> service.addMember(SCHEME_ID, req))
+                .isInstanceOf(ConflictException.class)
+                .hasMessageContaining("phone is already in this scheme");
     }
 }

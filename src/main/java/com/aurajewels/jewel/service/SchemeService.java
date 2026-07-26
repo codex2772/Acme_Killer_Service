@@ -23,13 +23,17 @@
  */
 package com.aurajewels.jewel.service;
 
+import com.aurajewels.jewel.dto.scheme.AddMemberRequest;
 import com.aurajewels.jewel.dto.scheme.InstallmentResponse;
 import com.aurajewels.jewel.dto.scheme.RecordPaymentRequest;
 import com.aurajewels.jewel.dto.scheme.SchemeMemberResponse;
+import com.aurajewels.jewel.entity.Customer;
 import com.aurajewels.jewel.entity.Scheme;
 import com.aurajewels.jewel.entity.SchemeMember;
 import com.aurajewels.jewel.entity.SchemePayment;
 import com.aurajewels.jewel.entity.Store;
+import com.aurajewels.jewel.exception.ConflictException;
+import com.aurajewels.jewel.repository.CustomerRepository;
 import com.aurajewels.jewel.repository.SchemeMemberRepository;
 import com.aurajewels.jewel.repository.SchemePaymentRepository;
 import com.aurajewels.jewel.repository.SchemeRepository;
@@ -58,6 +62,7 @@ public class SchemeService {
     private final SchemeMemberRepository schemeMemberRepository;
     private final SchemePaymentRepository schemePaymentRepository;
     private final StoreRepository storeRepository;
+    private final CustomerRepository customerRepository;
     private final ActivityLogService activityLogService;
 
     /** Get all active schemes for current store. */
@@ -149,13 +154,72 @@ public class SchemeService {
         return result;
     }
 
-    /** Add member to scheme. */
+    /**
+     * Add a member to a scheme, enforcing that the same customer cannot be enrolled twice. When
+     * {@code customerId} is supplied the member is linked to that customer and a duplicate is
+     * rejected with a 409; manual-entry members are de-duplicated within the scheme on normalized
+     * phone.
+     */
     @Transactional
-    public SchemeMember addMember(Long schemeId, SchemeMember member) {
+    public SchemeMember addMember(Long schemeId, AddMemberRequest request) {
+        Scheme scheme = findById(schemeId); // validates scheme belongs to current store
+        Long storeId = StoreContext.getCurrentStoreId();
 
-        Scheme scheme = findById(schemeId);
+        SchemeMember.SchemeMemberBuilder builder = SchemeMember.builder().scheme(scheme);
+        String name = request.getName();
+        String phone = request.getPhone();
 
-        member.setScheme(scheme);
+        if (request.getCustomerId() != null) {
+            if (schemeMemberRepository.existsByScheme_IdAndCustomer_Id(
+                    schemeId, request.getCustomerId())) {
+                throw new ConflictException("Customer is already a member of this scheme");
+            }
+            Customer customer =
+                    customerRepository
+                            .findByIdAndStoreId(request.getCustomerId(), storeId)
+                            .orElseThrow(() -> new IllegalArgumentException("Customer not found"));
+            builder.customer(customer);
+            if (name == null || name.isBlank()) {
+                name =
+                        customer.getFirstName()
+                                + (customer.getLastName() != null
+                                        ? " " + customer.getLastName()
+                                        : "");
+            }
+            if (phone == null || phone.isBlank()) {
+                phone = customer.getPhone();
+            }
+        } else {
+            // Manual-entry member: de-duplicate within the scheme on normalized phone.
+            String normalized = normalizePhone(phone);
+            if (normalized.length() >= 10) {
+                boolean duplicate =
+                        schemeMemberRepository.findByScheme_Id(schemeId).stream()
+                                .anyMatch(m -> normalized.equals(normalizePhone(m.getPhone())));
+                if (duplicate) {
+                    throw new ConflictException(
+                            "A member with this phone is already in this scheme");
+                }
+            }
+        }
+
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Member name is required");
+        }
+
+        SchemeMember member =
+                builder.name(name)
+                        .phone(phone)
+                        .joinDate(
+                                request.getJoinDate() != null
+                                        ? request.getJoinDate()
+                                        : LocalDate.now())
+                        .status(
+                                request.getStatus() != null
+                                        ? request.getStatus()
+                                        : SchemeMember.MemberStatus.ACTIVE)
+                        .build();
+        member.setActive(true);
 
         SchemeMember saved = schemeMemberRepository.save(member);
         activityLogService.log(
@@ -165,6 +229,15 @@ public class SchemeService {
                 "SCHEME_MEMBER",
                 saved.getId());
         return saved;
+    }
+
+    /** Normalize a phone to its trailing digits for de-duplication (empty when null/blank). */
+    private static String normalizePhone(String phone) {
+        if (phone == null) {
+            return "";
+        }
+        String digits = phone.replaceAll("\\D", "");
+        return digits.length() > 10 ? digits.substring(digits.length() - 10) : digits;
     }
 
     /**

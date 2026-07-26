@@ -21,56 +21,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.aurajewels.jewel.entity;
+package com.aurajewels.jewel.dto.scheme;
 
-import jakarta.persistence.*;
-import lombok.*;
+import com.aurajewels.jewel.entity.SchemeMember;
+import java.time.LocalDate;
+import lombok.Data;
 
 /**
- * JPA entity representing a customer enrolled in a savings scheme.
+ * Request body for adding a member to a scheme.
  *
- * @author Diksha Mohite
+ * <p>Matches the desktop contract: {@code { customerId?, name, phone, joinDate? }}. When {@code
+ * customerId} is present the member is linked to that customer; otherwise it is a manual-entry
+ * member.
+ *
+ * @author Raviraj Bhosale
  */
-@Entity
-@Table(
-        name = "scheme_members",
-        uniqueConstraints =
-                @UniqueConstraint(
-                        name = "uk_scheme_member_customer",
-                        columnNames = {"scheme_id", "customer_id"}))
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class SchemeMember extends BaseEntity {
+@Data
+public class AddMemberRequest {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "scheme_id", nullable = false)
-    @com.fasterxml.jackson.annotation.JsonIgnore
-    private Scheme scheme;
+    /** Optional customer to link this member to. */
+    private Long customerId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id")
-    @com.fasterxml.jackson.annotation.JsonIgnore
-    private Customer customer;
-
-    @Column(nullable = false, length = 200)
+    /** Display name (derived from the customer when omitted for a linked member). */
     private String name;
 
-    @Column(length = 15)
+    /** Contact phone (derived from the customer when omitted for a linked member). */
     private String phone;
 
-    @Column(name = "join_date", nullable = false)
-    private java.time.LocalDate joinDate;
+    /** Enrollment date; defaults to today when omitted. */
+    private LocalDate joinDate;
 
-    @Enumerated(EnumType.STRING)
-    @Column(length = 20)
-    private MemberStatus status;
-
-    public enum MemberStatus {
-        ACTIVE,
-        COMPLETED,
-        DROPPED
-    }
+    /** Member status; defaults to ACTIVE when omitted. */
+    private SchemeMember.MemberStatus status;
 }
