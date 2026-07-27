@@ -43,6 +43,12 @@ public interface LedgerEntryRepository extends JpaRepository<LedgerEntry, Long> 
 
     Optional<LedgerEntry> findByIdAndStoreId(Long id, Long storeId);
 
+    List<LedgerEntry> findByStoreIdAndReferenceTypeAndReferenceIdAndActiveTrue(
+            Long storeId, String referenceType, String referenceId);
+
+    boolean existsByStoreIdAndReferenceTypeAndReferenceIdAndActiveTrue(
+            Long storeId, String referenceType, String referenceId);
+
     @Query(
             "SELECT l FROM LedgerEntry l WHERE l.store.id = :storeId AND l.active = true "
                     + "AND (:type IS NULL OR l.type = :type) "

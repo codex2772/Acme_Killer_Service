@@ -31,6 +31,7 @@ import com.aurajewels.jewel.entity.Customer;
 import com.aurajewels.jewel.entity.Invoice;
 import com.aurajewels.jewel.entity.InvoiceItem;
 import com.aurajewels.jewel.entity.JewelryItem;
+import com.aurajewels.jewel.entity.LedgerEntry;
 import com.aurajewels.jewel.entity.Store;
 import com.aurajewels.jewel.repository.CustomerRepository;
 import com.aurajewels.jewel.repository.InvoiceRepository;
@@ -38,6 +39,7 @@ import com.aurajewels.jewel.repository.JewelryItemRepository;
 import com.aurajewels.jewel.repository.LedgerEntryRepository;
 import com.aurajewels.jewel.repository.StoreRepository;
 import com.aurajewels.jewel.security.StoreContext;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -57,9 +59,13 @@ class InvoiceServiceTest {
 
     private InvoiceRepository invoiceRepository;
     private JewelryItemRepository jewelryItemRepository;
+    private LedgerEntryRepository ledgerEntryRepository;
     private InvoiceService service;
     private Invoice invoice;
     private JewelryItem jewelryItem;
+
+    /** In-memory ledger so the mocked repo behaves like a real store. */
+    private final List<LedgerEntry> ledger = new ArrayList<>();
 
     @BeforeEach
     void setUp() {
@@ -67,7 +73,7 @@ class InvoiceServiceTest {
         CustomerRepository customerRepository = Mockito.mock(CustomerRepository.class);
         StoreRepository storeRepository = Mockito.mock(StoreRepository.class);
         jewelryItemRepository = Mockito.mock(JewelryItemRepository.class);
-        LedgerEntryRepository ledgerEntryRepository = Mockito.mock(LedgerEntryRepository.class);
+        ledgerEntryRepository = Mockito.mock(LedgerEntryRepository.class);
         ActivityLogService activityLogService = Mockito.mock(ActivityLogService.class);
         ApplicationEventPublisher eventPublisher = Mockito.mock(ApplicationEventPublisher.class);
 
@@ -124,6 +130,87 @@ class InvoiceServiceTest {
         when(jewelryItemRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         // Used only by toResponse for the item name.
         when(jewelryItemRepository.findById(JEWELRY_ID)).thenReturn(Optional.of(jewelryItem));
+
+        // Stateful ledger repo.
+        when(ledgerEntryRepository.save(any()))
+                .thenAnswer(
+                        inv -> {
+                            LedgerEntry e = inv.getArgument(0);
+                            if (e.getId() == null) {
+                                e.setId((long) (ledger.size() + 1));
+                                ledger.add(e);
+                            }
+                            return e;
+                        });
+        when(ledgerEntryRepository.saveAll(any()))
+                .thenAnswer(inv -> inv.getArgument(0)); // entries are already in `ledger`
+        when(ledgerEntryRepository
+                        .findByStoreIdAndReferenceTypeAndReferenceIdAndActiveTrue(
+                                any(), any(), any()))
+                .thenAnswer(
+                        inv ->
+                                ledger.stream()
+                                        .filter(e -> Boolean.TRUE.equals(e.getActive()))
+                                        .filter(e -> e.getReferenceType().equals(inv.getArgument(1)))
+                                        .filter(e -> e.getReferenceId().equals(inv.getArgument(2)))
+                                        .toList());
+        when(ledgerEntryRepository
+                        .existsByStoreIdAndReferenceTypeAndReferenceIdAndActiveTrue(
+                                any(), any(), any()))
+                .thenAnswer(
+                        inv ->
+                                ledger.stream()
+                                        .filter(e -> Boolean.TRUE.equals(e.getActive()))
+                                        .filter(e -> e.getReferenceType().equals(inv.getArgument(1)))
+                                        .anyMatch(
+                                                e -> e.getReferenceId().equals(inv.getArgument(2))));
+    }
+
+    /** Seed the balanced sale entries a create would have posted (receivable DR + revenue CR). */
+    private void seedSaleLedger() {
+        ledger.add(
+                LedgerEntry.builder()
+                        .store(invoice.getStore())
+                        .type(LedgerEntry.LedgerType.DR)
+                        .amount(new BigDecimal("1000.00"))
+                        .referenceType("INVOICE")
+                        .referenceId("INV-1")
+                        .category("Receivable")
+                        .mode("CASH")
+                        .active(true)
+                        .build());
+        ledger.add(
+                LedgerEntry.builder()
+                        .store(invoice.getStore())
+                        .type(LedgerEntry.LedgerType.CR)
+                        .amount(new BigDecimal("1000.00"))
+                        .referenceType("INVOICE")
+                        .referenceId("INV-1")
+                        .category("Sales")
+                        .mode("CASH")
+                        .active(true)
+                        .build());
+    }
+
+    private BigDecimal activeNet() {
+        BigDecimal net = BigDecimal.ZERO;
+        for (LedgerEntry e : ledger) {
+            if (!Boolean.TRUE.equals(e.getActive())) {
+                continue;
+            }
+            net =
+                    e.getType() == LedgerEntry.LedgerType.CR
+                            ? net.add(e.getAmount())
+                            : net.subtract(e.getAmount());
+        }
+        return net;
+    }
+
+    private long activeReversals() {
+        return ledger.stream()
+                .filter(e -> Boolean.TRUE.equals(e.getActive()))
+                .filter(e -> "INVOICE_REVERSAL".equals(e.getReferenceType()))
+                .count();
     }
 
     @AfterEach
@@ -155,5 +242,34 @@ class InvoiceServiceTest {
 
         assertThat(jewelryItem.getQuantity()).isZero();
         assertThat(jewelryItem.getStatus()).isEqualTo(JewelryItem.ItemStatus.SOLD);
+    }
+
+    @Test
+    void cancellingPostsContraEntriesThatNetToZero() {
+        seedSaleLedger();
+        assertThat(activeNet()).isEqualByComparingTo("0.00"); // DR 1000 + CR 1000
+
+        service.updateStatus(INVOICE_ID, "CANCELLED");
+
+        assertThat(activeReversals()).isEqualTo(2); // one contra per sale entry
+        assertThat(activeNet()).isEqualByComparingTo("0.00"); // sale + reversal all net to zero
+    }
+
+    @Test
+    void cancellingTwiceDoesNotDoubleReverse() {
+        seedSaleLedger();
+        service.updateStatus(INVOICE_ID, "CANCELLED");
+        service.updateStatus(INVOICE_ID, "CANCELLED");
+
+        assertThat(activeReversals()).isEqualTo(2); // still 2, not 4
+    }
+
+    @Test
+    void reconfirmingDropsTheReversalEntries() {
+        seedSaleLedger();
+        service.updateStatus(INVOICE_ID, "CANCELLED");
+        service.updateStatus(INVOICE_ID, "CONFIRMED");
+
+        assertThat(activeReversals()).isZero(); // contras deactivated on un-cancel
     }
 }

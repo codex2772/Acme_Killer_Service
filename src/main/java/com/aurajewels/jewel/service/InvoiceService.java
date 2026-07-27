@@ -258,31 +258,16 @@ public class InvoiceService {
             adjustStock(invoice, -1);
         }
 
-        // Auto-create ledger entry for invoice sale
         String customerName =
                 customer.getFirstName()
                         + (customer.getLastName() != null ? " " + customer.getLastName() : "");
-        BigDecimal ledgerAmount =
-                invoice.getPaidAmount() != null
-                                && invoice.getPaidAmount().compareTo(BigDecimal.ZERO) > 0
-                        ? invoice.getPaidAmount()
-                        : invoice.getTotalAmount();
-        LedgerEntry ledgerEntry =
-                LedgerEntry.builder()
-                        .store(store)
-                        .entryDate(request.getDate() != null ? request.getDate() : LocalDate.now())
-                        .party(customerName)
-                        .type(LedgerEntry.LedgerType.CR)
-                        .amount(ledgerAmount)
-                        .mode(request.getPaymentMode() != null ? request.getPaymentMode() : "CASH")
-                        .note("Sale — " + invoiceNumber)
-                        .category("Sales")
-                        .referenceId(invoiceNumber)
-                        .referenceType("INVOICE")
-                        .createdBy(StoreContext.getCurrentUserId())
-                        .active(true)
-                        .build();
-        ledgerEntryRepository.save(ledgerEntry);
+
+        // Post the full, balanced accounting for a confirmed sale (receivable DR + revenue CR +
+        // a receipt CR for each payment already recorded). Gated on the same stock-commit rule so
+        // drafts post nothing.
+        if (commitsStock(invoice.getStatus())) {
+            postSaleAccounting(invoice);
+        }
 
         activityLogService.log(
                 "Created Invoice",
@@ -345,18 +330,163 @@ public class InvoiceService {
         invoice.setStatus(newStatus);
         invoiceRepository.save(invoice);
 
-        // Keep inventory in sync with the stock-commit state. Restoring on cancel and re-committing
-        // on un-cancel are driven purely by the transition, so repeat calls are idempotent (e.g.
-        // CANCELLED -> CANCELLED restores nothing).
+        // Keep inventory AND accounting in sync with the stock-commit state. Both are driven purely
+        // by the transition, so repeat calls are idempotent (e.g. CANCELLED -> CANCELLED is a no-op).
         boolean wasCommitted = commitsStock(oldStatus);
         boolean nowCommitted = commitsStock(newStatus);
         if (wasCommitted && !nowCommitted) {
             adjustStock(invoice, +1); // e.g. CONFIRMED -> CANCELLED: return stock
+            reverseInvoiceAccounting(invoice); // post contra entries
         } else if (!wasCommitted && nowCommitted) {
             adjustStock(invoice, -1); // e.g. DRAFT/CANCELLED -> CONFIRMED: commit stock
+            reinstateInvoiceAccounting(invoice); // drop any contras, or post fresh
         }
 
         return toResponse(invoice);
+    }
+
+    // ----- Ledger / accounting ------------------------------------------------
+
+    private static final String REF_INVOICE = "INVOICE";
+    private static final String REF_INVOICE_REVERSAL = "INVOICE_REVERSAL";
+    private static final String CATEGORY_RECEIVABLE = "Receivable";
+    private static final String CATEGORY_REVENUE = "Sales";
+    private static final String CATEGORY_RECEIPTS = "Receipts";
+
+    /**
+     * Post the balanced accounting for a confirmed sale: a receivable DR and a revenue CR for the
+     * invoice total, plus a receipt CR for every payment already recorded on the invoice.
+     */
+    private void postSaleAccounting(Invoice invoice) {
+        BigDecimal total =
+                invoice.getTotalAmount() != null ? invoice.getTotalAmount() : BigDecimal.ZERO;
+        LocalDate saleDate =
+                invoice.getInvoiceDate() != null ? invoice.getInvoiceDate() : LocalDate.now();
+        String mode = invoice.getPaymentMode() != null ? invoice.getPaymentMode().name() : "CASH";
+        String num = invoice.getInvoiceNumber();
+
+        ledgerEntryRepository.save(
+                buildLedger(
+                        invoice,
+                        saleDate,
+                        LedgerEntry.LedgerType.DR,
+                        total,
+                        mode,
+                        "Invoice " + num + " — receivable",
+                        CATEGORY_RECEIVABLE,
+                        REF_INVOICE));
+        ledgerEntryRepository.save(
+                buildLedger(
+                        invoice,
+                        saleDate,
+                        LedgerEntry.LedgerType.CR,
+                        total,
+                        mode,
+                        "Sale — " + num,
+                        CATEGORY_REVENUE,
+                        REF_INVOICE));
+        for (InvoicePayment payment : invoice.getPayments()) {
+            ledgerEntryRepository.save(
+                    buildLedger(
+                            invoice,
+                            payment.getPaymentDate() != null
+                                    ? payment.getPaymentDate()
+                                    : saleDate,
+                            LedgerEntry.LedgerType.CR,
+                            payment.getAmount(),
+                            payment.getMode() != null ? payment.getMode() : "CASH",
+                            "Payment for " + num,
+                            CATEGORY_RECEIPTS,
+                            REF_INVOICE));
+        }
+    }
+
+    /**
+     * Reverse a cancelled invoice's accounting by posting an opposite-type contra for every still
+     * active INVOICE entry. Idempotent: does nothing if a reversal already exists.
+     */
+    private void reverseInvoiceAccounting(Invoice invoice) {
+        Long storeId = invoice.getStore().getId();
+        String num = invoice.getInvoiceNumber();
+        if (ledgerEntryRepository.existsByStoreIdAndReferenceTypeAndReferenceIdAndActiveTrue(
+                storeId, REF_INVOICE_REVERSAL, num)) {
+            return; // already reversed
+        }
+        List<LedgerEntry> originals =
+                ledgerEntryRepository.findByStoreIdAndReferenceTypeAndReferenceIdAndActiveTrue(
+                        storeId, REF_INVOICE, num);
+        for (LedgerEntry original : originals) {
+            LedgerEntry.LedgerType opposite =
+                    original.getType() == LedgerEntry.LedgerType.CR
+                            ? LedgerEntry.LedgerType.DR
+                            : LedgerEntry.LedgerType.CR;
+            ledgerEntryRepository.save(
+                    buildLedger(
+                            invoice,
+                            LocalDate.now(),
+                            opposite,
+                            original.getAmount(),
+                            original.getMode(),
+                            "Reversal — cancelled " + num,
+                            original.getCategory(),
+                            REF_INVOICE_REVERSAL));
+        }
+    }
+
+    /**
+     * Re-activate a previously cancelled invoice's accounting: drop its contra entries if present,
+     * otherwise post a fresh sale set (e.g. a draft becoming confirmed). Idempotent.
+     */
+    private void reinstateInvoiceAccounting(Invoice invoice) {
+        Long storeId = invoice.getStore().getId();
+        String num = invoice.getInvoiceNumber();
+        List<LedgerEntry> reversals =
+                ledgerEntryRepository.findByStoreIdAndReferenceTypeAndReferenceIdAndActiveTrue(
+                        storeId, REF_INVOICE_REVERSAL, num);
+        if (!reversals.isEmpty()) {
+            reversals.forEach(entry -> entry.setActive(false));
+            ledgerEntryRepository.saveAll(reversals);
+            return;
+        }
+        boolean hasSaleEntries =
+                ledgerEntryRepository.existsByStoreIdAndReferenceTypeAndReferenceIdAndActiveTrue(
+                        storeId, REF_INVOICE, num);
+        if (!hasSaleEntries) {
+            postSaleAccounting(invoice);
+        }
+    }
+
+    private LedgerEntry buildLedger(
+            Invoice invoice,
+            LocalDate date,
+            LedgerEntry.LedgerType type,
+            BigDecimal amount,
+            String mode,
+            String note,
+            String category,
+            String referenceType) {
+        return LedgerEntry.builder()
+                .store(invoice.getStore())
+                .entryDate(date != null ? date : LocalDate.now())
+                .party(partyName(invoice.getCustomer()))
+                .type(type)
+                .amount(amount != null ? amount : BigDecimal.ZERO)
+                .mode(mode != null ? mode : "CASH")
+                .note(note)
+                .category(category)
+                .referenceId(invoice.getInvoiceNumber())
+                .referenceType(referenceType)
+                .createdBy(StoreContext.getCurrentUserId())
+                .active(true)
+                .build();
+    }
+
+    private static String partyName(Customer customer) {
+        if (customer == null) {
+            return "";
+        }
+        return customer.getFirstName()
+                + (customer.getLastName() != null ? " " + customer.getLastName() : "");
     }
 
     /** Whether an invoice in this status holds committed (deducted) stock. */
@@ -431,28 +561,17 @@ public class InvoiceService {
 
         invoiceRepository.save(invoice);
 
-        // Auto-create ledger entry for the payment
-        String customerName =
-                invoice.getCustomer().getFirstName()
-                        + (invoice.getCustomer().getLastName() != null
-                                ? " " + invoice.getCustomer().getLastName()
-                                : "");
-        LedgerEntry ledgerEntry =
-                LedgerEntry.builder()
-                        .store(store)
-                        .entryDate(LocalDate.now())
-                        .party(customerName)
-                        .type(LedgerEntry.LedgerType.CR)
-                        .amount(request.getAmount())
-                        .mode(request.getMode() != null ? request.getMode() : "CASH")
-                        .note("Payment for " + invoice.getInvoiceNumber())
-                        .category("Sales")
-                        .referenceId(invoice.getInvoiceNumber())
-                        .referenceType("INVOICE")
-                        .createdBy(StoreContext.getCurrentUserId())
-                        .active(true)
-                        .build();
-        ledgerEntryRepository.save(ledgerEntry);
+        // Post the receipt (cash-in) for this payment.
+        ledgerEntryRepository.save(
+                buildLedger(
+                        invoice,
+                        LocalDate.now(),
+                        LedgerEntry.LedgerType.CR,
+                        request.getAmount(),
+                        request.getMode() != null ? request.getMode() : "CASH",
+                        "Payment for " + invoice.getInvoiceNumber(),
+                        CATEGORY_RECEIPTS,
+                        REF_INVOICE));
 
         activityLogService.log(
                 "Payment Recorded",
