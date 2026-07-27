@@ -35,6 +35,9 @@ import lombok.Data;
 public class InvoiceItemRequest {
     private Long jewelryItemId;
     private String name;
+
+    /** Quantity sold for this line; defaults to 1 when omitted. */
+    private Integer quantity;
     private BigDecimal weight;
     private String purity;
     private BigDecimal rate;

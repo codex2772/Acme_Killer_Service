@@ -173,7 +173,10 @@ public class InvoiceService {
                                 .invoice(invoice)
                                 .store(store)
                                 .jewelryItemId(itemReq.getJewelryItemId())
-                                .quantity(1)
+                                .quantity(
+                                        itemReq.getQuantity() != null && itemReq.getQuantity() > 0
+                                                ? itemReq.getQuantity()
+                                                : 1)
                                 .metalRate(
                                         itemReq.getRate() != null
                                                 ? itemReq.getRate()
@@ -249,6 +252,11 @@ public class InvoiceService {
         }
 
         invoiceRepository.save(invoice);
+
+        // Commit stock for a confirmed sale: deduct each line's quantity from inventory.
+        if (commitsStock(invoice.getStatus())) {
+            adjustStock(invoice, -1);
+        }
 
         // Auto-create ledger entry for invoice sale
         String customerName =
@@ -332,9 +340,61 @@ public class InvoiceService {
                         .findByIdAndStoreId(id, storeId)
                         .orElseThrow(() -> new IllegalArgumentException("Invoice not found"));
 
-        invoice.setStatus(Invoice.InvoiceStatus.valueOf(status));
+        Invoice.InvoiceStatus oldStatus = invoice.getStatus();
+        Invoice.InvoiceStatus newStatus = Invoice.InvoiceStatus.valueOf(status);
+        invoice.setStatus(newStatus);
         invoiceRepository.save(invoice);
+
+        // Keep inventory in sync with the stock-commit state. Restoring on cancel and re-committing
+        // on un-cancel are driven purely by the transition, so repeat calls are idempotent (e.g.
+        // CANCELLED -> CANCELLED restores nothing).
+        boolean wasCommitted = commitsStock(oldStatus);
+        boolean nowCommitted = commitsStock(newStatus);
+        if (wasCommitted && !nowCommitted) {
+            adjustStock(invoice, +1); // e.g. CONFIRMED -> CANCELLED: return stock
+        } else if (!wasCommitted && nowCommitted) {
+            adjustStock(invoice, -1); // e.g. DRAFT/CANCELLED -> CONFIRMED: commit stock
+        }
+
         return toResponse(invoice);
+    }
+
+    /** Whether an invoice in this status holds committed (deducted) stock. */
+    private static boolean commitsStock(Invoice.InvoiceStatus status) {
+        return status == Invoice.InvoiceStatus.CONFIRMED;
+    }
+
+    /**
+     * Adjust inventory for every line of the invoice within the invoice's own store. {@code sign =
+     * -1} deducts the sold quantity (sale), {@code sign = +1} restores it (cancellation). Runs on
+     * the item's own store context and writes the item directly, so it never trips the cross-store
+     * metal-type/category guard on {@code JewelryItemService.update}.
+     */
+    private void adjustStock(Invoice invoice, int sign) {
+        Long storeId = invoice.getStore().getId();
+        for (InvoiceItem item : invoice.getItems()) {
+            if (item.getJewelryItemId() == null) {
+                continue;
+            }
+            jewelryItemRepository
+                    .findByIdAndStoreId(item.getJewelryItemId(), storeId)
+                    .ifPresent(
+                            jewelryItem -> {
+                                int qty = item.getQuantity() != null ? item.getQuantity() : 1;
+                                int current =
+                                        jewelryItem.getQuantity() != null
+                                                ? jewelryItem.getQuantity()
+                                                : 0;
+                                int updated = Math.max(0, current + sign * qty);
+                                jewelryItem.setQuantity(updated);
+                                if (updated == 0) {
+                                    jewelryItem.setStatus(JewelryItem.ItemStatus.SOLD);
+                                } else if (sign > 0) {
+                                    jewelryItem.setStatus(JewelryItem.ItemStatus.IN_STOCK);
+                                }
+                                jewelryItemRepository.save(jewelryItem);
+                            });
+        }
     }
 
     @Transactional
